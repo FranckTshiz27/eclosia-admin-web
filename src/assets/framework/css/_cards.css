@@ -1,0 +1,157 @@
+/* 
+ * FP-CORE-CSS: Premium Cards
+ * Système complet de conteneurs avec esthétique SaaS moderne.
+ */
+
+.fp-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: var(--fp-surface);
+    border: 1px solid var(--fp-border);
+    border-radius: var(--fp-radius);
+    box-shadow: var(--fp-shadow-sm);
+    color: var(--fp-text);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Card Structure */
+.fp-card-header {
+    padding: var(--fp-space-md) var(--fp-space-lg);
+    background-color: transparent;
+    border-bottom: 1px solid var(--fp-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.fp-card-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--fp-text);
+}
+
+.fp-card-body {
+    flex: 1 1 auto;
+    padding: var(--fp-space-lg);
+}
+
+.fp-card-footer {
+    padding: var(--fp-space-md) var(--fp-space-lg);
+    background-color: rgba(0, 0, 0, 0.01);
+    border-top: 1px solid var(--fp-border);
+}
+
+/* Premium Variants */
+.fp-card-raised {
+    box-shadow: var(--fp-shadow-md);
+}
+
+.fp-card-elevated {
+    box-shadow: var(--fp-shadow-lg);
+}
+
+.fp-card-hover:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--fp-shadow-xl);
+    border-color: rgba(var(--fp-primary-rgb), 0.3);
+}
+
+/* Glassmorphism */
+.fp-card-glass {
+    background: var(--fp-glass-bg);
+    backdrop-filter: blur(var(--fp-glass-blur));
+    -webkit-backdrop-filter: blur(var(--fp-glass-blur));
+    border: 1px solid var(--fp-glass-border);
+}
+
+/* Color Accents */
+.fp-card-accent-primary { border-top: 4px solid var(--fp-primary); }
+.fp-card-accent-success { border-top: 4px solid var(--fp-success); }
+.fp-card-accent-warning { border-top: 4px solid var(--fp-warning); }
+.fp-card-accent-danger { border-top: 4px solid var(--fp-danger); }
+
+/* Dashboard Stat Cards (Premium SaaS) */
+.fp-stat-card {
+    padding: var(--fp-space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--fp-space-sm);
+    position: relative;
+}
+
+.fp-stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.fp-stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--fp-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+.fp-stat-card:hover .fp-stat-icon {
+    transform: scale(1.1);
+}
+
+.fp-stat-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fp-text-muted);
+    letter-spacing: 0.02em;
+}
+
+.fp-stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--fp-text);
+    margin: 4px 0;
+}
+
+.fp-stat-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.fp-stat-trend {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.fp-stat-trend-up {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: var(--fp-success);
+}
+
+.fp-stat-trend-down {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--fp-danger);
+}
+
+/* Stat Card Variants */
+.fp-stat-primary .fp-stat-icon { background: rgba(0, 132, 255, 0.1); color: var(--fp-primary); }
+.fp-stat-success .fp-stat-icon { background: rgba(34, 197, 94, 0.1); color: var(--fp-success); }
+.fp-stat-warning .fp-stat-icon { background: rgba(234, 179, 8, 0.1); color: var(--fp-warning); }
+.fp-stat-danger .fp-stat-icon { background: rgba(239, 68, 68, 0.1); color: var(--fp-danger); }
+
+/* Card Body Variants */
+.fp-card-flush .fp-card-body { padding: 0; }

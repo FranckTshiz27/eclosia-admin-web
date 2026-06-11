@@ -1,0 +1,106 @@
+.cursus-container {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 30px;
+    margin-top: 20px;
+}
+
+.cursus-form-section {
+    margin-bottom: 40px;
+}
+
+.form-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 30px;
+}
+
+.btn-save {
+    background: white;
+    border: 1px solid var(--sidebar-bg);
+    color: var(--sidebar-bg);
+    padding: 10px 30px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-save:hover {
+    background: var(--sidebar-bg);
+    color: white;
+}
+
+.cursus-form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.form-group input, 
+.form-group select {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    background-color: #fdfdfd;
+}
+
+.form-group input:focus, 
+.form-group select:focus {
+    border-color: var(--sidebar-bg);
+}
+
+.divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 40px 0;
+}
+
+.cursus-table-section {
+    overflow-x: auto;
+}
+
+.cursus-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.cursus-table th {
+    text-align: left;
+    padding: 15px 10px;
+    border-bottom: 2px solid #333;
+    font-weight: 800;
+    color: #000;
+    text-transform: uppercase;
+}
+
+.cursus-table td {
+    padding: 15px 10px;
+    border-bottom: 1px solid var(--border-color);
+    color: #333;
+}
+
+.cursus-table tr.active-row {
+    background-color: #E8E8E8;
+}
+
+.cursus-table tr:hover {
+    background-color: #f9f9f9;
+}

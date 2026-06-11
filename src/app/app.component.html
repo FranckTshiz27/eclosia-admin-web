@@ -1,0 +1,16 @@
+<div class="app-container" [class.sidebar-collapsed]="isSidebarCollapsed" [class.no-layout]="!showLayout">
+  <app-sidebar *ngIf="showLayout"></app-sidebar>
+  
+  <!-- Mobile Backdrop -->
+  <div class="mobile-backdrop" 
+       *ngIf="showLayout && !isSidebarCollapsed" 
+       (click)="closeSidebar()">
+  </div>
+
+  <main [class.main-content]="showLayout" [class.full-content]="!showLayout">
+    <app-header *ngIf="showLayout"></app-header>
+    <div [class.router-wrapper]="showLayout">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

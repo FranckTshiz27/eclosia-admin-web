@@ -1,0 +1,109 @@
+<!-- 
+  UI LIBRARY: CARDS 
+  Usage: Wrap your content in these structures.
+-->
+
+<!-- 1. Basic Content Card -->
+<div class="card">
+    <div class="card-header">
+        <h3>Titre de la Carte</h3>
+        <p>Description ou sous-titre de la carte.</p>
+    </div>
+    <div class="card-body">
+        Contenu de votre carte ici...
+    </div>
+</div>
+
+<!-- 2. Stat Card (Dashboard Style) -->
+<div class="stat-card">
+    <div class="stat-icon-wrap blue">
+        <i class="bi bi-people-fill"></i>
+    </div>
+    <div class="stat-info">
+        <span class="stat-label">Total Agents</span>
+        <span class="stat-value">12,450</span>
+    </div>
+</div>
+
+<!-- 3. Interactive/Action Card -->
+<div class="action-card">
+    <i class="bi bi-shield-lock"></i>
+    <h4>Sécurité & Accès</h4>
+    <span>Gérer les rôles et permissions</span>
+</div>
+
+<!-- CSS FOR CARDS -->
+<style>
+/* Base Card */
+.card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+.card-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: var(--text-dark);
+}
+.card-header p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+}
+.card-body {
+    margin-top: 20px;
+}
+
+/* Stat Card */
+.stat-card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.stat-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+.stat-icon-wrap.blue { background: var(--bg-light); color: var(--primary-blue); }
+.stat-info { display: flex; flex-direction: column; }
+.stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+.stat-value { font-size: 18px; font-weight: 700; color: var(--text-dark); }
+
+/* Action Card */
+.action-card {
+    background: var(--white);
+    padding: 25px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.action-card:hover {
+    border-color: var(--primary-blue);
+    background: rgba(0, 132, 255, 0.02);
+    transform: translateY(-4px);
+}
+.action-card i { font-size: 32px; color: var(--primary-blue); margin-bottom: 15px; display: block; }
+.action-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 5px; color: var(--text-dark); }
+.action-card span { font-size: 12px; color: var(--text-muted); }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card, .stat-card, .action-card {
+        padding: 15px;
+    }
+}
+</style>

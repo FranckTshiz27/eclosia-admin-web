@@ -1,0 +1,90 @@
+/* 
+ * FP-CORE-CSS: Navigation
+ * Styles pour Navbar, Tabs, Breadcrumbs et Pagination.
+ */
+
+/* Navbar */
+.fp-navbar {
+    display: flex;
+    align-items: center;
+    padding: var(--fp-space-sm) var(--fp-space-md);
+    background-color: var(--fp-surface);
+    border-bottom: 1px solid var(--fp-border);
+}
+
+.fp-navbar-brand {
+    font-size: 1.25rem;
+    font-weight: var(--fp-font-weight-bold);
+    color: var(--fp-primary);
+    margin-right: var(--fp-space-lg);
+}
+
+/* Breadcrumbs (Moved & Enhanced) */
+.fp-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 0;
+    margin-bottom: var(--fp-space-md);
+    list-style: none;
+    font-size: 13px;
+}
+
+.fp-breadcrumb-item + .fp-breadcrumb-item::before {
+    content: "/";
+    padding: 0 8px;
+    color: var(--fp-text-muted);
+}
+
+.fp-breadcrumb-item a { color: var(--fp-primary); text-decoration: none; }
+.fp-breadcrumb-item.active { color: var(--fp-text-muted); }
+
+/* Tabs */
+.fp-nav-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--fp-border);
+    list-style: none;
+    margin-bottom: var(--fp-space-md);
+}
+
+.fp-nav-link {
+    padding: 10px 16px;
+    color: var(--fp-text-muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.fp-nav-link:hover { color: var(--fp-primary); }
+.fp-nav-link.active {
+    color: var(--fp-primary);
+    border-bottom-color: var(--fp-primary);
+    font-weight: var(--fp-font-weight-bold);
+}
+
+/* Pagination */
+.fp-pagination {
+    display: flex;
+    list-style: none;
+    gap: 4px;
+}
+
+.fp-page-item a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--fp-border);
+    border-radius: var(--fp-radius);
+    color: var(--fp-text);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.fp-page-item.active a {
+    background-color: var(--fp-primary);
+    color: white;
+    border-color: var(--fp-primary);
+}
+
+.fp-page-item:hover:not(.active) a { background-color: rgba(0,0,0,0.05); }

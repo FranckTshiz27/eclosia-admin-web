@@ -1,0 +1,101 @@
+/* 
+ * FP-CORE-CSS: Advanced Media
+ * Styles pour images, vidéos, ratios et figures.
+ */
+
+/* Fluid Images */
+.fp-img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Image Shapes */
+.fp-img-rounded {
+    border-radius: var(--fp-radius);
+}
+
+.fp-img-circle {
+    border-radius: 50%;
+}
+
+.fp-img-thumbnail {
+    padding: 4px;
+    background-color: var(--fp-surface);
+    border: 1px solid var(--fp-border);
+    border-radius: var(--fp-radius);
+}
+
+/* Aspect Ratios */
+.fp-ratio {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.fp-ratio::before {
+    display: block;
+    content: "";
+}
+
+.fp-ratio-1x1::before { padding-top: 100%; }
+.fp-ratio-4x3::before { padding-top: 75%; }
+.fp-ratio-16x9::before { padding-top: 56.25%; }
+.fp-ratio-21x9::before { padding-top: 42.85%; }
+
+.fp-ratio > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Object Fit Utilities */
+.fp-object-cover { object-fit: cover; }
+.fp-object-contain { object-fit: contain; }
+.fp-object-fill { object-fit: fill; }
+
+/* Responsive Video Container */
+.fp-video-container {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+}
+
+.fp-video-container iframe,
+.fp-video-container video {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: var(--fp-radius);
+}
+
+/* Figures & Captions */
+.fp-figure {
+    display: block;
+    margin-bottom: var(--fp-space-md);
+}
+
+.fp-figcaption {
+    padding-top: var(--fp-space-xs);
+    font-size: 13px;
+    color: var(--fp-text-muted);
+    text-align: center;
+}
+
+/* Hover Effects */
+.fp-img-zoom {
+    transition: transform 0.3s ease;
+}
+
+.fp-img-zoom:hover {
+    transform: scale(1.05);
+}
+
+.fp-img-grayscale {
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
+}
+
+.fp-img-grayscale:hover {
+    filter: grayscale(0%);
+}

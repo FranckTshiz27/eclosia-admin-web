@@ -1,0 +1,77 @@
+<div class="page-container">
+    <!-- Navigation Tabs removed -->
+    <div class="tabs-row">
+        <div class="action-btn-container">
+            <a routerLink="/agents" class="btn-outline" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 38px; padding: 0 15px;">Retour à l'agent</a>
+        </div>
+    </div>
+
+    <div class="remuneration-container">
+        <div class="remuneration-form-section">
+            <div class="form-header">
+                <button class="btn-save">Enregistrer</button>
+            </div>
+            <div class="remuneration-form-grid">
+                <div class="form-group">
+                    <label>Type de rémunération</label>
+                    <select>
+                        <option>Kinshasa</option>
+                        <option>Province</option>
+                        <option>Etranger</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Montant</label>
+                    <input type="text" placeholder="Entrer le montant">
+                </div>
+                <div class="form-group">
+                    <label>Devise</label>
+                    <select>
+                        <option>CDF</option>
+                        <option>USD</option>
+                        <option>EUR</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date d'application</label>
+                    <input type="text" placeholder="Date d'application">
+                </div>
+            </div>
+            <div class="file-upload-section">
+                <label class="form-group label">Document justificatif</label>
+                <div class="file-input-wrapper">
+                    <div class="file-path-display">Choisir un fichier</div>
+                    <button class="btn-file-action">Parcourir</button>
+                    <button class="btn-file-action">Télécharger</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="remuneration-table-section">
+            <table class="remuneration-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Type</th>
+                        <th>Montant</th>
+                        <th>Devise</th>
+                        <th>Date d'application</th>
+                        <th>Document</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Kinshasa</td>
+                        <td>FP</td>
+                        <td>Infrastructure</td>
+                        <td>Dev.App</td>
+                        <td><i class="bi bi-folder-fill folder-icon"></i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

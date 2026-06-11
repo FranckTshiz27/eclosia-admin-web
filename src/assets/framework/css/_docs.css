@@ -1,0 +1,45 @@
+/* 
+ * FP-CORE-CSS: Documentation Specifics
+ * Styles réservés à la page de documentation (Code blocks, Live previews).
+ */
+
+/* Code Snippets */
+.fp-code-block {
+    position: relative;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    padding: var(--fp-space-md);
+    border-radius: var(--fp-radius);
+    margin: var(--fp-space-md) 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+}
+
+.fp-code-lang {
+    position: absolute;
+    top: 0; right: 0;
+    background: #333;
+    padding: 2px 8px;
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #aaa;
+    border-bottom-left-radius: var(--fp-radius);
+}
+
+/* Live Preview Box */
+.fp-example {
+    border: 1px solid var(--fp-border);
+    border-bottom: none;
+    border-top-left-radius: var(--fp-radius);
+    border-top-right-radius: var(--fp-radius);
+    padding: var(--fp-space-lg);
+    background-color: var(--fp-surface);
+}
+
+.fp-example + .fp-code-block {
+    margin-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}

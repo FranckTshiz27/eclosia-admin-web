@@ -1,0 +1,113 @@
+<!-- 
+  UI LIBRARY: TABS 
+  Usage: A simple tabbed navigation for content sections.
+-->
+
+<div class="tabs-wrapper">
+    <!-- Tabs Header -->
+    <div class="tabs-nav-container">
+        <ul class="tabs-nav">
+            <li class="tab-item active">Informations Générales</li>
+            <li class="tab-item">Cursus & Diplômes</li>
+            <li class="tab-item">Carrière</li>
+            <li class="tab-item">Rémunération</li>
+        </ul>
+    </div>
+
+    <!-- Active Content Area -->
+    <div class="tabs-content">
+        <!-- Content for the active tab goes here -->
+        <div class="tab-pane active fade-in">
+            <h4>Contenu de l'onglet</h4>
+            <p>Ajoutez ici le contenu spécifique à l'onglet sélectionné.</p>
+        </div>
+    </div>
+</div>
+
+<!-- CSS FOR TABS -->
+<style>
+.tabs-wrapper {
+    width: 100%;
+}
+
+.tabs-nav-container {
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 25px;
+    overflow-x: auto; /* Scroll on mobile */
+}
+
+.tabs-nav {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tab-item {
+    padding: 12px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.tab-item:hover {
+    color: var(--primary-blue);
+}
+
+.tab-item.active {
+    color: var(--primary-blue);
+}
+
+.tab-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-blue);
+}
+
+.tabs-content {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.tab-pane h4 {
+    color: var(--text-dark);
+    margin-bottom: 10px;
+}
+
+.tab-pane p {
+    color: var(--text-muted);
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tabs-nav-container {
+        scrollbar-width: none; /* Hide scrollbar Firefox */
+    }
+    .tabs-nav-container::-webkit-scrollbar {
+        display: none; /* Hide scrollbar Chrome/Safari */
+    }
+    .tab-item {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+}
+</style>

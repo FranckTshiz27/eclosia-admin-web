@@ -1,0 +1,212 @@
+<div class="dialog-wrapper">
+  <!-- Header -->
+  <div class="dialog-header">
+    <div class="agent-header-info">
+      <div class="avatar-circle">
+        <i class="bi bi-person"></i>
+      </div>
+      <div class="header-text">
+        <h2 class="agent-name">{{ agent.prenom }} {{ agent.nom }} {{ agent.postnom }}</h2>
+        <div class="header-badges">
+          <span class="badge badge-matricule">{{ agent.matricule }}</span>
+          <span class="badge badge-grade">{{ agent.grade }}</span>
+          <span class="badge badge-service">{{ agent.service }}</span>
+        </div>
+      </div>
+    </div>
+    <button class="close-btn" (click)="close()">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+
+  <!-- Body scrollable -->
+  <mat-dialog-content class="dialog-body">
+
+    <div class="profile-layout">
+        <!-- Top Row: Photo, Details, and Cards in line -->
+        <div class="profile-top-row">
+            <div class="profile-photo-side">
+                <div class="image-box">
+                    <svg viewBox="0 0 24 24" width="120" height="120" fill="#000">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="profile-details-side">
+                <div class="details-list">
+                    <div class="detail-item">
+                        <span class="lbl">Prénom</span>
+                        <span class="val">{{ agent.prenom }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="lbl">Nom & Postnom</span>
+                        <span class="val">{{ agent.nom }} {{ agent.postnom }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="lbl">Matricule</span>
+                        <span class="val">{{ agent.matricule }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="lbl">Sexe : {{ agent.sexe }}</span>
+                        <span class="val">Etat civil : {{ agent.etatCivil }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="val">Né à {{ agent.lieuNaissance }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="val">le {{ agent.dateNaissance }}</span>
+                    </div>
+                    <div class="detail-item mt-10">
+                        <span class="lbl">Commune</span>
+                        <span class="val">{{ agent.commune }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="lbl">Adresse</span>
+                        <span class="val">{{ agent.adresse }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="lbl">Email</span>
+                        <span class="val">{{ agent.email }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="lbl">Tel 1</span>
+                        <span class="val">{{ agent.tel1 }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="agent.tel2">
+                        <span class="lbl">Tel 2</span>
+                        <span class="val">{{ agent.tel2 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-cards-side">
+                <div class="info-card">
+                    <h3>Fichiers administratifs</h3>
+                    <div class="info-card-body">
+                        <div class="icon-side">
+                            <div class="folder-svg">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="#FFC107">
+                                    <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-side">
+                            <div class="stat">
+                                <span class="stat-label">Dossiers disponibles</span>
+                                <span class="stat-val">-</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Fonctionnaire depuis :</span>
+                                <span class="stat-val">{{ agent.dateEntree }}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Ancienneté :</span>
+                                <span class="stat-val">{{ agent.anciennete }} de service</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <h3>Evolution de carrière</h3>
+                    <div class="info-card-body">
+                        <div class="text-side no-icon">
+                            <div class="stat">
+                                <span class="stat-label">Nombre des promotions :</span>
+                                <span class="stat-val">{{ agent.nombrePromotions | number:'2.0' }}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Ancienneté :</span>
+                                <span class="stat-val">{{ agent.anciennete }} de service</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row: QR and Family Table -->
+        <div class="profile-bottom-row">
+            <div class="qr-code-box">
+                <svg viewBox="0 0 24 24" width="80" height="80">
+                    <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v2h-3v-2zm-3 0h2v2h-2v-2zm3 3h3v2h-3v-2zm-3 0h2v2h-2v-2zm3 3h3v2h-3v-2zm-3 0h2v2h-2v-2zm-3-3h2v2h-2v-2zm0 3h2v2h-2v-2zm3-6h2v2h-2v-2z" fill="#000"/>
+                </svg>
+            </div>
+            <div class="family-block">
+                <h3>Composition familliale</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nom</th>
+                                <th>Post nom</th>
+                                <th>Prénom</th>
+                                <th>Date de naissance</th>
+                                <th>Degre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Extra Sections -->
+        <div class="extra-sections-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+            <div class="info-card">
+                <h3><i class="bi bi-mortarboard" style="margin-right: 8px;"></i> Cursus Académique</h3>
+                <div class="info-card-body">
+                    <div class="text-side no-icon">
+                        <div class="stat">
+                            <span class="stat-label">Etablissement</span>
+                            <span class="stat-val">{{ agent.cursusEtablissement || '-' }}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Niveau d'étude</span>
+                            <span class="stat-val">{{ agent.cursusNiveau || '-' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-card">
+                <h3><i class="bi bi-cash-stack" style="margin-right: 8px;"></i> Rémunération</h3>
+                <div class="info-card-body">
+                    <div class="text-side no-icon">
+                        <div class="stat">
+                            <span class="stat-label">Type</span>
+                            <span class="stat-val">{{ agent.remunerationType || '-' }}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Montant</span>
+                            <span class="stat-val">{{ agent.remunerationMontant || '-' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  </mat-dialog-content>
+
+  <!-- Footer -->
+  <mat-dialog-actions class="dialog-footer">
+    <button class="btn-custom btn-fermer" (click)="close()">
+      <i class="bi bi-x"></i>
+      Fermer
+    </button>
+    <button class="btn-custom btn-print" onclick="window.print()">
+      <i class="bi bi-printer"></i>
+      Imprimer la fiche
+    </button>
+  </mat-dialog-actions>
+</div>

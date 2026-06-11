@@ -1,0 +1,111 @@
+/* 
+ * FP-CORE-CSS: Utility Classes
+ * Contient les aides pour les marges, le padding, l'alignement du texte, etc.
+ */
+
+/* Spacing Helpers (fp-m-0 to fp-m-5, fp-p-0 to fp-p-5) */
+.fp-m-0 { margin: 0 !important; }
+.fp-m-1 { margin: var(--fp-space-xs) !important; }
+.fp-m-2 { margin: var(--fp-space-sm) !important; }
+.fp-m-3 { margin: var(--fp-space-md) !important; }
+.fp-m-4 { margin: var(--fp-space-lg) !important; }
+.fp-m-5 { margin: var(--fp-space-xl) !important; }
+
+.fp-mt-1 { margin-top: var(--fp-space-xs) !important; }
+.fp-mt-2 { margin-top: var(--fp-space-sm) !important; }
+.fp-mt-3 { margin-top: var(--fp-space-md) !important; }
+.fp-mt-4 { margin-top: var(--fp-space-lg) !important; }
+.fp-mb-1 { margin-bottom: var(--fp-space-xs) !important; }
+.fp-mb-2 { margin-bottom: var(--fp-space-sm) !important; }
+.fp-mb-3 { margin-bottom: var(--fp-space-md) !important; }
+.fp-mb-4 { margin-bottom: var(--fp-space-lg) !important; }
+
+.fp-p-0 { padding: 0 !important; }
+.fp-p-1 { padding: var(--fp-space-xs) !important; }
+.fp-p-2 { padding: var(--fp-space-sm) !important; }
+.fp-p-3 { padding: var(--fp-space-md) !important; }
+.fp-p-4 { padding: var(--fp-space-lg) !important; }
+.fp-p-5 { padding: var(--fp-space-xl) !important; }
+
+/* Text Utilities */
+.fp-text-center { text-align: center !important; }
+.fp-text-right { text-align: right !important; }
+.fp-text-left { text-align: left !important; }
+
+.fp-text-primary { color: var(--fp-primary) !important; }
+.fp-text-muted { color: var(--fp-text-muted) !important; }
+.fp-text-white { color: white !important; }
+
+.fp-text-bold { font-weight: var(--fp-font-weight-bold) !important; }
+.fp-text-medium { font-weight: var(--fp-font-weight-medium) !important; }
+.fp-text-sm { font-size: 12px !important; }
+.fp-text-lg { font-size: 18px !important; }
+.fp-text-xl { font-size: 24px !important; }
+
+.fp-text-uppercase { text-transform: uppercase !important; }
+
+/* Visibility */
+.fp-d-none { display: none !important; }
+.fp-d-block { display: block !important; }
+.fp-d-flex { display: flex !important; }
+
+/* Responsive Visibility */
+@media (max-width: 576px) { .fp-d-sm-none { display: none !important; } }
+@media (min-width: 577px) { .fp-d-sm-block { display: block !important; } }
+
+@media (max-width: 768px) { .fp-d-md-none { display: none !important; } }
+@media (min-width: 769px) { .fp-d-md-block { display: block !important; } }
+
+@media (max-width: 992px) { .fp-d-lg-none { display: none !important; } }
+@media (min-width: 993px) { .fp-d-lg-block { display: block !important; } }
+
+.fp-w-100 { width: 100% !important; }
+.fp-h-100 { height: 100% !important; }
+
+/* Background Utilities */
+.fp-bg-primary { background-color: var(--fp-primary) !important; color: white !important; }
+.fp-bg-secondary { background-color: var(--fp-secondary) !important; color: white !important; }
+.fp-bg-success { background-color: var(--fp-success) !important; color: white !important; }
+.fp-bg-warning { background-color: var(--fp-warning) !important; color: #1a1a1a !important; }
+.fp-bg-danger { background-color: var(--fp-danger) !important; color: white !important; }
+.fp-bg-info { background-color: var(--fp-info) !important; color: white !important; }
+.fp-bg-surface { background-color: var(--fp-surface) !important; }
+.fp-bg-transparent { background-color: transparent !important; }
+.fp-bg-white { background-color: white !important; color: #1a1a1a !important; }
+.fp-bg-dark { background-color: #1a1a1a !important; color: white !important; }
+.fp-bg-light { background-color: #f8f9fa !important; color: #1a1a1a !important; }
+
+/* Soft Backgrounds (Modern) */
+.fp-bg-soft-primary { background-color: rgba(0, 132, 255, 0.1) !important; color: var(--fp-primary) !important; }
+.fp-bg-soft-secondary { background-color: rgba(100, 116, 139, 0.1) !important; color: var(--fp-secondary) !important; }
+.fp-bg-soft-success { background-color: rgba(16, 185, 129, 0.1) !important; color: var(--fp-success) !important; }
+.fp-bg-soft-danger { background-color: rgba(239, 68, 68, 0.1) !important; color: var(--fp-danger) !important; }
+.fp-bg-soft-warning { background-color: rgba(245, 158, 11, 0.1) !important; color: var(--fp-warning) !important; }
+.fp-bg-soft-info { background-color: rgba(59, 130, 246, 0.1) !important; color: var(--fp-info) !important; }
+
+/* Shadow Utilities */
+.fp-shadow-none { box-shadow: none !important; }
+.fp-shadow-sm { box-shadow: var(--fp-shadow-sm) !important; }
+.fp-shadow-md { box-shadow: var(--fp-shadow-md) !important; }
+.fp-shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; }
+
+/* Rounding Utilities */
+.fp-rounded-0 { border-radius: 0 !important; }
+.fp-rounded-sm { border-radius: 2px !important; }
+.fp-rounded { border-radius: var(--fp-radius) !important; }
+.fp-rounded-lg { border-radius: 12px !important; }
+.fp-rounded-full { border-radius: 9999px !important; }
+
+/* Object Fit */
+.fp-obj-cover { object-fit: cover !important; }
+.fp-obj-contain { object-fit: contain !important; }
+
+/* Cursor */
+.fp-cursor-pointer { cursor: pointer !important; }
+.fp-pe-none { pointer-events: none !important; }
+
+/* Extra Utilities for Docs */
+.fp-px-4 { padding-left: var(--fp-space-lg) !important; padding-right: var(--fp-space-lg) !important; }
+.fp-py-4 { padding-top: var(--fp-space-lg) !important; padding-bottom: var(--fp-space-lg) !important; }
+.fp-border-top { border-top: 1px solid var(--fp-border) !important; }
+.fp-border-bottom { border-bottom: 1px solid var(--fp-border) !important; }

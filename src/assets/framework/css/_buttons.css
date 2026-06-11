@@ -1,0 +1,70 @@
+/* 
+ * FP-CORE-CSS: Advanced Buttons
+ * Système complet de boutons inspiré de Bootstrap/Tailwind.
+ */
+
+.fp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: var(--fp-font-weight-medium);
+    border-radius: var(--fp-radius);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    gap: var(--fp-space-sm);
+    text-decoration: none;
+    line-height: 1.5;
+    user-select: none;
+    outline: none;
+}
+
+.fp-btn:hover { transform: translateY(-1px); }
+.fp-btn:active { transform: translateY(0) scale(0.98); }
+.fp-btn:focus-visible { box-shadow: 0 0 0 3px rgba(0, 132, 255, 0.2); }
+
+/* Solid Variants */
+.fp-btn-primary { background-color: var(--fp-primary); color: white; }
+.fp-btn-primary:hover { background-color: #0072db; }
+
+.fp-btn-secondary { background-color: var(--fp-secondary); color: white; }
+.fp-btn-secondary:hover { background-color: #00a3e0; }
+
+.fp-btn-success { background-color: var(--fp-success); color: white; }
+.fp-btn-success:hover { background-color: #1ea34d; }
+
+.fp-btn-danger { background-color: var(--fp-danger); color: white; }
+.fp-btn-danger:hover { background-color: #dc2626; }
+
+.fp-btn-warning { background-color: var(--fp-warning); color: white; }
+.fp-btn-warning:hover { background-color: #d9a306; }
+
+/* Outline Variants */
+.fp-btn-outline-primary { border-color: var(--fp-primary); color: var(--fp-primary); background: transparent; }
+.fp-btn-outline-primary:hover { background: var(--fp-primary); color: white; }
+
+.fp-btn-outline-secondary { border-color: var(--fp-secondary); color: var(--fp-secondary); background: transparent; }
+.fp-btn-outline-secondary:hover { background: var(--fp-secondary); color: white; }
+
+.fp-btn-outline-danger { border-color: var(--fp-danger); color: var(--fp-danger); background: transparent; }
+.fp-btn-outline-danger:hover { background: var(--fp-danger); color: white; }
+
+/* Ghost & Link */
+.fp-btn-ghost { background: transparent; color: var(--fp-text); }
+.fp-btn-ghost:hover { background: rgba(0,0,0,0.05); }
+[data-theme='dark'] .fp-btn-ghost:hover { background: rgba(255,255,255,0.05); }
+
+.fp-btn-link { background: transparent; color: var(--fp-primary); text-decoration: underline; padding: 0; border: none; }
+.fp-btn-link:hover { color: #0072db; transform: none; }
+
+/* Effects & Shapes */
+.fp-btn-pill { border-radius: 9999px; }
+.fp-btn-shadow { box-shadow: var(--fp-shadow-md); }
+.fp-btn-shadow:hover { box-shadow: var(--fp-shadow-lg); }
+
+/* Sizes */
+.fp-btn-sm { padding: 6px 12px; font-size: 12px; }
+.fp-btn-lg { padding: 14px 28px; font-size: 16px; }
+.fp-btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 50%; }

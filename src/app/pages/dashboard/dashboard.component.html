@@ -1,0 +1,512 @@
+<div class="page-container dashboard-page">
+    <div class="dashboard-grid">
+        <div class="stat-card">
+            <div class="stat-icon blue-bg">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Total Agents</h3>
+                <div class="stat-value">12,450</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green-bg">
+                <i class="bi bi-person-check-fill"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Agents Actifs</h3>
+                <div class="stat-value">11,200</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orange-bg">
+                <i class="bi bi-mortarboard-fill"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Nouveaux Diplômés</h3>
+                <div class="stat-value">450</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon red-bg">
+                <i class="bi bi-award"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Promotions (2026)</h3>
+                <div class="stat-value">1,200</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-2-cols mt-20">
+        <!-- Column 1: Effectifs & Activités (Left) -->
+        <div class="dashboard-col-left">
+            <div class="dashboard-card main-chart-card">
+                <h2>
+                    Évolution des Effectifs
+                    <div class="card-header-actions">
+                        <select class="chart-filter">
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                        </select>
+                        <select class="chart-filter">
+                            <option value="all">Tout l'année</option>
+                            <option value="s1">1er Semestre</option>
+                            <option value="s2">2ème Semestre</option>
+                            <option value="q1">T1</option>
+                            <option value="q2">T2</option>
+                            <option value="q3">T3</option>
+                            <option value="q4">T4</option>
+                        </select>
+                        <span class="bi bi-three-dots-vertical" style="font-size: 14px; color: #999; cursor: pointer;"></span>
+                    </div>
+                </h2>
+                <div class="chart-placeholder">
+                    <div class="bar" style="height: 40%;" data-label="Jan" data-value="4,980"></div>
+                    <div class="bar" style="height: 55%;" data-label="Fev" data-value="6,850"></div>
+                    <div class="bar" style="height: 70%;" data-label="Mar" data-value="8,720"></div>
+                    <div class="bar" style="height: 65%;" data-label="Avr" data-value="8,100"></div>
+                    <div class="bar" style="height: 85%;" data-label="Mai" data-value="10,580"></div>
+                    <div class="bar" style="height: 95%;" data-label="Juin" data-value="11,850"></div>
+                    <div class="bar" style="height: 80%;" data-label="Juil" data-value="9,960"></div>
+                    <div class="bar" style="height: 75%;" data-label="Août" data-value="9,340"></div>
+                    <div class="bar" style="height: 60%;" data-label="Sept" data-value="7,470"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-card mt-20">
+                <h2>Répartition des Effectifs par Direction</h2>
+                <div class="direction-stats">
+                    <div class="direction-item">
+                        <div class="direction-info">
+                            <span>Secrétariat Général</span>
+                            <span>2,450 agents</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill blue-fill" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                    <div class="direction-item">
+                        <div class="direction-info">
+                            <span>Ressources Humaines</span>
+                            <span>1,200 agents</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill green-fill" style="width: 65%;"></div>
+                        </div>
+                    </div>
+                    <div class="direction-item">
+                        <div class="direction-info">
+                            <span>Finances & Budget</span>
+                            <span>850 agents</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill orange-fill" style="width: 45%;"></div>
+                        </div>
+                    </div>
+                    <div class="direction-item">
+                        <div class="direction-info">
+                            <span>Informatique</span>
+                            <span>450 agents</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill red-fill" style="width: 30%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Distribution par Province -->
+            <div class="dashboard-card mt-20">
+                <h2>
+                    Répartition Géographique (Provinces RDC)
+                    <div class="card-header-actions">
+                        <span class="bi bi-geo-alt-fill text-primary" style="font-size: 14px;"></span>
+                    </div>
+                </h2>
+                <div class="provinces-list scrollable">
+                    <div class="province-item">
+                        <div class="province-info"><span>Kinshasa</span><span class="province-val">4,250 (34%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill blue-fill" style="width: 34%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Haut-Katanga</span><span class="province-val">1,850 (15%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill green-fill" style="width: 15%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Kongo-Central</span><span class="province-val">1,120 (9%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill orange-fill" style="width: 9%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Nord-Kivu</span><span class="province-val">980 (8%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill red-fill" style="width: 8%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Sud-Kivu</span><span class="province-val">750 (6%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill pink-fill" style="width: 6%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Lualaba</span><span class="province-val">520 (4.2%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill blue-fill" style="width: 4.2%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Tshopo</span><span class="province-val">480 (3.8%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill green-fill" style="width: 3.8%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Ituri</span><span class="province-val">450 (3.6%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill orange-fill" style="width: 3.6%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Haut-Uélé</span><span class="province-val">320 (2.5%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill red-fill" style="width: 2.5%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Bas-Uélé</span><span class="province-val">210 (1.7%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill pink-fill" style="width: 1.7%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Équateur</span><span class="province-val">195 (1.6%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill blue-fill" style="width: 1.6%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Haut-Lomami</span><span class="province-val">180 (1.4%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill green-fill" style="width: 1.4%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Kasaï</span><span class="province-val">175 (1.4%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill orange-fill" style="width: 1.4%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Kasaï-Central</span><span class="province-val">160 (1.3%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill red-fill" style="width: 1.3%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Kasaï-Oriental</span><span class="province-val">155 (1.2%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill pink-fill" style="width: 1.2%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Kwango</span><span class="province-val">140 (1.1%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill blue-fill" style="width: 1.1%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Kwilu</span><span class="province-val">135 (1.1%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill green-fill" style="width: 1.1%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Lomami</span><span class="province-val">120 (1.0%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill orange-fill" style="width: 1.0%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Mai-Ndombe</span><span class="province-val">115 (0.9%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill red-fill" style="width: 0.9%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Maniema</span><span class="province-val">110 (0.9%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill pink-fill" style="width: 0.9%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Mongala</span><span class="province-val">105 (0.8%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill blue-fill" style="width: 0.8%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Nord-Ubangi</span><span class="province-val">100 (0.8%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill green-fill" style="width: 0.8%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Sankuru</span><span class="province-val">95 (0.8%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill orange-fill" style="width: 0.8%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Sud-Ubangi</span><span class="province-val">90 (0.7%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill red-fill" style="width: 0.7%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Tanganyika</span><span class="province-val">85 (0.7%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill pink-fill" style="width: 0.7%;"></div></div>
+                    </div>
+                    <div class="province-item">
+                        <div class="province-info"><span>Tshuapa</span><span class="province-val">80 (0.6%)</span></div>
+                        <div class="progress-bar mini"><div class="progress-fill blue-fill" style="width: 0.6%;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 2: Stats Démographiques & Alertes (Right) -->
+        <div class="dashboard-col-right">
+            <!-- Card 2: Gender & Age -->
+            <div class="dashboard-card">
+                <h2>Répartition par Sexe & Âge</h2>
+                <div class="gender-stats">
+                    <div class="gender-item">
+                        <div class="gender-header">
+                            <i class="bi bi-gender-male"></i>
+                            <span>Hommes (65%)</span>
+                        </div>
+                        <div class="progress-bar mini">
+                            <div class="progress-fill blue-fill" style="width: 65%;"></div>
+                        </div>
+                    </div>
+                    <div class="gender-item">
+                        <div class="gender-header">
+                            <i class="bi bi-gender-female"></i>
+                            <span>Femmes (35%)</span>
+                        </div>
+                        <div class="progress-bar mini">
+                            <div class="progress-fill pink-fill" style="width: 35%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="divider-small"></div>
+                <div class="age-stats-section">
+                    <h3>Tranches d'âge</h3>
+                    <div class="age-grid">
+                        <div class="age-item">
+                            <div class="age-bar-container">
+                                <span class="age-label">18-30</span>
+                                <div class="age-bar" style="width: 15%;"></div>
+                                <span class="age-val">15%</span>
+                            </div>
+                        </div>
+                        <div class="age-item">
+                            <div class="age-bar-container">
+                                <span class="age-label">31-45</span>
+                                <div class="age-bar" style="width: 45%;"></div>
+                                <span class="age-val">45%</span>
+                            </div>
+                        </div>
+                        <div class="age-item">
+                            <div class="age-bar-container">
+                                <span class="age-label">46-60</span>
+                                <div class="age-bar" style="width: 30%;"></div>
+                                <span class="age-val">30%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Situation de la Rémunération -->
+            <div class="dashboard-card border-success mt-20">
+                <h2>
+                    Situation de la Rémunération (Paie)
+                    <div class="card-header-actions">
+                        <span class="bi bi-cash-stack text-success" style="font-size: 14px;"></span>
+                    </div>
+                </h2>
+                <div class="remuneration-stats">
+                    <div class="remun-item main">
+                        <div class="remun-circle-container">
+                            <svg viewBox="0 0 36 36" class="circular-chart green">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle" stroke-dasharray="82, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <text x="18" y="20.35" class="percentage">82%</text>
+                            </svg>
+                        </div>
+                        <div class="remun-info">
+                            <span class="remun-label">Agents Bancarisés</span>
+                            <span class="remun-value">10,209 agents</span>
+                        </div>
+                    </div>
+                    <div class="remun-divider"></div>
+                    <div class="remun-details">
+                        <div class="remun-detail-item">
+                            <div class="detail-header">
+                                <span class="dot yellow-bg"></span>
+                                <span>En attente de bancarisation</span>
+                            </div>
+                            <span class="detail-val">1,541 (12%)</span>
+                        </div>
+                        <div class="remun-detail-item">
+                            <div class="detail-header">
+                                <span class="dot red-bg"></span>
+                                <span>Litiges / Sans paie</span>
+                            </div>
+                            <span class="detail-val">700 (6%)</span>
+                        </div>
+                    </div>
+
+                    <div class="remun-divider"></div>
+                    <div class="remun-province-section">
+                        <h4 class="sub-title">Situation de la Paie par Province (26)</h4>
+                        <div class="remun-province-list full-display">
+                            <div class="remun-province-item">
+                                <div class="province-name">Kinshasa</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 94%;"></div><div class="progress-segment unpaid" style="width: 6%;"></div></div>
+                                <div class="province-percent">94%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Bas-Uélé</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 65%;"></div><div class="progress-segment unpaid" style="width: 35%;"></div></div>
+                                <div class="province-percent">65%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Équateur</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 72%;"></div><div class="progress-segment unpaid" style="width: 28%;"></div></div>
+                                <div class="province-percent">72%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Haut-Katanga</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 88%;"></div><div class="progress-segment unpaid" style="width: 12%;"></div></div>
+                                <div class="province-percent">88%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Haut-Lomami</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 68%;"></div><div class="progress-segment unpaid" style="width: 32%;"></div></div>
+                                <div class="province-percent">68%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Haut-Uélé</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 70%;"></div><div class="progress-segment unpaid" style="width: 30%;"></div></div>
+                                <div class="province-percent">70%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Ituri</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 62%;"></div><div class="progress-segment unpaid" style="width: 38%;"></div></div>
+                                <div class="province-percent">62%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Kasaï</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 58%;"></div><div class="progress-segment unpaid" style="width: 42%;"></div></div>
+                                <div class="province-percent">58%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Kasaï-Central</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 64%;"></div><div class="progress-segment unpaid" style="width: 36%;"></div></div>
+                                <div class="province-percent">64%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Kasaï-Oriental</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 66%;"></div><div class="progress-segment unpaid" style="width: 34%;"></div></div>
+                                <div class="province-percent">66%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Kongo-Central</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 84%;"></div><div class="progress-segment unpaid" style="width: 16%;"></div></div>
+                                <div class="province-percent">84%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Kwango</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 55%;"></div><div class="progress-segment unpaid" style="width: 45%;"></div></div>
+                                <div class="province-percent">55%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Kwilu</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 74%;"></div><div class="progress-segment unpaid" style="width: 26%;"></div></div>
+                                <div class="province-percent">74%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Lomami</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 60%;"></div><div class="progress-segment unpaid" style="width: 40%;"></div></div>
+                                <div class="province-percent">60%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Lualaba</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 82%;"></div><div class="progress-segment unpaid" style="width: 18%;"></div></div>
+                                <div class="province-percent">82%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Mai-Ndombe</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 52%;"></div><div class="progress-segment unpaid" style="width: 48%;"></div></div>
+                                <div class="province-percent">52%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Maniema</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 63%;"></div><div class="progress-segment unpaid" style="width: 37%;"></div></div>
+                                <div class="province-percent">63%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Mongala</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 59%;"></div><div class="progress-segment unpaid" style="width: 41%;"></div></div>
+                                <div class="province-percent">59%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Nord-Kivu</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 76%;"></div><div class="progress-segment unpaid" style="width: 24%;"></div></div>
+                                <div class="province-percent">76%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Nord-Ubangi</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 57%;"></div><div class="progress-segment unpaid" style="width: 43%;"></div></div>
+                                <div class="province-percent">57%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Sankuru</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 54%;"></div><div class="progress-segment unpaid" style="width: 46%;"></div></div>
+                                <div class="province-percent">54%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Sud-Kivu</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 78%;"></div><div class="progress-segment unpaid" style="width: 22%;"></div></div>
+                                <div class="province-percent">78%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Sud-Ubangi</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 61%;"></div><div class="progress-segment unpaid" style="width: 39%;"></div></div>
+                                <div class="province-percent">61%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Tanganyika</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 67%;"></div><div class="progress-segment unpaid" style="width: 33%;"></div></div>
+                                <div class="province-percent">67%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Tshopo</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 73%;"></div><div class="progress-segment unpaid" style="width: 27%;"></div></div>
+                                <div class="province-percent">73%</div>
+                            </div>
+                            <div class="remun-province-item">
+                                <div class="province-name">Tshuapa</div>
+                                <div class="dual-progress"><div class="progress-segment paid" style="width: 50%;"></div><div class="progress-segment unpaid" style="width: 50%;"></div></div>
+                                <div class="province-percent">50%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Strategic Alerts -->
+            <div class="dashboard-card border-warning mt-20">
+                <h2>
+                    <i class="bi bi-exclamation-triangle-fill text-warning"></i> 
+                    Alertes Stratégiques (Retraites)
+                </h2>
+                <div class="alerts-list">
+                    <div class="alert-item">
+                        <span class="alert-label">Départs prévus ( < 1 an)</span>
+                        <span class="alert-value text-danger">124 agents</span>
+                    </div>
+                    <div class="alert-item">
+                        <span class="alert-label">Éligibles à la retraite</span>
+                        <span class="alert-value text-warning">350 agents</span>
+                    </div>
+                    <div class="alert-item">
+                        <span class="alert-label">Renouvellement de cadres</span>
+                        <span class="alert-value">12.5% nécessaire</span>
+                    </div>
+                    <div class="alert-item">
+                        <span class="alert-label">Postes à pourvoir (Urgent)</span>
+                        <span class="alert-value text-danger">12 postes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card mt-20">
+                <h2>Dernières Activités</h2>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <img src="https://ui-avatars.com/api/?name=Alexandre+Ready&background=random" class="activity-avatar">
+                        <div class="activity-content">
+                            <p><strong>Alexandre Ready</strong> a mis à jour son cursus académique.</p>
+                            <span>Il y a 10 minutes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Spacer for bottom breathing room -->
+    <div style="height: 40px; flex-shrink: 0;"></div>
+</div>

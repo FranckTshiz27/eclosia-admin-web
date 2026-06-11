@@ -1,0 +1,167 @@
+<!-- 
+  UI LIBRARY: TABLES 
+  Usage: A clean, responsive data table with hover effects.
+-->
+
+<div class="table-card">
+    <div class="table-container">
+        <table class="ui-table">
+            <thead>
+                <tr>
+                    <th>Matricule</th>
+                    <th>Nom Complet</th>
+                    <th>Service</th>
+                    <th class="text-center">Statut</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Example Row -->
+                <tr>
+                    <td><span class="chip-matricule">123.456.B</span></td>
+                    <td>
+                        <div class="user-cell">
+                            <span class="avatar-circle">JD</span>
+                            <span>Jean Dupont</span>
+                        </div>
+                    </td>
+                    <td>DRH / Kinshasa</td>
+                    <td class="text-center">
+                        <span class="badge badge-success">Actif</span>
+                    </td>
+                    <td class="text-right">
+                        <button class="btn-icon-sm" title="Voir"><i class="bi bi-eye"></i></button>
+                        <button class="btn-icon-sm" title="Editer"><i class="bi bi-pencil"></i></button>
+                    </td>
+                </tr>
+                <!-- Stripe Row -->
+                <tr class="row-stripe">
+                    <td><span class="chip-matricule">789.012.C</span></td>
+                    <td>
+                        <div class="user-cell">
+                            <span class="avatar-circle pink">MB</span>
+                            <span>Marie Bolumbu</span>
+                        </div>
+                    </td>
+                    <td>Finance</td>
+                    <td class="text-center">
+                        <span class="badge badge-warning">En Congé</span>
+                    </td>
+                    <td class="text-right">
+                        <button class="btn-icon-sm" title="Voir"><i class="bi bi-eye"></i></button>
+                        <button class="btn-icon-sm" title="Editer"><i class="bi bi-pencil"></i></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- CSS FOR TABLES -->
+<style>
+.table-card {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Horizontal scroll on mobile */
+}
+
+.ui-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px; /* Force minimum width to trigger scroll on mobile */
+}
+
+.ui-table th {
+    background: var(--bg-light);
+    padding: 15px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.ui-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+    color: var(--text-dark);
+    vertical-align: middle;
+}
+
+.ui-table tr:hover {
+    background: var(--bg-light);
+}
+
+.row-stripe {
+    background: var(--bg-light);
+    opacity: 0.8;
+}
+
+/* Cell UI Elements */
+.chip-matricule {
+    background: var(--bg-light);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--text-dark);
+    border: 1px solid var(--border-color);
+}
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    background: var(--primary-blue);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+}
+.avatar-circle.pink { background: #e91e63; }
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.badge-success { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2); }
+.badge-warning { background: rgba(234, 179, 8, 0.1); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.2); }
+
+body.dark-theme .badge-success { background: rgba(34, 197, 94, 0.15); }
+body.dark-theme .badge-warning { background: rgba(234, 179, 8, 0.15); }
+
+/* Utils */
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+
+.btn-icon-sm {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+}
+.btn-icon-sm:hover {
+    background: var(--bg-light);
+    color: var(--primary-blue);
+}
+</style>

@@ -1,0 +1,455 @@
+<div class="agent-profile-container" *ngIf="agent">
+    
+    <!-- Tab Navigation -->
+    <div class="profile-tabs-header">
+        <div class="tabs-container">
+            <button class="nav-tab" [class.active]="activeTab === 'personal'" (click)="setTab('personal')">
+                INFORMAION PERSOLE
+            </button>
+            <button class="nav-tab" [class.active]="activeTab === 'cursus'" (click)="setTab('cursus')">
+                CURSUS ACADEMIQUE
+            </button>
+            <button class="nav-tab" [class.active]="activeTab === 'promotion'" (click)="setTab('promotion')">
+                PROMOTION & AFFECTATION
+            </button>
+            <button class="nav-tab" [class.active]="activeTab === 'remuneration'" (click)="setTab('remuneration')">
+                REMUNERATION
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="profile-content-area">
+        
+        <div class="action-header" *ngIf="activeTab === 'personal'">
+            <button class="btn-edit-info" (click)="goToEdit()">Modifier les informations</button>
+        </div>
+
+        <div *ngIf="activeTab === 'personal'" class="tab-pane active fade-in">
+            <div class="info-perso-grid">
+                
+                <!-- Left: Photo & QR -->
+                <div class="visual-side">
+                    <div class="profile-photo-wrap">
+                        <div class="photo-placeholder">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    </div>
+                    <div class="qr-code-wrap">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={{agent.matricule}}" alt="QR Code" class="qr-img">
+                    </div>
+                </div>
+
+                <!-- Right Side Content -->
+                <div class="right-side-content">
+                    <div class="info-stats-row">
+                        <!-- Middle: Data -->
+                        <div class="data-side">
+                            <div class="info-row">
+                                <span class="lbl">Prénom</span>
+                                <span class="val">{{ agent.prenom }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="lbl">Nom & Postnom</span>
+                                <span class="val">{{ agent.nom }} {{ agent.postnom }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="lbl">Matricule</span>
+                                <span class="val">{{ agent.matricule }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="lbl">Sexe : <span class="val">{{ agent.sexe }}</span></span>
+                                <span class="lbl ml-20">Etat civil : <span class="val">{{ agent.etatCivil }}</span></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="lbl">Né à {{ agent.lieuNaissance }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="lbl">le {{ agent.dateNaissance }}</span>
+                            </div>
+                            <div class="info-row mt-15">
+                                <span class="lbl">Commune</span>
+                                <span class="val">{{ agent.commune }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="lbl">Adresse</span>
+                                <span class="val">{{ agent.adresse }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="lbl">Email</span>
+                                <span class="val">{{ agent.email }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="lbl">Tel 1</span>
+                                <span class="val">{{ agent.tel1 }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="lbl">Tel 2</span>
+                                <span class="val">{{ agent.tel2 || '-' }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Right: Stats Cards -->
+                        <div class="stats-side">
+                            <div class="stats-card admin-card">
+                                <h4>Fichiers administratifs</h4>
+                                <div class="card-body">
+                                    <div class="folder-icon">
+                                        <i class="bi bi-folder-fill"></i>
+                                    </div>
+                                    <div class="card-details">
+                                        <div class="stat-pair">
+                                            <span class="sub">Fonctionnaire depuis :</span>
+                                            <span class="main">{{ agent.dateEntree || '03 Mars 1989' }}</span>
+                                        </div>
+                                        <div class="stat-pair">
+                                            <span class="sub">Ancienneté :</span>
+                                            <span class="main">{{ agent.anciennete || '35 ans de service' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-card career-card">
+                                <h4>Evolution de carrière</h4>
+                                <div class="card-body">
+                                    <div class="card-details">
+                                        <div class="stat-pair">
+                                            <span class="sub">Nombre de promotions :</span>
+                                            <span class="main">{{ (agent.nombrePromotions || 0) | number:'2.0' }}</span>
+                                        </div>
+                                        <div class="stat-pair">
+                                            <span class="sub">Ancienneté :</span>
+                                            <span class="main">{{ agent.anciennete || '35 ans de service' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Family Section -->
+                    <div class="family-section">
+                        <h3>Composition familliale</h3>
+                        <table class="family-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nom</th>
+                                    <th>Post nom</th>
+                                    <th>Prénom</th>
+                                    <th>Date de naissance</th>
+                                    <th>Degre</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let member of agent.familyMembers; let i = index" [class.stripe]="i % 2 !== 0">
+                                    <td>{{ i + 1 }}</td>
+                                    <td>{{ member.nom }}</td>
+                                    <td>{{ member.postnom }}</td>
+                                    <td>{{ member.prenom }}</td>
+                                    <td>{{ member.dateNaissance }}</td>
+                                    <td>{{ member.degre }}</td>
+                                </tr>
+                                <tr *ngIf="!agent.familyMembers || agent.familyMembers.length === 0">
+                                    <td colspan="6" style="text-align: center; color: #94a3b8;">Aucun membre de famille renseigné.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="activeTab === 'cursus'" class="tab-pane active fade-in">
+             <div class="cursus-container">
+                <div class="cursus-header-actions">
+                    <button class="btn-enregistrer">Enregistrer</button>
+                </div>
+                
+                <div class="cursus-form">
+                    <div class="form-row form-row-4">
+                        <div class="form-group">
+                            <label>Nom de l'établissement</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Département</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Spécialisation</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Niveau d'étude</label>
+                            <select class="form-control">
+                                <option>Licencié</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row form-row-5">
+                        <div class="form-group">
+                            <label>Date de début</label>
+                            <input type="text" class="form-control" placeholder="02/07/1989">
+                        </div>
+                        <div class="form-group">
+                            <label>Date de fin</label>
+                            <input type="text" class="form-control" placeholder="02/07/1989">
+                        </div>
+                        <div class="form-group">
+                            <label>Titre obtenu</label>
+                            <select class="form-control">
+                                <option>Diplôme</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Resultat</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Bourse eventuelle</label>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cursus-divider"></div>
+
+                <div class="cursus-table-container">
+                    <table class="cursus-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Etablissement</th>
+                                <th>Departement</th>
+                                <th>Spécialisation</th>
+                                <th>Niveau d'étude</th>
+                                <th>Date de début</th>
+                                <th>Date de fin</th>
+                                <th>Titre obtenu</th>
+                                <th>Résultat</th>
+                                <th>Bourse</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let cursus of agent.cursusList; let i = index" [class.stripe]="i % 2 !== 0">
+                                <td>{{ i + 1 }}</td>
+                                <td>{{ cursus.etablissement }}</td>
+                                <td>{{ cursus.departement }}</td>
+                                <td>{{ cursus.specialisation }}</td>
+                                <td>{{ cursus.niveau }}</td>
+                                <td>{{ cursus.dateDebut }}</td>
+                                <td>{{ cursus.dateFin }}</td>
+                                <td>{{ cursus.titre }}</td>
+                                <td>{{ cursus.resultat }}</td>
+                                <td>{{ cursus.bourse }}</td>
+                            </tr>
+                            <tr *ngIf="!agent.cursusList || agent.cursusList.length === 0">
+                                <td colspan="10" style="text-align: center; color: #94a3b8;">Aucun cursus académique renseigné.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+             </div>
+        </div>
+
+        <div *ngIf="activeTab === 'promotion'" class="tab-pane active fade-in">
+             <div class="cursus-container">
+                <div class="cursus-header-actions">
+                    <button class="btn-enregistrer">Enregistrer</button>
+                </div>
+                
+                <div class="cursus-form">
+                    <div class="form-row form-row-5">
+                        <div class="form-group">
+                            <label>Direction</label>
+                            <select class="form-control">
+                                <option>Direction Générale</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Service</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Fonction</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Province d'affectation</label>
+                            <select class="form-control">
+                                <option>Kinshasa</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Grade</label>
+                            <select class="form-control">
+                                <option>Directeur</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row form-row-4">
+                        <div class="form-group">
+                            <label>Date de début</label>
+                            <input type="text" class="form-control" placeholder="JJ/MM/AAAA">
+                        </div>
+                        <div class="form-group">
+                            <label>Date de fin</label>
+                            <input type="text" class="form-control" placeholder="JJ/MM/AAAA">
+                        </div>
+                        <div class="form-group">
+                            <label>Numéro d'arrêté</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Document justificatif</label>
+                            <div class="file-upload-group">
+                                <input type="text" class="form-control file-input-text" placeholder="Choisir un fichier" readonly>
+                                <button class="btn-file-action">Parcourir</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cursus-divider"></div>
+
+                <div class="cursus-table-container">
+                    <table class="cursus-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Direction</th>
+                                <th>Service</th>
+                                <th>Fonction</th>
+                                <th>Province</th>
+                                <th>Grade</th>
+                                <th>Date début</th>
+                                <th>Date fin</th>
+                                <th>Arrêté</th>
+                                <th>Doc</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Ressources Humaines</td>
+                                <td>Gestion du Personnel</td>
+                                <td>Assistant RH</td>
+                                <td>Kinshasa</td>
+                                <td>Attaché de Bureau de 1ère classe</td>
+                                <td>01/01/2010</td>
+                                <td>31/12/2015</td>
+                                <td>ARR-1234</td>
+                                <td>
+                                    <div class="folder-icon-sm">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="#FFC107">
+                                            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                        </svg>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="stripe">
+                                <td>2</td>
+                                <td>Direction Générale</td>
+                                <td>Secrétariat</td>
+                                <td>Chef de Bureau</td>
+                                <td>Kinshasa</td>
+                                <td>Chef de Bureau</td>
+                                <td>01/01/2016</td>
+                                <td>En cours</td>
+                                <td>ARR-5678</td>
+                                <td>
+                                    <div class="folder-icon-sm">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="#FFC107">
+                                            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                        </svg>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+             </div>
+        </div>
+
+        <div *ngIf="activeTab === 'remuneration'" class="tab-pane active fade-in">
+             <div class="cursus-container">
+                <div class="cursus-header-actions">
+                    <button class="btn-enregistrer">Enregistrer</button>
+                </div>
+                
+                <div class="cursus-form">
+                    <div class="form-row form-row-4">
+                        <div class="form-group">
+                            <label>Type de rémunération</label>
+                            <select class="form-control">
+                                <option>Kinshasa</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Montant</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Devise</label>
+                            <select class="form-control">
+                                <option>CDF</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date d'application</label>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row form-row-4">
+                        <div class="form-group">
+                            <label>Document justificatif</label>
+                            <div class="file-upload-group">
+                                <input type="text" class="form-control file-input-text" placeholder="Choisir un fichier" readonly>
+                                <button class="btn-file-action">Parcourir</button>
+                                <button class="btn-file-action">Télécharger</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cursus-divider"></div>
+
+                <div class="cursus-table-container">
+                    <table class="cursus-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Type</th>
+                                <th>Montant</th>
+                                <th>Devise</th>
+                                <th>Date d'application</th>
+                                <th>Document</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Kinshasa</td>
+                                <td>FP</td>
+                                <td>Infrastructure</td>
+                                <td>Dev.App</td>
+                                <td>
+                                    <div class="folder-icon-sm">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="#FFC107">
+                                            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                        </svg>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+             </div>
+        </div>
+
+    </div>
+</div>

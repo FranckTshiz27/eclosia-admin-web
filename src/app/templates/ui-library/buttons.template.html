@@ -1,0 +1,114 @@
+<!-- 
+  UI LIBRARY: BUTTONS 
+  Usage: Copy the HTML and CSS into your component files.
+-->
+
+<!-- 1. Primary Button -->
+<button class="btn btn-primary">
+    <i class="bi bi-plus-lg"></i>
+    <span>Créer Élément</span>
+</button>
+
+<!-- 2. Outline Button -->
+<button class="btn btn-outline">
+    <i class="bi bi-download"></i>
+    <span>Exporter</span>
+</button>
+
+<!-- 3. Icon Only Button -->
+<button class="btn-icon" title="Supprimer">
+    <i class="bi bi-trash"></i>
+</button>
+
+<!-- 4. Danger Button -->
+<button class="btn btn-danger">
+    <span>Supprimer</span>
+</button>
+
+<!-- 
+  CSS FOR BUTTONS
+  (Usually placed in component.css or as global utilities)
+-->
+<style>
+/* Base Button */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    white-space: nowrap;
+}
+
+/* Primary */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-blue), var(--sidebar-bg));
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 132, 255, 0.2);
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 132, 255, 0.3);
+}
+
+/* Outline */
+.btn-outline {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    color: var(--text-dark);
+}
+.btn-outline:hover {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+    background: rgba(0, 132, 255, 0.02);
+}
+
+/* Danger */
+.btn-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #FF4D4D;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.btn-danger:hover {
+    background: #FF4D4D;
+    color: white;
+}
+
+body.dark-theme .btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+/* Icon Button */
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--white);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-icon:hover {
+    background: var(--bg-light);
+    color: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+/* Responsive Padding */
+@media (max-width: 768px) {
+    .btn {
+        width: 100%; /* Full width on mobile if needed */
+        padding: 12px;
+    }
+}
+</style>

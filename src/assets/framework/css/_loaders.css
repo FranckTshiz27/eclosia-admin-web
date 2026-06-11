@@ -1,0 +1,126 @@
+/* 
+ * FP-CORE-CSS: Advanced Loaders & Spinners
+ * Système d'animations de chargement.
+ */
+
+/* 1. Spinner Border (Classic) */
+.fp-spinner-border {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    vertical-align: -0.125em;
+    border: 0.25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: fp-spinner-border .75s linear infinite;
+}
+
+@keyframes fp-spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+/* 2. Spinner Grow (Pulse) */
+.fp-spinner-grow {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    vertical-align: -0.125em;
+    background-color: currentColor;
+    border-radius: 50%;
+    opacity: 0;
+    animation: fp-spinner-grow .75s linear infinite;
+}
+
+@keyframes fp-spinner-grow {
+    0% { transform: scale(0); }
+    50% { opacity: 1; transform: none; }
+}
+
+/* 3. Loader Dots (Bouncing) */
+.fp-loader-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.fp-loader-dots span {
+    width: 8px;
+    height: 8px;
+    background-color: currentColor;
+    border-radius: 50%;
+    display: inline-block;
+    animation: fp-loader-dots 1.4s infinite ease-in-out both;
+}
+
+.fp-loader-dots span:nth-child(1) { animation-delay: -0.32s; }
+.fp-loader-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes fp-loader-dots {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1.0); }
+}
+
+/* 4. Loader Line (Infinite) */
+.fp-loader-line {
+    width: 100%;
+    height: 4px;
+    position: relative;
+    overflow: hidden;
+    background-color: rgba(0, 132, 255, 0.1);
+    border-radius: 2px;
+}
+
+.fp-loader-line::after {
+    content: "";
+    position: absolute;
+    left: -50%;
+    height: 4px;
+    width: 50%;
+    background-color: var(--fp-primary);
+    animation: fp-loader-line 1.5s infinite linear;
+}
+
+@keyframes fp-loader-line {
+    from { left: -50%; }
+    to { left: 100%; }
+}
+
+/* 5. Loader Circle (Fading) */
+.fp-loader-circle {
+    width: 2.5rem;
+    height: 2.5rem;
+    position: relative;
+}
+
+.fp-loader-circle span {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+}
+
+.fp-loader-circle span::before {
+    content: "";
+    display: block;
+    margin: 0 auto;
+    width: 15%;
+    height: 15%;
+    background-color: currentColor;
+    border-radius: 100%;
+    animation: fp-loader-circle-fade 1.2s infinite ease-in-out both;
+}
+
+@keyframes fp-loader-circle-fade {
+    0%, 39%, 100% { opacity: 0; }
+    40% { opacity: 1; }
+}
+
+/* Variants */
+.fp-spinner-sm { width: 1rem; height: 1rem; border-width: 0.15em; }
+.fp-spinner-lg { width: 3rem; height: 3rem; border-width: 0.35em; }
+
+.fp-text-primary { color: var(--fp-primary); }
+.fp-text-success { color: var(--fp-success); }
+.fp-text-danger { color: var(--fp-danger); }
+.fp-text-warning { color: var(--fp-warning); }

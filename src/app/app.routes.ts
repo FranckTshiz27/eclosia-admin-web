@@ -1,0 +1,98 @@
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { 
+    path: 'login', 
+    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent) 
+  },
+  { 
+    path: 'forgot-password', 
+    loadComponent: () => import('./pages/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) 
+  },
+  { 
+    path: 'mfa', 
+    loadComponent: () => import('./pages/mfa/mfa.component').then(m => m.MfaComponent) 
+  },
+  { 
+    path: 'dashboard', 
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent) 
+  },
+  { 
+    path: 'agents', 
+    loadComponent: () => import('./pages/agents/agents.component').then(m => m.AgentsComponent),
+    children: [
+      { path: '', redirectTo: 'list', pathMatch: 'full' },
+      { 
+        path: 'list', 
+        loadComponent: () => import('./pages/agents/agents-list/agents-list.component').then(m => m.AgentsListComponent) 
+      },
+      { 
+        path: 'create', 
+        loadComponent: () => import('./pages/agents/agent-form/agent-form.component').then(m => m.AgentFormComponent) 
+      },
+      { 
+        path: ':id/edit', 
+        loadComponent: () => import('./pages/agents/agent-form/agent-form.component').then(m => m.AgentFormComponent) 
+      },
+      { 
+        path: ':id/profile', 
+        loadComponent: () => import('./pages/agents/agent-profile/agent-profile.component').then(m => m.AgentProfileComponent) 
+      }
+    ]
+  },
+  { 
+    path: 'settings', 
+    loadComponent: () => import('./pages/settings/settings.component').then(m => m.SettingsComponent),
+    children: [
+      { path: '', redirectTo: 'security', pathMatch: 'full' },
+      { path: 'general', loadComponent: () => import('./pages/settings/settings.component').then(m => m.SettingsComponent) },
+      { path: 'users', loadComponent: () => import('./pages/settings/settings.component').then(m => m.SettingsComponent) },
+      { path: 'security', loadComponent: () => import('./pages/settings/settings.component').then(m => m.SettingsComponent) },
+      { path: 'audit', loadComponent: () => import('./pages/settings/settings.component').then(m => m.SettingsComponent) }
+    ]
+  },
+  { 
+    path: 'statistics', 
+    loadComponent: () => import('./pages/statistics/statistics.component').then(m => m.StatisticsComponent) 
+  },
+  {
+    path: 'admin',
+    children: [
+      { path: '', redirectTo: 'groupe', pathMatch: 'full' },
+      {
+        path: 'groupe',
+        loadComponent: () => import('./pages/admin/groupe/groupe.component').then(m => m.GroupeComponent)
+      },
+      {
+        path: 'ecole',
+        loadComponent: () => import('./pages/admin/ecole/ecole.component').then(m => m.EcoleComponent)
+      },
+      {
+        path: 'cycle',
+        loadComponent: () => import('./pages/admin/cycle/cycle.component').then(m => m.CycleComponent)
+      },
+      {
+        path: 'section',
+        loadComponent: () => import('./pages/admin/section/section.component').then(m => m.SectionComponent)
+      },
+      {
+        path: 'option',
+        loadComponent: () => import('./pages/admin/option/option.component').then(m => m.OptionComponent)
+      }
+    ]
+  },
+  { 
+    path: 'cursus', 
+    loadComponent: () => import('./pages/cursus/cursus.component').then(m => m.CursusComponent) 
+  },
+  { 
+    path: 'remuneration', 
+    loadComponent: () => import('./pages/remuneration/remuneration.component').then(m => m.RemunerationComponent) 
+  },
+  { 
+    path: 'fipix-docs', 
+    loadComponent: () => import('./pages/fipix-docs/fipix-docs.component').then(m => m.FipixDocsComponent) 
+  },
+  { path: '**', redirectTo: 'login' }
+];

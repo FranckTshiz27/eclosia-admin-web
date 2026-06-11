@@ -1,0 +1,147 @@
+/* 
+ * FP-CORE-CSS: Advanced Typography
+ * Système complet de styles de texte et utilitaires typographiques.
+ */
+
+/* Standard Headings */
+.fp-h1, .fp-h2, .fp-h3, .fp-h4, .fp-h5, .fp-h6 {
+    font-weight: var(--fp-font-weight-bold);
+    color: var(--fp-text);
+    margin-bottom: var(--fp-space-md);
+    line-height: 1.2;
+}
+
+.fp-h1 { font-size: 2.5rem; }
+.fp-h2 { font-size: 2rem; }
+.fp-h3 { font-size: 1.75rem; }
+.fp-h4 { font-size: 1.5rem; }
+.fp-h5 { font-size: 1.25rem; }
+.fp-h6 { font-size: 1rem; }
+
+/* Display Headings (Large) */
+.fp-display-1 { font-size: 5rem; font-weight: 300; line-height: 1.2; }
+.fp-display-2 { font-size: 4.5rem; font-weight: 300; line-height: 1.2; }
+.fp-display-3 { font-size: 4rem; font-weight: 300; line-height: 1.2; }
+.fp-display-4 { font-size: 3.5rem; font-weight: 300; line-height: 1.2; }
+.fp-display-5 { font-size: 3rem; font-weight: 300; line-height: 1.2; }
+.fp-display-6 { font-size: 2.5rem; font-weight: 300; line-height: 1.2; }
+
+/* Text Utilities: General */
+.fp-lead {
+    font-size: 1.25rem;
+    font-weight: 300;
+    color: var(--fp-text-muted);
+}
+
+.fp-small { font-size: 0.875em; }
+
+.fp-mark {
+    padding: 0.2em;
+    background-color: #fcf8e3;
+    color: #1a1a1a;
+}
+
+.fp-mark-primary { background-color: rgba(0, 132, 255, 0.2); color: var(--fp-primary); }
+.fp-mark-success { background-color: rgba(16, 185, 129, 0.2); color: var(--fp-success); }
+.fp-mark-danger { background-color: rgba(239, 68, 68, 0.2); color: var(--fp-danger); }
+.fp-mark-warning { background-color: rgba(245, 158, 11, 0.2); color: var(--fp-warning); }
+.fp-mark-info { background-color: rgba(59, 130, 246, 0.2); color: var(--fp-info); }
+
+/* Text Utilities: Alignment */
+.fp-text-start { text-align: left !important; }
+.fp-text-center { text-align: center !important; }
+.fp-text-end { text-align: right !important; }
+
+/* Text Utilities: Transformation */
+.fp-text-lowercase { text-transform: lowercase !important; }
+.fp-text-uppercase { text-transform: uppercase !important; }
+.fp-text-capitalize { text-transform: capitalize !important; }
+
+/* Text Utilities: Weight & Style */
+.fp-fw-light { font-weight: 300 !important; }
+.fp-fw-normal { font-weight: 400 !important; }
+.fp-fw-semibold { font-weight: 600 !important; }
+.fp-fw-bold { font-weight: 700 !important; }
+
+.fp-fst-italic { font-style: italic !important; }
+.fp-fst-normal { font-style: normal !important; }
+
+/* Text Utilities: Decoration */
+.fp-text-decoration-none { text-decoration: none !important; }
+.fp-text-decoration-underline { text-decoration: underline !important; }
+.fp-text-decoration-line-through { text-decoration: line-through !important; }
+
+/* Text Utilities: Layout & Wrap */
+.fp-text-nowrap { white-space: nowrap !important; }
+.fp-text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Text Utilities: Colors */
+.fp-text-primary { color: var(--fp-primary) !important; }
+.fp-text-secondary { color: var(--fp-secondary) !important; }
+.fp-text-success { color: var(--fp-success) !important; }
+.fp-text-danger { color: var(--fp-danger) !important; }
+.fp-text-warning { color: var(--fp-warning) !important; }
+.fp-text-muted { color: var(--fp-text-muted) !important; }
+.fp-text-white { color: #ffffff !important; }
+.fp-text-dark { color: #1a1a1a !important; }
+
+/* Citations & Blockquotes */
+.fp-blockquote {
+    padding: var(--fp-space-md) var(--fp-space-lg);
+    margin: 0 0 var(--fp-space-lg);
+    font-size: 1.25rem;
+    border-left: 0.25rem solid var(--fp-border);
+    background-color: rgba(0,0,0,0.02);
+}
+
+.fp-blockquote-footer {
+    display: block;
+    margin-top: -0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.875em;
+    color: var(--fp-text-muted);
+}
+
+.fp-blockquote-footer::before {
+    content: "\2014 \00A0";
+}
+
+/* Lists */
+.fp-list-unstyled {
+    padding-left: 0;
+    list-style: none;
+}
+
+.fp-list-inline {
+    padding-left: 0;
+    list-style: none;
+}
+
+.fp-list-inline-item {
+    display: inline-block;
+}
+
+.fp-list-inline-item:not(:last-child) {
+    margin-right: 0.5rem;
+}
+
+/* Abbreviations */
+.fp-abbr[title] {
+    text-decoration: underline dotted;
+    cursor: help;
+}
+
+/* Horizontal Rule */
+.fp-hr {
+    margin: 1rem 0;
+    color: inherit;
+    background-color: currentColor;
+    border: 0;
+    opacity: 0.25;
+    height: 1px;
+}
+
+/* Dark mode overrides */
+[data-theme='dark'] .fp-blockquote {
+    background-color: rgba(255,255,255,0.03);
+}

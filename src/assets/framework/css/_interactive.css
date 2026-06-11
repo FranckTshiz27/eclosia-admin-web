@@ -1,0 +1,92 @@
+/* 
+ * FP-CORE-CSS: Interactive
+ * Styles pour Modales, Dropdowns et Carousels.
+ */
+
+/* Dropdowns */
+.fp-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.fp-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 160px;
+    padding: 8px 0;
+    margin-top: 4px;
+    background-color: var(--fp-surface);
+    border: 1px solid var(--fp-border);
+    border-radius: var(--fp-radius);
+    box-shadow: var(--fp-shadow-md);
+    z-index: 1000;
+    display: none;
+}
+
+.fp-dropdown:hover .fp-dropdown-menu { display: block; }
+
+.fp-dropdown-item {
+    display: block;
+    padding: 8px 16px;
+    color: var(--fp-text);
+    text-decoration: none;
+}
+
+.fp-dropdown-item:hover { background-color: var(--fp-bg); }
+
+/* Modals (Moved from components) */
+.fp-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000;
+}
+
+.fp-modal-content {
+    background: var(--fp-surface);
+    border-radius: var(--fp-radius);
+    width: 90%;
+    max-width: 500px;
+    padding: var(--fp-space-lg);
+    box-shadow: var(--fp-shadow-md);
+}
+
+/* Carousel Lite */
+.fp-carousel {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    border-radius: var(--fp-radius);
+}
+
+.fp-carousel-inner {
+    display: flex;
+    transition: transform 0.5s ease;
+}
+
+.fp-carousel-item {
+    min-width: 100%;
+    height: 300px;
+}
+
+/* Tooltips (Using data-fp-tooltip) */
+[data-fp-tooltip] {
+    position: relative;
+    cursor: pointer;
+}
+
+[data-fp-tooltip]::after {
+    content: attr(data-fp-tooltip);
+    position: absolute;
+    bottom: 125%; left: 50%;
+    transform: translateX(-50%);
+    background: #333; color: white;
+    padding: 5px 10px; border-radius: 4px;
+    font-size: 12px; white-space: nowrap;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.2s;
+}
+
+[data-fp-tooltip]:hover::after { opacity: 1; visibility: visible; }

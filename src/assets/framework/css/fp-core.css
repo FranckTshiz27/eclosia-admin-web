@@ -1,0 +1,45 @@
+/* 
+ * FP-CORE-CSS (Framework CSS Personnalisé par Antigravity)
+ * Version 1.5.0 (Modular Expansion)
+ * 
+ * Un framework CSS léger, moderne et complet inspiré par Bootstrap & Tailwind.
+ */
+
+@import './_variables.css';
+@import './_typography.css';
+@import './_layout.css';
+@import './_nav.css';
+@import './_buttons.css';
+@import './_cards.css';
+@import './_tables.css';
+@import './_badges.css';
+@import './_alerts.css';
+@import './_forms.css';
+@import './_interactive.css';
+@import './_loaders.css';
+@import './_media.css';
+@import './_docs.css';
+@import './_utilities.css';
+
+/* Base Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--fp-font-main);
+    font-size: var(--fp-font-size-base);
+    background-color: var(--fp-bg);
+    color: var(--fp-text);
+    line-height: 1.5;
+}
+
+a {
+    color: var(--fp-primary);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+a:hover { opacity: 0.8; }

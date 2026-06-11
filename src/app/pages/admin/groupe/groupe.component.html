@@ -1,0 +1,171 @@
+<div class="page-container groups-page">
+  <div class="groups-header">
+    <div>
+      <h1>Groupes</h1>
+      <p>Gerez les groupes scolaires de votre organisation</p>
+    </div>
+    <button class="btn-new-group" type="button" (click)="openCreateModal()">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Nouveau groupe
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon icon-blue">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <div>
+        <span class="stat-label">Total groupes</span>
+        <div class="stat-value">{{ totalGroups }}</div>
+        <span class="stat-sub">Tous les groupes</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon icon-green">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div>
+        <span class="stat-label">Groupes actifs</span>
+        <div class="stat-value value-green">{{ activeGroups }}</div>
+        <span class="stat-sub">Groupes actifs</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon icon-orange">
+        <i class="bi bi-pause-circle-fill"></i>
+      </div>
+      <div>
+        <span class="stat-label">Groupes inactifs</span>
+        <div class="stat-value value-orange">{{ inactiveGroups }}</div>
+        <span class="stat-sub">Groupes inactifs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Rechercher un groupe..." />
+      </div>
+
+      <button class="status-filter" type="button">
+        <i class="bi bi-funnel"></i>
+        Tous les status
+        <i class="bi bi-chevron-down"></i>
+      </button>
+    </div>
+
+    <div class="groups-table-wrapper">
+      <table class="groups-table">
+        <thead>
+          <tr>
+            <th>Nom du groupe</th>
+            <th>Email</th>
+            <th>Telephone</th>
+            <th>Statut</th>
+            <th>Date de creation</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let group of groups">
+            <td>
+              <div class="group-cell">
+                <div class="avatar" [class]=" 'avatar ' + group.avatarClass ">{{ group.initials }}</div>
+                <div>
+                  <p class="group-name">{{ group.name }}</p>
+                  <span>{{ group.schools }} ecole<span *ngIf="group.schools > 1">s</span></span>
+                </div>
+              </div>
+            </td>
+            <td>{{ group.email }}</td>
+            <td>{{ group.phone }}</td>
+            <td>
+              <span class="badge" [class.badge-success]="group.status === 'Actif'" [class.badge-danger]="group.status === 'Inactif'">
+                {{ group.status }}
+              </span>
+            </td>
+            <td>{{ group.createdAt }}</td>
+            <td class="actions-col">
+              <button type="button"><i class="bi bi-eye"></i></button>
+              <button type="button"><i class="bi bi-pencil"></i></button>
+              <button type="button"><i class="bi bi-three-dots-vertical"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de 1 a {{ groups.length }} sur {{ groups.length }} groupes</p>
+      <div class="pagination">
+        <button type="button"><i class="bi bi-chevron-left"></i></button>
+        <button class="active" type="button">1</button>
+        <button type="button">2</button>
+        <button type="button"><i class="bi bi-chevron-right"></i></button>
+      </div>
+      <button class="per-page" type="button">10 / page <i class="bi bi-chevron-down"></i></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isCreateModalOpen" (click)="closeCreateModal()">
+  <div class="create-group-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <span class="modal-badge"><i class="bi bi-people-fill"></i></span>
+        <div>
+        <h3>Nouveau groupe</h3>
+        <p>Remplissez les informations pour creer un nouveau groupe</p>
+        </div>
+      </div>
+      <button class="btn-close" type="button" (click)="closeCreateModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="field-group">
+        <label>Nom du groupe <span>*</span></label>
+        <input type="text" [(ngModel)]="form.name" placeholder="Ex : Groupe Catholique" />
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label>Email <span>*</span></label>
+          <input type="email" [(ngModel)]="form.email" placeholder="Ex : contact&#64;groupe.cd" />
+        </div>
+        <div class="field-group">
+          <label>Telephone</label>
+          <input type="text" [(ngModel)]="form.phone" placeholder="Ex : +243 810 000 000" />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Description</label>
+        <textarea rows="3" [(ngModel)]="form.description" maxlength="200" placeholder="Decrivez brievement ce groupe..."></textarea>
+        <small>{{ form.description.length }}/200</small>
+      </div>
+
+      <div class="field-group">
+        <label>Statut <span>*</span></label>
+        <select [(ngModel)]="form.status">
+          <option value="Actif">Actif</option>
+          <option value="Inactif">Inactif</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" type="button" (click)="closeCreateModal()">Annuler</button>
+      <button class="btn-save" type="button" (click)="saveGroup()">
+        <i class="bi bi-check2-circle"></i>
+        Enregistrer
+      </button>
+    </div>
+  </div>
+</div>

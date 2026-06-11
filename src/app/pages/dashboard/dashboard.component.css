@@ -1,0 +1,500 @@
+.dashboard-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--header-height));
+    padding: 20px 20px 60px 20px;
+    overflow-y: auto;
+    background-color: var(--bg-light);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.blue-bg { background: #E3F2FD; color: #1976D2; }
+.green-bg { background: #E8F5E9; color: #388E3C; }
+.orange-bg { background: #FFF3E0; color: #F57C00; }
+.red-bg { background: #FFEBEE; color: #a13f3f41 !important;}
+
+.stat-icon i {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.stat-icon.red-bg i {
+    color: #cd2020 !important;
+}
+
+.stat-info h3 {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.dashboard-2-cols {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.dashboard-col-left, .dashboard-col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.main-chart-card {
+    flex: 1.2;
+}
+
+.dashboard-card {
+    background: var(--white);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-card h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chart-filter {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dark);
+    background: var(--bg-light);
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.chart-placeholder {
+    flex: 1;
+    min-height: 150px;
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    padding-top: 10px;
+    padding-bottom: 25px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.bar {
+    flex: 1;
+    background: var(--sidebar-bg);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s;
+    position: relative;
+}
+
+.bar::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.bar::before {
+    content: attr(data-value);
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dark);
+    opacity: 0.8;
+}
+
+.direction-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.direction-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.direction-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--bg-light);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 10px;
+}
+
+.blue-fill { background: #1976D2; }
+.green-fill { background: #388E3C; }
+.orange-fill { background: #F57C00; }
+.red-fill { background: #D32F2F; }
+.pink-fill { background: #E91E63; }
+
+.provinces-list.scrollable {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.province-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-bottom: 5px;
+}
+
+.province-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.province-val {
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.gender-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 15px 0;
+}
+
+.gender-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.gender-header i {
+    font-size: 22px;
+}
+
+.divider-small {
+    height: 1px;
+    background: var(--border-color);
+    margin: 15px 0;
+}
+
+.age-stats-section h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.age-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.age-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.age-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    min-width: 40px;
+}
+
+.age-bar {
+    height: 8px;
+    background: var(--sidebar-bg);
+    border-radius: 4px;
+}
+
+.age-val {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.remuneration-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.remun-item.main {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.remun-circle-container {
+    width: 80px;
+    height: 80px;
+}
+
+.circular-chart {
+    display: block;
+    max-width: 100%;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: var(--bg-light);
+    stroke-width: 3.8;
+}
+
+.circle {
+    fill: none;
+    stroke: #4caf50;
+    stroke-width: 3.8;
+    stroke-linecap: round;
+}
+
+.percentage {
+    fill: var(--text-dark);
+    font-size: 0.5em;
+    text-anchor: middle;
+    font-weight: 700;
+}
+
+.remun-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.remun-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.remun-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.remun-divider {
+    height: 1px;
+    background: var(--border-color);
+    width: 100%;
+}
+
+.remun-details {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.remun-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.yellow-bg { background: #FFC107; }
+.red-bg { background: rgba(188, 57, 57, 0.12); }
+
+.detail-val {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.border-success { border-left: 4px solid #4caf50; }
+.border-warning { border-left: 4px solid #FFC107; }
+
+.remun-province-list.full-display {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 30px;
+    margin-top: 10px;
+}
+
+.remun-province-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.province-name {
+    width: 90px;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.dual-progress {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-light);
+    border-radius: 4px;
+    display: flex;
+    overflow: hidden;
+}
+
+.progress-segment.paid { background-color: #4caf50; }
+.progress-segment.unpaid { background-color: #ffc107; opacity: 0.6; }
+
+.province-percent {
+    width: 30px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #4caf50;
+    text-align: right;
+}
+
+.alerts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.activity-item {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.activity-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+@media (max-width: 1200px) {
+    .dashboard-2-cols {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .remun-province-list.full-display {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-card {
+        padding: 15px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .chart-placeholder {
+        gap: 5px;
+    }
+
+    .bar::after {
+        font-size: 8px;
+    }
+}

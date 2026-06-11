@@ -1,0 +1,109 @@
+<div class="page-container">
+    <!-- Navigation Tabs removed -->
+    <div class="tabs-row">
+        <div class="action-btn-container">
+            <a routerLink="/agents" class="btn-outline" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 38px; padding: 0 15px;">Retour à l'agent</a>
+        </div>
+    </div>
+
+    <div class="cursus-container">
+        <div class="cursus-form-section">
+            <div class="form-header">
+                <button class="btn-save">Enregistrer</button>
+            </div>
+            <div class="cursus-form-grid">
+                <div class="form-group">
+                    <label>Nom de l'établissement</label>
+                    <input type="text" placeholder="Entrer l'établissement">
+                </div>
+                <div class="form-group">
+                    <label>Département</label>
+                    <input type="text" placeholder="Entrer le département">
+                </div>
+                <div class="form-group">
+                    <label>Spécialisation</label>
+                    <input type="text" placeholder="Entrer la spécialisation">
+                </div>
+                <div class="form-group">
+                    <label>Niveau d'étude</label>
+                    <select>
+                        <option>Licencié</option>
+                        <option>Master</option>
+                        <option>Doctorat</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date de début</label>
+                    <input type="text" value="02/07/1989">
+                </div>
+                <div class="form-group">
+                    <label>Date de fin</label>
+                    <input type="text" value="02/07/1989">
+                </div>
+                <div class="form-group">
+                    <label>Titre obtenu</label>
+                    <select>
+                        <option>Diplôme</option>
+                        <option>Certificat</option>
+                        <option>Attestation</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Resultat</label>
+                    <input type="text" placeholder="Résultat obtenu">
+                </div>
+                <div class="form-group">
+                    <label>Bourse éventuelle</label>
+                    <input type="text" placeholder="Entrer la bourse">
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="cursus-table-section">
+            <table class="cursus-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Etablissement</th>
+                        <th>Departement</th>
+                        <th>Spécialisation</th>
+                        <th>Niveau d'étude</th>
+                        <th>Date de début</th>
+                        <th>Date de fin</th>
+                        <th>Titre obtenu</th>
+                        <th>Résultat</th>
+                        <th>Bourse</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>ESMICOM</td>
+                        <td>INFORMATIQUE</td>
+                        <td>MASTER</td>
+                        <td>UNIVERSITAIRE</td>
+                        <td>03/05/2016</td>
+                        <td>23/09/2021</td>
+                        <td>DEVELOPPEUR</td>
+                        <td>D</td>
+                        <td>X</td>
+                    </tr>
+                    <tr class="active-row">
+                        <td>2</td>
+                        <td>ESAU</td>
+                        <td>ART</td>
+                        <td>LICENCE</td>
+                        <td>UNIVERSITAIRE</td>
+                        <td>03/05/2016</td>
+                        <td>03/05/2025</td>
+                        <td>DESIGNER</td>
+                        <td>S</td>
+                        <td>X</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

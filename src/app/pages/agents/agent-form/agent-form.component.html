@@ -1,0 +1,277 @@
+<div class="agent-form-container" *ngIf="agent">
+    <h2 class="form-title">{{ view === 'create' ? 'Création d\'un nouvel agent' : 'Modification de l\'agent' }}</h2>
+    
+    <div class="agent-form-main">
+        <div class="agent-photo-section">
+            <div class="image-box">
+                <svg viewBox="0 0 24 24" width="120" height="120" fill="#cbd5e1">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+            </div>
+            <div class="qr-code-box">
+                <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=' + (agent.matricule || 'NEW-AGENT')" alt="QR Code" class="qr-img" style="width: 80px; height: 80px; border-radius: 8px;">
+            </div>
+        </div>
+
+        <div class="agent-fields-section">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" placeholder="votre nom" [(ngModel)]="agent.nom">
+                </div>
+                <div class="form-group">
+                    <label>PostNom</label>
+                    <input type="text" placeholder="PostNom" [(ngModel)]="agent.postnom">
+                </div>
+                <div class="form-group">
+                    <label>Prénom</label>
+                    <input type="text" placeholder="Prénom" [(ngModel)]="agent.prenom">
+                </div>
+                <div class="form-group">
+                    <label>Sexe</label>
+                    <select [(ngModel)]="agent.sexe">
+                        <option value="M">M</option>
+                        <option value="F">F</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Etat civil</label>
+                    <select [(ngModel)]="agent.etatCivil">
+                        <option>Marié</option>
+                        <option>Célibataire</option>
+                        <option>Divorcé</option>
+                        <option>Veuf(ve)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Maticule</label>
+                    <input type="text" placeholder="XXXXXXXXXXXX" [(ngModel)]="agent.matricule">
+                </div>
+                <div class="form-group">
+                    <label>Lieu de naissance</label>
+                    <input type="text" placeholder="Kipushi" [(ngModel)]="agent.lieuNaissance">
+                </div>
+                <div class="form-group">
+                    <label>Date de naissance</label>
+                    <input type="text" placeholder="02/07/1989" [(ngModel)]="agent.dateNaissance">
+                </div>
+                <div class="form-group full-width">
+                    <label>Adresse</label>
+                    <input type="text" placeholder="Av. de la paix Kinshasa" [(ngModel)]="agent.adresse">
+                </div>
+                <div class="form-group">
+                    <label>Commune</label>
+                    <input type="text" placeholder="Dekele mashima" [(ngModel)]="agent.commune">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" placeholder="mail@email.com" [(ngModel)]="agent.email">
+                </div>
+                <div class="form-group">
+                    <label>Tel 1</label>
+                    <input type="text" placeholder="9876543210" [(ngModel)]="agent.tel1">
+                </div>
+                <div class="form-group">
+                    <label>Tel 2</label>
+                    <input type="text" placeholder="0123456789" [(ngModel)]="agent.tel2">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="family-form-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3>Composition familliale</h3>
+            <button (click)="addFamilyMember()" class="btn-outline" style="padding: 6px 12px; font-size: 0.9rem;">
+                <i class="bi bi-plus-circle"></i> Ajouter un membre
+            </button>
+        </div>
+        
+        <div *ngFor="let member of agent.familyMembers; let i = index" class="array-item-card">
+            <button *ngIf="agent.familyMembers.length > 1" (click)="removeFamilyMember(i)" class="btn-remove" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.2rem;">
+                <i class="bi bi-trash"></i>
+            </button>
+            <h4>Membre {{ i + 1 }}</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" placeholder="Nom" [(ngModel)]="member.nom">
+                </div>
+                <div class="form-group">
+                    <label>PostNom</label>
+                    <input type="text" placeholder="PostNom" [(ngModel)]="member.postnom">
+                </div>
+                <div class="form-group">
+                    <label>Prénom</label>
+                    <input type="text" placeholder="Prénom" [(ngModel)]="member.prenom">
+                </div>
+                <div class="form-group">
+                    <label>Sexe</label>
+                    <select [(ngModel)]="member.sexe">
+                        <option value="M">M</option>
+                        <option value="F">F</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Lieu de naissance</label>
+                    <input type="text" placeholder="Ville" [(ngModel)]="member.lieuNaissance">
+                </div>
+                <div class="form-group">
+                    <label>Date de naissance</label>
+                    <input type="text" placeholder="JJ/MM/AAAA" [(ngModel)]="member.dateNaissance">
+                </div>
+                <div class="form-group">
+                    <label>Degré de parenté</label>
+                    <select [(ngModel)]="member.degre">
+                        <option value="Epouse">Epouse</option>
+                        <option value="Epoux">Epoux</option>
+                        <option value="Enfant">Enfant</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="cursus-form-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3>Cursus Académique</h3>
+            <button (click)="addCursus()" class="btn-outline" style="padding: 6px 12px; font-size: 0.9rem;">
+                <i class="bi bi-plus-circle"></i> Ajouter un diplôme
+            </button>
+        </div>
+
+        <div *ngFor="let cursus of agent.cursusList; let i = index" class="array-item-card">
+            <button *ngIf="agent.cursusList.length > 1" (click)="removeCursus(i)" class="btn-remove" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.2rem;">
+                <i class="bi bi-trash"></i>
+            </button>
+            <h4>Formation {{ i + 1 }}</h4>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nom de l'établissement</label>
+                    <input type="text" placeholder="Entrer l'établissement" [(ngModel)]="cursus.etablissement">
+                </div>
+                <div class="form-group">
+                    <label>Département</label>
+                    <input type="text" placeholder="Entrer le département" [(ngModel)]="cursus.departement">
+                </div>
+                <div class="form-group">
+                    <label>Spécialisation</label>
+                    <input type="text" placeholder="Entrer la spécialisation" [(ngModel)]="cursus.specialisation">
+                </div>
+                <div class="form-group">
+                    <label>Niveau d'étude</label>
+                    <select [(ngModel)]="cursus.niveau">
+                        <option value="Graduat">Graduat</option>
+                        <option value="Licence">Licencié</option>
+                        <option value="Master">Master</option>
+                        <option value="Doctorat">Doctorat</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date de début</label>
+                    <input type="text" placeholder="JJ/MM/AAAA" [(ngModel)]="cursus.dateDebut">
+                </div>
+                <div class="form-group">
+                    <label>Date de fin</label>
+                    <input type="text" placeholder="JJ/MM/AAAA" [(ngModel)]="cursus.dateFin">
+                </div>
+                <div class="form-group">
+                    <label>Titre obtenu</label>
+                    <select [(ngModel)]="cursus.titre">
+                        <option value="Diplôme">Diplôme</option>
+                        <option value="Certificat">Certificat</option>
+                        <option value="Attestation">Attestation</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Resultat / Mention</label>
+                    <input type="text" placeholder="Ex: Distinction" [(ngModel)]="cursus.resultat">
+                </div>
+                 <div class="form-group">
+                    <label>Bourse éventuelle</label>
+                    <input type="text" placeholder="Oui / Non" [(ngModel)]="cursus.bourse">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="promotion-form-section">
+        <h3>Promotion &amp; Affectation</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Direction</label>
+                <input type="text" placeholder="Entrer la direction" [(ngModel)]="agent.direction">
+            </div>
+            <div class="form-group">
+                <label>Service d'affectation</label>
+                <input type="text" placeholder="Service" [(ngModel)]="agent.service">
+            </div>
+            <div class="form-group">
+                <label>Fonction actuelle</label>
+                <input type="text" placeholder="Fonction actuelle" [(ngModel)]="agent.fonction">
+            </div>
+            <div class="form-group">
+                <label>Grade</label>
+                <input type="text" placeholder="Grade" [(ngModel)]="agent.grade">
+            </div>
+            <div class="form-group">
+                <label>Province d'affectation</label>
+                <input type="text" placeholder="Kinshasa, Haut-Katanga..." [(ngModel)]="agent.province">
+            </div>
+            <div class="form-group">
+                <label>Date de dernière promotion</label>
+                <input type="text" placeholder="Date">
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="remuneration-form-section">
+        <h3>Rémunération</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Type de rémunération</label>
+                <select [(ngModel)]="agent.remunerationType">
+                    <option>Kinshasa</option>
+                    <option>Province</option>
+                    <option>Etranger</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Montant</label>
+                <input type="text" placeholder="Entrer le montant" [(ngModel)]="agent.remunerationMontant">
+            </div>
+            <div class="form-group">
+                <label>Devise</label>
+                <select>
+                    <option>CDF</option>
+                    <option>USD</option>
+                    <option>EUR</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Date d'application</label>
+                <input type="text" placeholder="Date d'application">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions" style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button (click)="onCancel()" class="btn-outline">Annuler</button>
+        <button *ngIf="view === 'create'" (click)="onSaveAndContinue()" class="btn-secondary" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+            Enregistrer & Ajouter un autre
+        </button>
+        <button (click)="onSave()" class="btn-primary" style="background-color: var(--primary-blue, #0084FF); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+            Enregistrer les informations
+        </button>
+    </div>
+</div>

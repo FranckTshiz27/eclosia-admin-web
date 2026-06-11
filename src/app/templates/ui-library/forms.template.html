@@ -1,0 +1,126 @@
+<!-- 
+  UI LIBRARY: FORMS 
+  Usage: A responsive grid-based form layout.
+-->
+
+<form class="ui-form">
+    <div class="form-grid">
+        <!-- Text Input (Full width on tablet/mobile) -->
+        <div class="form-group col-span-2">
+            <label>Nom complet</label>
+            <input type="text" placeholder="Entrez le nom..." class="form-input">
+        </div>
+
+        <!-- Select Input -->
+        <div class="form-group">
+            <label>Sexe</label>
+            <select class="form-select">
+                <option value="">Sélectionner...</option>
+                <option value="M">Masculin</option>
+                <option value="F">Féminin</option>
+            </select>
+        </div>
+
+        <!-- Date Input -->
+        <div class="form-group">
+            <label>Date de Naissance</label>
+            <input type="date" class="form-input">
+        </div>
+
+        <!-- Textarea (Full row on desktop) -->
+        <div class="form-group col-span-4">
+            <label>Commentaires / Notes</label>
+            <textarea class="form-textarea" placeholder="Notes additionnelles..."></textarea>
+        </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-footer mt-4">
+        <button type="button" class="btn btn-outline">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer les données</button>
+    </div>
+</form>
+
+<!-- CSS FOR FORMS -->
+<style>
+.ui-form {
+    width: 100%;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Col Spans */
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+
+.form-group label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input, .form-select, .form-textarea {
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-dark);
+    background: var(--bg-light);
+    transition: all 0.2s;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(0, 132, 255, 0.08);
+}
+
+.form-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+}
+
+/* Responsive Grids */
+@media (max-width: 1024px) {
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .col-span-4, .col-span-3 { grid-column: span 2; }
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .col-span-2, .col-span-3, .col-span-4 { grid-column: span 1; }
+    
+    .form-footer {
+        flex-direction: column;
+    }
+    .form-footer button {
+        width: 100%;
+    }
+}
+</style>

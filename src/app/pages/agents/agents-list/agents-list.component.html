@@ -1,0 +1,229 @@
+<div class="agents-list-container">
+
+  <!-- ===== TOOLBAR ===== -->
+  <div class="list-toolbar">
+    <div class="toolbar-left">
+      <div class="title-block">
+        <i class="bi bi-people title-icon"></i>
+        <div>
+          <h1 class="list-title">Liste des Agents</h1>
+          <p class="list-subtitle">
+            <span class="count-badge">{{ filteredCount }}</span>
+            agent{{ filteredCount > 1 ? 's' : '' }} trouvé{{ filteredCount > 1 ? 's' : '' }}
+            <span *ngIf="hasActiveFilters" class="filtered-hint"> (filtrés)</span>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn-custom btn-outline" *ngIf="hasActiveFilters" (click)="resetFilters()" title="Réinitialiser les filtres">
+        <i class="bi bi-filter-circle"></i>
+        Réinitialiser
+      </button>
+      <button class="btn-custom btn-primary" (click)="exportExcel()" title="Exporter vers Excel">
+        <i class="bi bi-download"></i>
+        Exporter Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== FILTRES ===== -->
+  <div class="filters-panel">
+    <div class="filter-field">
+      <label class="filter-label">
+        <i class="bi bi-search"></i> Nom / Post-nom / Prénom
+      </label>
+      <div class="filter-input-wrap">
+        <input
+          class="filter-input"
+          type="text"
+          [(ngModel)]="filterNom"
+          (ngModelChange)="applyFilter()"
+          placeholder="Rechercher par nom..."
+        />
+        <button *ngIf="filterNom" class="clear-btn" (click)="filterNom=''; applyFilter()">
+          <i class="bi bi-x" style="font-size:16px;width:16px;height:16px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-field">
+      <label class="filter-label">
+        <i class="bi bi-hash"></i> Matricule
+      </label>
+      <div class="filter-input-wrap">
+        <input
+          class="filter-input"
+          type="text"
+          [(ngModel)]="filterMatricule"
+          (ngModelChange)="applyFilter()"
+          placeholder="Rechercher par matricule..."
+        />
+        <button *ngIf="filterMatricule" class="clear-btn" (click)="filterMatricule=''; applyFilter()">
+          <i class="bi bi-x" style="font-size:16px;width:16px;height:16px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-field filter-field-sm">
+      <label class="filter-label">
+        <i class="bi bi-gender-ambiguous"></i> Sexe
+      </label>
+      <select class="filter-select" [(ngModel)]="filterSexe" (ngModelChange)="applyFilter()">
+        <option value="">Tous</option>
+        <option value="M">Masculin</option>
+        <option value="F">Féminin</option>
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label class="filter-label">
+        <i class="bi bi-geo-alt"></i> Province
+      </label>
+      <select class="filter-select" [(ngModel)]="filterProvince" (ngModelChange)="applyFilter()">
+        <option value="">Toutes</option>
+        <option *ngFor="let p of provinces" [value]="p">{{ p }}</option>
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label class="filter-label">
+        <i class="bi bi-diagram-3"></i> Direction
+      </label>
+      <select class="filter-select" [(ngModel)]="filterDirection" (ngModelChange)="applyFilter()">
+        <option value="">Toutes</option>
+        <option *ngFor="let d of directions" [value]="d">{{ d }}</option>
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label class="filter-label">
+        <i class="bi bi-award"></i> Grade
+      </label>
+      <select class="filter-select" [(ngModel)]="filterGrade" (ngModelChange)="applyFilter()">
+        <option value="">Tous</option>
+        <option *ngFor="let g of grades" [value]="g">{{ g }}</option>
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label class="filter-label">
+        <i class="bi bi-book"></i> Niveau
+      </label>
+      <select class="filter-select" [(ngModel)]="filterLevel" (ngModelChange)="applyFilter()">
+        <option value="">Tous</option>
+        <option *ngFor="let l of levels" [value]="l">{{ l }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ===== TABLE ===== -->
+  <div class="table-card">
+    <div class="table-scroll-wrap">
+      <table class="agents-table standard-table">
+        <thead>
+          <tr>
+            <th class="col-index">#</th>
+            <th (click)="sortData('matricule')" class="sortable">
+              Matricule <i class="bi bi-arrow-down-up" *ngIf="sortColumn !== 'matricule'"></i>
+              <i class="bi bi-arrow-up" *ngIf="sortColumn === 'matricule' && sortDirection === 'asc'"></i>
+              <i class="bi bi-arrow-down" *ngIf="sortColumn === 'matricule' && sortDirection === 'desc'"></i>
+            </th>
+            <th (click)="sortData('nomComplet')" class="sortable">
+              Nom Complet <i class="bi bi-arrow-down-up" *ngIf="sortColumn !== 'nomComplet'"></i>
+              <i class="bi bi-arrow-up" *ngIf="sortColumn === 'nomComplet' && sortDirection === 'asc'"></i>
+              <i class="bi bi-arrow-down" *ngIf="sortColumn === 'nomComplet' && sortDirection === 'desc'"></i>
+            </th>
+            <th (click)="sortData('sexe')" class="sortable">Sexe</th>
+            <th (click)="sortData('etatCivil')" class="sortable">État Civil</th>
+            <th (click)="sortData('service')" class="sortable">Service</th>
+            <th (click)="sortData('grade')" class="sortable">Grade</th>
+            <th (click)="sortData('anciennete')" class="sortable">Ancienneté</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows -->
+          <tr *ngFor="let agent of pagedAgents; let i = index" class="agent-row" (click)="openDetail(agent)">
+            <td class="col-index">{{ currentPage * pageSize + i + 1 }}</td>
+            <td><span class="matricule-chip">{{ agent.matricule }}</span></td>
+            <td>
+              <div class="name-cell">
+                <div class="agent-avatar">{{ (agent?.prenom?.[0] || '') + (agent?.nom?.[0] || '') }}</div>
+                <div class="agent-name-info">
+                  <span class="agent-fullname">{{ agent?.prenom || '???' }} {{ agent?.nom || '???' }}</span>
+                  <span class="agent-postnom" *ngIf="agent?.postnom">{{ agent?.postnom }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="sexe-badge" *ngIf="agent?.sexe" [class.masculin]="agent.sexe === 'M'" [class.feminin]="agent.sexe === 'F'">
+                {{ agent.sexe === 'M' ? '♂ M' : '♀ F' }}
+              </span>
+            </td>
+            <td><span class="etat-civil">{{ agent?.etatCivil || '-' }}</span></td>
+            <td><span class="service-tag">{{ agent?.service || '-' }}</span></td>
+            <td><span class="grade-badge" *ngIf="agent?.grade">{{ agent.grade }}</span></td>
+            <td><span class="anciennete-text">{{ agent?.anciennete || '-' }}</span></td>
+            <td class="col-actions" (click)="$event.stopPropagation()">
+              <div class="actions-cell">
+                <button class="action-btn view-btn" (click)="openDetail(agent)" title="Voir le détail de l'agent">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button class="action-btn edit-btn" (click)="openEdit(agent)" title="Modifier l'agent">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="action-btn delete-btn" (click)="deleteAgent(agent)" title="Supprimer l'agent">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- No Data -->
+          <tr *ngIf="pagedAgents.length === 0">
+            <td colspan="9" class="no-data-cell">
+              <div class="no-data-content">
+                <i class="bi bi-search-heart" style="font-size: 32px; color: #ccc;"></i>
+                <p>Aucun agent ne correspond à vos critères de recherche.</p>
+                <button class="btn-custom btn-outline" (click)="resetFilters()" *ngIf="hasActiveFilters">
+                  Effacer les filtres
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="custom-paginator">
+      <div class="paginator-page-size">
+        <span>Éléments par page:</span>
+        <select (change)="changePageSize($event)" [value]="pageSize">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+        </select>
+      </div>
+      
+      <div class="paginator-range">
+        {{ currentPage * pageSize + 1 }} - {{ (currentPage * pageSize + pageSize) > filteredCount ? filteredCount : (currentPage * pageSize + pageSize) }} sur {{ filteredCount }}
+      </div>
+
+      <div class="paginator-actions">
+        <button class="icon-btn" (click)="changePage(0)" [disabled]="currentPage === 0" title="Première page">
+          <i class="bi bi-chevron-bar-left"></i>
+        </button>
+        <button class="icon-btn" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 0" title="Page précédente">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="icon-btn" (click)="changePage(currentPage + 1)" [disabled]="currentPage >= totalPages - 1" title="Page suivante">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <button class="icon-btn" (click)="changePage(totalPages - 1)" [disabled]="currentPage >= totalPages - 1" title="Dernière page">
+          <i class="bi bi-chevron-bar-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

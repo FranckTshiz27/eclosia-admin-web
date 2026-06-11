@@ -1,0 +1,335 @@
+/* ========================================
+   Dialog Wrapper
+======================================== */
+.dialog-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-width: 960px;
+  max-width: 1000px;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 12px;
+}
+
+/* ========================================
+   Header
+======================================== */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  background: linear-gradient(135deg, #0084FF 0%, #00B7FF 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
+
+.agent-header-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-circle {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.avatar-circle i {
+  font-size: 34px;
+  width: 34px;
+  height: 34px;
+  color: white;
+}
+
+.agent-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 8px;
+  letter-spacing: 0.5px;
+}
+
+.header-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.badge-matricule {
+  background: rgba(255,255,255,0.25);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.4);
+}
+
+.badge-grade {
+  background: rgba(255, 193, 7, 0.85);
+  color: #333;
+}
+
+.badge-service {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  color: white !important;
+  transition: background 0.2s;
+  font-size: 24px;
+}
+
+.close-btn:hover {
+  background: rgba(255,255,255,0.15) !important;
+}
+
+/* ========================================
+   Body
+======================================== */
+.dialog-body {
+  max-height: 75vh;
+  overflow-y: auto;
+  padding: 24px !important;
+}
+
+.dialog-body::-webkit-scrollbar {
+  width: 5px;
+}
+.dialog-body::-webkit-scrollbar-track { background: #f1f1f1; }
+.dialog-body::-webkit-scrollbar-thumb { background: #00B7FF; border-radius: 4px; }
+
+/* ========================================
+   Profile Layout (Adapted from profile.css)
+======================================== */
+.profile-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.profile-top-row {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.profile-photo-side {
+    width: 200px;
+    flex-shrink: 0;
+}
+
+.profile-details-side {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.profile-cards-side {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+}
+
+.profile-bottom-row {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    margin-top: 15px;
+}
+
+.qr-code-box {
+    width: 200px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    padding: 15px;
+    background: transparent;
+    border: none;
+}
+
+.family-block {
+    flex: 1;
+}
+
+.image-box {
+    width: 100%;
+    height: 200px;
+    border: 1px solid #E0E0E0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-item {
+    display: flex;
+    font-size: 12px;
+}
+
+.detail-item .lbl {
+    width: 120px;
+    color: #666;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.detail-item .val {
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+.info-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 20px;
+    flex: 1;
+}
+
+.info-card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #4A5568;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-card-body {
+    display: flex;
+    gap: 15px;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.stat-label {
+    font-size: 10px;
+    color: #718096;
+    text-transform: uppercase;
+}
+
+.stat-val {
+    font-size: 12px;
+    font-weight: 700;
+    color: #2D3748;
+}
+
+.table-wrapper {
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+th {
+    text-align: left;
+    padding: 12px 15px;
+    font-weight: 700;
+    background: #F7FAFC;
+    color: #4A5568;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #E2E8F0;
+    color: #2D3748;
+}
+
+/* ========================================
+   Footer
+======================================== */
+.dialog-footer {
+  padding: 16px 24px !important;
+  border-top: 1px solid #E0E0E0;
+  display: flex;
+  justify-content: flex-end !important;
+  gap: 12px;
+  background: #FDFDFD;
+}
+
+.btn-custom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  gap: 8px;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.btn-custom i {
+  font-size: 16px;
+}
+
+.btn-fermer {
+  background: white;
+  color: #666 !important;
+  border: 1px solid #CCC !important;
+  font-weight: 600 !important;
+}
+
+.btn-fermer:hover {
+  background: #f5f5f5;
+}
+
+.btn-print {
+  background: linear-gradient(135deg, #0084FF, #00B7FF) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 10px rgba(0, 132, 255, 0.25) !important;
+}
+
+.btn-print:hover {
+  box-shadow: 0 6px 14px rgba(0, 132, 255, 0.35) !important;
+  transform: translateY(-1px);
+}

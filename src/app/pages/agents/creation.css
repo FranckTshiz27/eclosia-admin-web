@@ -1,0 +1,98 @@
+/* Styles spécifiques à la création d'agent - Image 3 */
+.agent-form-container {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 30px;
+    margin-top: 20px;
+}
+
+.form-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--sidebar-bg);
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--sidebar-bg);
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+.agent-form-main {
+    display: flex;
+    gap: 40px;
+}
+
+.agent-photo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.agent-photo-section .image-box {
+    margin: 0;
+    width: 150px;
+    height: 150px;
+}
+
+.agent-photo-section .qr-code-box {
+    margin: 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group.full-width {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input, 
+.form-group select {
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 12px;
+    outline: none;
+    background: #fff;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 30px 0;
+}
+
+.family-form-section h3,
+.cursus-form-section h3,
+.promotion-form-section h3,
+.remuneration-form-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--sidebar-bg);
+    padding-left: 10px;
+    border-left: 4px solid var(--sidebar-bg);
+}
+
+.family-form-section .form-grid,
+.cursus-form-section .form-grid,
+.promotion-form-section .form-grid,
+.remuneration-form-section .form-grid {
+    grid-template-columns: repeat(4, 1fr);
+}

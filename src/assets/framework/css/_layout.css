@@ -1,0 +1,88 @@
+/* 
+ * FP-CORE-CSS: Layout System (Advanced Responsive)
+ * Contient le Grid System récursif, Flexbox et les styles Print.
+ */
+
+/* Containers */
+.fp-container {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: var(--fp-space-md);
+    padding-left: var(--fp-space-md);
+}
+
+.fp-container-fluid { width: 100%; padding-right: var(--fp-space-md); padding-left: var(--fp-space-md); }
+
+/* Breakpoints standard */
+@media (min-width: 576px) { .fp-container { max-width: 540px; } }
+@media (min-width: 768px) { .fp-container { max-width: 720px; } }
+@media (min-width: 992px) { .fp-container { max-width: 960px; } }
+@media (min-width: 1200px) { .fp-container { max-width: 1140px; } }
+@media (min-width: 1400px) { .fp-container { max-width: 1320px; } }
+
+/* Grid System Core */
+.fp-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: calc(var(--fp-space-md) * -1);
+    margin-left: calc(var(--fp-space-md) * -1);
+}
+
+.fp-row > * {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    padding-right: var(--fp-space-md);
+    padding-left: var(--fp-space-md);
+}
+
+/* Base Columns (Mobile first) */
+.fp-col-1 { flex: 0 0 auto; width: 8.333333%; }
+.fp-col-2 { flex: 0 0 auto; width: 16.666667%; }
+.fp-col-3 { flex: 0 0 auto; width: 25%; }
+.fp-col-4 { flex: 0 0 auto; width: 33.333333%; }
+.fp-col-6 { flex: 0 0 auto; width: 50%; }
+.fp-col-12 { flex: 0 0 auto; width: 100%; }
+
+/* Tablet (md) */
+@media (min-width: 768px) {
+    .fp-col-md-1 { flex: 0 0 auto; width: 8.333333%; }
+    .fp-col-md-2 { flex: 0 0 auto; width: 16.666667%; }
+    .fp-col-md-3 { flex: 0 0 auto; width: 25%; }
+    .fp-col-md-4 { flex: 0 0 auto; width: 33.333333%; }
+    .fp-col-md-6 { flex: 0 0 auto; width: 50%; }
+    .fp-col-md-12 { flex: 0 0 auto; width: 100%; }
+}
+
+/* Desktop (lg) */
+@media (min-width: 992px) {
+    .fp-col-lg-1 { flex: 0 0 auto; width: 8.333333%; }
+    .fp-col-lg-2 { flex: 0 0 auto; width: 16.666667%; }
+    .fp-col-lg-3 { flex: 0 0 auto; width: 25%; }
+    .fp-col-lg-4 { flex: 0 0 auto; width: 33.333333%; }
+    .fp-col-lg-6 { flex: 0 0 auto; width: 50%; }
+    .fp-col-lg-12 { flex: 0 0 auto; width: 100%; }
+}
+
+/* TV & Extra Large (xl) */
+@media (min-width: 1200px) {
+    .fp-col-xl-3 { flex: 0 0 auto; width: 25%; }
+    .fp-col-xl-6 { flex: 0 0 auto; width: 50%; }
+}
+
+/* FLEXBOX UTILITIES (Base) */
+.fp-d-flex { display: flex !important; }
+.fp-flex-column { flex-direction: column !important; }
+.fp-justify-between { justify-content: space-between !important; }
+.fp-justify-end { justify-content: flex-end !important; }
+.fp-align-center { align-items: center !important; }
+.fp-flex-1 { flex: 1 1 0% !important; }
+
+/* PRINT STYLES */
+@media print {
+    .fp-no-print { display: none !important; }
+    body { background: white !important; color: black !important; }
+    .fp-card { border: 1px solid #ddd !important; box-shadow: none !important; }
+    .main-header, .sidebar { display: none !important; }
+}

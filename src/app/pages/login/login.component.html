@@ -1,0 +1,116 @@
+<div class="login-container">
+  <div class="login-left">
+    <div class="left-content">
+      <img class="logo-image" src="images/logo/eclosia-white.png" alt="Eclosia" />
+
+      <div class="hero-section">
+        <h1 class="hero-title">
+          La plateforme intelligente
+          <span>de gestion scolaire.</span>
+        </h1>
+        <div class="hero-line"></div>
+        <p class="hero-description">
+          Centralisez toutes les activités scolaires et pilotez votre établissement en toute simplicité.
+        </p>
+      </div>
+
+      <ul class="features">
+        <li class="feature-item">
+          <span class="feature-icon"><i class="bi bi-building"></i></span>
+          <span>Gestion des écoles</span>
+        </li>
+        <li class="feature-item">
+          <span class="feature-icon"><i class="bi bi-people-fill"></i></span>
+          <span>Gestion des élèves</span>
+        </li>
+        <li class="feature-item">
+          <span class="feature-icon"><i class="bi bi-mortarboard-fill"></i></span>
+          <span>Gestion des enseignants</span>
+        </li>
+        <li class="feature-item">
+          <span class="feature-icon"><i class="bi bi-book-fill"></i></span>
+          <span>Gestion des classes</span>
+        </li>
+        <li class="feature-item">
+          <span class="feature-icon"><i class="bi bi-currency-dollar"></i></span>
+          <span>Gestion financière</span>
+        </li>
+        <li class="feature-item">
+          <span class="feature-icon"><i class="bi bi-bar-chart-line-fill"></i></span>
+          <span>Bulletins et résultats</span>
+        </li>
+      </ul>
+    </div>
+
+    <img class="illustration-image" src="images/login/eclosia-background-transparent.png" alt="Plateforme Eclosia" />
+
+    <div class="footer-info">
+      <span>© Éclosia 2024 - Tous droits réservés</span>
+      <span class="version">v1.0.0</span>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-card">
+      <div class="security-icon">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+
+      <h2>Bienvenue !</h2>
+      <p class="login-subtitle">Connectez-vous à votre espace Éclosia</p>
+
+      <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+        <div class="form-group">
+          <label for="email">Adresse Email</label>
+          <div class="input-wrapper">
+            <i class="bi bi-envelope"></i>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              [(ngModel)]="loginData.email"
+              required
+              autocomplete="off"
+              placeholder="exemple@ecole.cd"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <div class="input-wrapper">
+            <i class="bi bi-lock"></i>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              [(ngModel)]="loginData.password"
+              required
+              autocomplete="off"
+              placeholder="••••••••••••"
+            />
+            <i class="bi bi-eye"></i>
+          </div>
+        </div>
+
+        <div class="form-options">
+          <label class="remember-me">
+            <input type="checkbox" />
+            <span>Se souvenir de moi</span>
+          </label>
+          <a routerLink="/forgot-password">Mot de passe oublié ?</a>
+        </div>
+
+        <button class="btn-login" type="submit" [disabled]="!loginForm.form.valid">
+          <i class="bi bi-arrow-right"></i>
+          <span>Se connecter</span>
+        </button>
+      </form>
+
+      <p class="contact-admin">
+        Besoin d'un accès ?
+        <a routerLink="/register">Contactez l'administrateur</a>
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,266 @@
+<div class="settings-container">
+    <div class="settings-header">
+        <div class="title-group">
+            <h1>Gestion des Accès</h1>
+            <p>Gérez les privilèges, les comptes utilisateurs et la sécurité du système.</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-primary">
+                <i class="bi bi-save"></i> Enregistrer les modifications
+            </button>
+        </div>
+    </div>
+
+    <div class="settings-layout">
+        <aside class="settings-nav">
+            <ul>
+                <li [class.active]="activeTab === 'general'" (click)="selectTab('general')">
+                    <i class="bi bi-sliders"></i>
+                    <span>Général</span>
+                </li>
+                <li [class.active]="activeTab === 'users'" (click)="selectTab('users')">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Utilisateurs</span>
+                </li>
+                <li [class.active]="activeTab === 'security'" (click)="selectTab('security')">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Rôles & Privilèges</span>
+                </li>
+                <li [class.active]="activeTab === 'audit'" (click)="selectTab('audit')">
+                    <i class="bi bi-journal-text"></i>
+                    <span>Journaux d'Audit</span>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="settings-content">
+            <!-- Security / RBAC Tab -->
+            <div *ngIf="activeTab === 'security'" class="tab-pane-fade">
+                <div class="content-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3>Configuration des Privilèges</h3>
+                            <p>Définit ce que chaque type d'utilisateur peut voir ou faire dans le système.</p>
+                        </div>
+                        <button class="btn-outline-primary" (click)="startCreatingRole()" *ngIf="!isCreatingRole">
+                            <i class="bi bi-plus-circle"></i> Nouveau Rôle
+                        </button>
+                    </div>
+
+                    <!-- Role Creation Form -->
+                    <div class="role-creation-box mb-4 fade-in" *ngIf="isCreatingRole">
+                        <div class="form-section">
+                            <label>Nom du nouveau rôle (ex: MINISTRE)</label>
+                            <input type="text" [(ngModel)]="newRoleName" placeholder="Entrez le nom du rôle..." class="form-control mb-3">
+                            
+                            <label class="mt-4">Sélectionner les Privilèges</label>
+                            <div class="permission-groups-container mt-4">
+                                <div *ngFor="let group of permissionGroups" class="permission-group-block mb-4">
+                                    <h5 class="group-title text-muted small fw-bold text-uppercase mb-2">
+                                        <i class="bi bi-collection"></i> {{ group.title }}
+                                    </h5>
+                                    <div class="permission-selection-grid">
+                                        <div *ngFor="let p of group.permissions" 
+                                             class="permission-checkbox-item" 
+                                             [class.checked]="isPermissionSelected(p)"
+                                             (click)="togglePermission(p)">
+                                            <i class="bi" [ngClass]="isPermissionSelected(p) ? 'bi-check-square-fill' : 'bi-square'"></i>
+                                            <span>{{ p }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="sidebar-preview mt-4" *ngIf="selectedPermissions.length > 0">
+                                <label class="text-primary fw-bold"><i class="bi bi-eye"></i> Aperçu du menu généré</label>
+                                <div class="preview-box mt-2">
+                                    <div *ngFor="let item of getPreviewMenu()" class="preview-item">
+                                        <i class="bi {{ item.icon }}"></i>
+                                        <span>{{ item.title }}</span>
+                                    </div>
+                                    <div *ngIf="getPreviewMenu().length === 0" class="text-muted small">
+                                        Aucun menu visible avec ces privilèges.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions mt-4">
+                                <button class="btn-link text-muted me-3" (click)="cancelRoleCreation()">Annuler</button>
+                                <button class="btn-primary" [disabled]="!newRoleName || selectedPermissions.length === 0" (click)="saveNewRole()">
+                                    Confirmer la création
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role Selector Section -->
+                    <div class="section-title mt-2 mb-3">
+                        <h4 class="text-secondary small fw-bold text-uppercase">Rôles existants</h4>
+                    </div>
+                    <div class="role-selector-grid mb-5">
+                        <div *ngFor="let role of roles" 
+                             class="role-card" 
+                             [class.selected]="selectedRole?.id === role.id"
+                             (click)="selectedRole = role">
+                            <div class="role-icon">
+                                <i class="bi" [ngClass]="role.id === 'ADMIN' ? 'bi-shield-fill-check' : 'bi-shield-shaded'"></i>
+                            </div>
+                            <div class="role-info">
+                                <h4>{{ role.name }}</h4>
+                                <span class="permission-count">{{ role.permissions.length }} permissions actives</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permissions View Section -->
+                    <div class="permissions-list mt-5 pt-4 border-top" *ngIf="selectedRole">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="mb-0">Détails des Permissions : <span class="text-primary">{{ selectedRole.name }}</span></h4>
+                            <span class="badge bg-primary rounded-pill">{{ selectedRole.permissions.length }} PRIVILEGES</span>
+                        </div>
+                        <div class="permission-grid">
+                            <div *ngFor="let p of selectedRole.permissions" class="permission-tag">
+                                <i class="bi bi-check2-circle"></i> {{ p }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div *ngIf="activeTab === 'users'" class="tab-pane-fade">
+                <div class="content-card">
+                    <div class="card-header d-flex justify-content-between">
+                        <div>
+                            <h3>Gestion des Comptes</h3>
+                            <p>Liste des utilisateurs ayant accès au portail de gestion.</p>
+                        </div>
+                        <button class="btn-outline-primary btn-sm" (click)="startAddingUser()" *ngIf="!isAddingUser">
+                            <i class="bi bi-plus"></i> Nouvel utilisateur
+                        </button>
+                    </div>
+
+                    <!-- Add User Form -->
+                    <div class="user-creation-box mb-4 fade-in" *ngIf="isAddingUser">
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label>Nom Complet</label>
+                                <input type="text" [(ngModel)]="newUser.name" placeholder="Ex: Jean Mukendi" class="form-control">
+                            </div>
+                            <div class="form-group col">
+                                <label>Email Professionnel</label>
+                                <input type="email" [(ngModel)]="newUser.email" placeholder="jmukendi@fonctionpublique.cd" class="form-control">
+                            </div>
+                            <div class="form-group col-auto">
+                                <label>Rôle Initial</label>
+                                <select [(ngModel)]="newUser.role" class="form-select">
+                                    <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-actions mt-3">
+                            <button class="btn-link text-muted me-3" (click)="cancelAddingUser()">Annuler</button>
+                            <button class="btn-primary" [disabled]="!newUser.name || !newUser.email" (click)="saveNewUser()">
+                                Créer l'accès
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>UTILISATEUR</th>
+                                    <th>ROLE</th>
+                                    <th>DERNIERE CONNEXION</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ng-container *ngFor="let user of paginatedUsers">
+                                    <tr>
+                                        <td>
+                                            <div class="user-cell">
+                                                <div class="avatar-sm">{{ user.name.charAt(0) }}</div>
+                                                <div class="user-meta">
+                                                    <span class="name">{{ user.name }}</span>
+                                                    <span class="email text-muted">{{ user.email }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <select [ngModel]="user.role" (ngModelChange)="updateUserRole(user, $event)" 
+                                                    class="role-select-compact" [disabled]="user.role === 'AUCUN'">
+                                                <option value="AUCUN" *ngIf="user.role === 'AUCUN'">Désactivé</option>
+                                                <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+                                            </select>
+                                        </td>
+                                        <td>{{ user.lastLogin }}</td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="btn-icon" (click)="toggleUserDetails(user)" title="Détails des accès">
+                                                    <i class="bi" [ngClass]="selectedUserForDetails?.id === user.id ? 'bi-eye-slash' : 'bi-eye'"></i>
+                                                </button>
+                                                <button class="btn-icon danger" (click)="revokeRole(user)" title="Révoquer le rôle" [disabled]="user.role === 'AUCUN'">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Expanded Details Row -->
+                                    <tr *ngIf="selectedUserForDetails?.id === user.id" class="details-row fade-in">
+                                        <td colspan="4">
+                                            <div class="user-details-box">
+                                                <h5>Privilèges effectifs pour {{ user.name }}</h5>
+                                                <div class="permission-chips mt-2">
+                                                    <span *ngFor="let p of getUserPermissions(user.role)" class="chip">
+                                                        <i class="bi bi-shield-check"></i> {{ p }}
+                                                    </span>
+                                                    <div *ngIf="user.role === 'AUCUN'" class="text-danger">
+                                                        <i class="bi bi-exclamation-triangle"></i> Aucun rôle assigné. Accès révoqué.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </ng-container>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div class="pagination-container mt-4">
+                        <div class="pagination-info">
+                            Affichage de <b>{{ Math.min((currentPage-1)*pageSize + 1, users.length) }}</b> 
+                            à <b>{{ Math.min(currentPage*pageSize, users.length) }}</b> 
+                            sur <b>{{ users.length }}</b> utilisateurs
+                        </div>
+                        <div class="pagination-btns">
+                            <button class="btn-page" [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <button *ngFor="let p of [].constructor(totalPages); let i = index" 
+                                    class="btn-page" 
+                                    [class.active]="currentPage === i + 1"
+                                    (click)="setPage(i + 1)">
+                                {{ i + 1 }}
+                            </button>
+                            <button class="btn-page" [disabled]="currentPage === totalPages" (click)="setPage(currentPage + 1)">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             <!-- Placeholder for other tabs -->
+             <div *ngIf="activeTab === 'general' || activeTab === 'audit'" class="tab-pane-fade">
+                <div class="empty-state">
+                    <i class="bi bi-cone-striped"></i>
+                    <h3>En cours de développement</h3>
+                    <p>Ce module de configuration sera disponible prochainement.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>

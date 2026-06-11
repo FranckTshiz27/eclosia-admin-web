@@ -1,0 +1,383 @@
+<div class="fp-docs-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="fp-docs-sidebar fp-d-md-block fp-d-none">
+        <div class="fp-px-4 fp-mb-4">
+            <h2 class="fp-h4 fp-text-primary">FIPIX CORE</h2>
+            <p class="fp-text-sm fp-text-muted">v2.0.0 Enterprise</p>
+        </div>
+        <nav>
+            <ng-container *ngFor="let s of sections">
+                <div class="fp-docs-nav-item" 
+                     [class.active]="currentSection === s.id" 
+                     (click)="s.children ? toggleExpanded(s) : scrollTo(s.id)">
+                    <span>{{ s.label }}</span>
+                    <i *ngIf="s.children" class="bi" 
+                       [class.bi-chevron-down]="s.expanded" 
+                       [class.bi-chevron-right]="!s.expanded"></i>
+                </div>
+                <div class="fp-docs-submenu" *ngIf="s.children && s.expanded">
+                    <a *ngFor="let child of s.children" 
+                       (click)="scrollTo(child.id); $event.stopPropagation()"
+                       class="fp-docs-sub-item" 
+                       [class.active]="currentSection === child.id">
+                        {{ child.label }}
+                    </a>
+                </div>
+            </ng-container>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="fp-docs-content">
+        <!-- 1. Introduction -->
+        <section id="introduction" class="fp-mb-5">
+            <h1 class="fp-h1 fp-docs-section-title">Introduction</h1>
+            <p class="fp-lead">Bienvenue dans la documentation officielle de FIPIX CORE, un framework CSS moderne conçu pour faciliter l'integration des autres interfaces pour ce template.</p>
+            <div class="fp-alert fp-alert-primary fp-alert-accent fp-mt-3">
+                <div class="fp-alert-icon"><i class="bi bi-info-circle-fill"></i></div>
+                <div>
+                    <strong class="fp-alert-title">Namespace Framework</strong>
+                    Tous les composants et utilitaires sont préfixés par <code>fp-</code> pour éviter les conflits CSS.
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Layout -->
+        <section id="layout" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Layout & Grid</h2>
+            <p>Système de grille flexible basé sur Flexbox avec 12 colonnes.</p>
+            <div class="fp-example">
+                <div class="fp-row">
+                    <div class="fp-col-md-4"><div class="fp-bg-soft-primary fp-p-3 fp-text-center fp-rounded">Col 4</div></div>
+                    <div class="fp-col-md-4"><div class="fp-bg-soft-primary fp-p-3 fp-text-center fp-rounded">Col 4</div></div>
+                    <div class="fp-col-md-4"><div class="fp-bg-soft-primary fp-p-3 fp-text-center fp-rounded">Col 4</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Typography -->
+        <section id="typography" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Typographie</h2>
+            <div class="fp-row">
+                <div class="fp-col-md-6">
+                    <h1 class="fp-h1">Heading 1</h1>
+                    <h6 class="fp-h6">Heading 6</h6>
+                    <p class="fp-lead">Ceci est un paragraphe lead (introduction).</p>
+                </div>
+                <div class="fp-col-md-6">
+                    <h1 class="fp-display-1">Display 1</h1>
+                    <p class="fp-small">Texte réduit avec <code>.fp-small</code>.</p>
+                    <p>Texte <mark class="fp-mark-primary">surligné en bleu</mark> ou <mark class="fp-mark-warning">en orange</mark>.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Colors -->
+        <section id="colors" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Couleurs & Design</h2>
+            <h4 class="fp-h5 fp-mb-3">Palettes Solids</h4>
+            <div class="fp-d-flex fp-gap-2 fp-flex-wrap">
+                <div class="fp-p-3 fp-rounded fp-bg-primary">Primary</div>
+                <div class="fp-p-3 fp-rounded fp-bg-success">Success</div>
+                <div class="fp-p-3 fp-rounded fp-bg-danger">Danger</div>
+                <div class="fp-p-3 fp-rounded fp-bg-dark">Dark</div>
+            </div>
+            <h4 class="fp-h5 fp-mt-4 fp-mb-3">Palettes Soft (Modern)</h4>
+            <div class="fp-d-flex fp-gap-2 fp-flex-wrap">
+                <div class="fp-p-3 fp-rounded fp-bg-soft-primary">Soft Primary</div>
+                <div class="fp-p-3 fp-rounded fp-bg-soft-success">Soft Success</div>
+                <div class="fp-p-3 fp-rounded fp-bg-soft-danger">Soft Danger</div>
+            </div>
+        </section>
+
+        <!-- COMPOSANTS GROUP -->
+        <hr class="fp-hr fp-my-5">
+
+        <!-- 5.1 Buttons -->
+        <section id="buttons" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Boutons</h2>
+            <div class="fp-d-flex fp-gap-3 fp-flex-wrap">
+                <button class="fp-btn fp-btn-primary">Primary Solid</button>
+                <button class="fp-btn fp-btn-outline-primary">Outline</button>
+                <button class="fp-btn fp-btn-primary fp-btn-shadow">With Shadow</button>
+                <button class="fp-btn fp-btn-primary fp-btn-pill">Pill Style</button>
+                <button class="fp-btn fp-btn-ghost"><i class="bi bi-gear"></i> Ghost</button>
+            </div>
+        </section>
+
+        <!-- 5.2 Badges -->
+        <section id="badges" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Badges</h2>
+            <div class="fp-d-flex fp-gap-2 fp-flex-wrap fp-align-center">
+                <span class="fp-badge fp-badge-primary">Nouveau</span>
+                <span class="fp-badge fp-badge-soft-success">Validé</span>
+                <span class="fp-badge fp-badge-pill fp-badge-danger">99+</span>
+                <span class="fp-badge-dot fp-badge-success fp-pulse"></span>
+                <span class="fp-text-sm fp-text-muted">En direct</span>
+            </div>
+        </section>
+
+        <!-- 5.3 Alerts -->
+        <section id="alerts" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Alertes</h2>
+            <div class="fp-alert fp-alert-success fp-alert-accent fp-mb-3">
+                <div class="fp-alert-icon"><i class="bi bi-check-circle-fill"></i></div>
+                <div>
+                    <strong class="fp-alert-title">Action réussie</strong>
+                    Configuration mise à jour avec succès.
+                </div>
+            </div>
+            <div class="fp-alert fp-alert-danger fp-alert-dismissible">
+                <div class="fp-alert-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <div>Erreur de connexion serveur.</div>
+                <button class="fp-btn-close"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </section>
+
+                <!-- 5.3 Cartes -->
+        <section id="cards" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Cartes & Conteneurs Premium</h2>
+            <div class="fp-row fp-gap-4">
+                <div class="fp-col-md-5">
+                    <div class="fp-card fp-card-hover fp-mb-3">
+                        <div class="fp-card-header">
+                            <h5 class="fp-card-title">Carte Standard</h5>
+                            <span class="fp-badge fp-badge-soft-primary">Docs</span>
+                        </div>
+                        <div class="fp-card-body">
+                            <p class="fp-text-muted">Une carte avec ombre multi-couche et coins plus doux.</p>
+                            <button class="fp-btn fp-btn-primary fp-btn-sm fp-mt-3">Action</button>
+                        </div>
+                    </div>
+                    <div class="fp-card fp-card-glass fp-p-3">
+                        <h5 class="fp-card-title">Glassmorphism</h5>
+                        <p class="fp-text-xs fp-mt-2">Effet de verre dépoli avec blur d'arrière-plan.</p>
+                    </div>
+                </div>
+                <div class="fp-col-md-6">
+                    <div class="fp-row fp-gap-3">
+                        <div class="fp-col-6">
+                            <div class="fp-card fp-stat-card fp-stat-primary fp-card-hover">
+                                <div class="fp-stat-header">
+                                    <span class="fp-stat-label">Revenus</span>
+                                    <div class="fp-stat-icon"><i class="bi bi-currency-dollar"></i></div>
+                                </div>
+                                <div class="fp-stat-value">$24,500</div>
+                                <div class="fp-stat-footer">
+                                    <span class="fp-stat-trend fp-stat-trend-up">+12.5%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fp-col-6">
+                            <div class="fp-card fp-stat-card fp-stat-success fp-card-hover">
+                                <div class="fp-stat-header">
+                                    <span class="fp-stat-label">Agents</span>
+                                    <div class="fp-stat-icon"><i class="bi bi-people"></i></div>
+                                </div>
+                                <div class="fp-stat-value">1,240</div>
+                                <div class="fp-stat-footer">
+                                    <span class="fp-stat-trend fp-stat-trend-up">+8%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fp-card fp-card-accent-danger fp-mt-4">
+                        <div class="fp-card-body">
+                            <h6 class="fp-fw-bold fp-text-danger">Alerte Critique</h6>
+                            <p class="fp-small">Bordure d'accentuation vibrante pour les cartes importantes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5.4 Tableaux -->
+        <section id="tables" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Système de Tableaux Moderne & Pagination</h2>
+            <div class="fp-table-container">
+                <div class="fp-table-responsive">
+                    <table class="fp-table fp-table-striped-soft">
+                        <thead>
+                            <tr>
+                                <th class="fp-col-w-lg">Agent</th>
+                                <th class="fp-col-shrink">Rôle</th>
+                                <th class="fp-col-shrink">Status</th>
+                                <th class="fp-col-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="fp-cell-user">
+                                        <div class="fp-avatar">JD</div>
+                                        <div class="fp-user-info">
+                                            <span class="fp-user-name">Jean Dupont</span>
+                                            <span class="fp-user-sub">jean.d&#64;example.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="fp-text-nowrap">Superviseur</span></td>
+                                <td><span class="fp-badge fp-badge-pill fp-badge-soft-success">Actif</span></td>
+                                <td>
+                                    <div class="fp-table-actions fp-justify-end">
+                                        <button class="fp-action-btn"><i class="bi bi-eye"></i></button>
+                                        <button class="fp-action-btn"><i class="bi bi-pencil"></i></button>
+                                        <button class="fp-action-btn fp-action-btn-danger"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="fp-cell-user">
+                                        <div class="fp-avatar fp-bg-warning">MB</div>
+                                        <div class="fp-user-info">
+                                            <span class="fp-user-name">Marie Bella</span>
+                                            <span class="fp-user-sub">m.bella&#64;example.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="fp-text-nowrap">Agent Senior</span></td>
+                                <td><span class="fp-badge fp-badge-pill fp-badge-soft-warning">En Pause</span></td>
+                                <td>
+                                    <div class="fp-table-actions fp-justify-end">
+                                        <button class="fp-action-btn"><i class="bi bi-eye"></i></button>
+                                        <button class="fp-action-btn"><i class="bi bi-pencil"></i></button>
+                                        <button class="fp-action-btn fp-action-btn-danger"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination Complète -->
+                <div class="fp-paginator">
+                    <div class="fp-paginator-limit">
+                        <span>Afficher</span>
+                        <select class="fp-paginator-select">
+                            <option>10</option>
+                            <option>20</option>
+                            <option>50</option>
+                        </select>
+                        <span>par page</span>
+                    </div>
+                    <div class="fp-paginator-info">
+                        Page <strong>1</strong> sur <strong>5</strong>
+                    </div>
+                    <div class="fp-paginator-nav">
+                        <button class="fp-paginator-btn" disabled><i class="bi bi-chevron-left"></i></button>
+                        <button class="fp-paginator-btn"><i class="bi bi-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5.6 Forms -->
+        <section id="forms" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Formulaires</h2>
+            <div class="fp-row">
+                <div class="fp-col-md-6">
+                    <div class="fp-form-group">
+                        <label class="fp-label">Input Email</label>
+                        <input type="email" class="fp-form-control" placeholder="nom&#64;exemple.com">
+                    </div>
+                    <div class="fp-form-group">
+                        <label class="fp-label">Select Standard</label>
+                        <select class="fp-select">
+                            <option>Option 1</option>
+                            <option>Option 2</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="fp-col-md-6">
+                    <div class="fp-form-group">
+                        <label class="fp-label">Date & Heure Premium</label>
+                        <div class="fp-d-flex fp-gap-2">
+                            <input type="date" class="fp-form-control">
+                            <input type="datetime-local" class="fp-form-control">
+                        </div>
+                    </div>
+                    <div class="fp-form-check fp-switch">
+                        <input type="checkbox" class="fp-check-input" id="swDocs">
+                        <label class="fp-cursor-pointer" for="swDocs">Activer Notifications</label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5.7 Loaders -->
+        <section id="loaders" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Loaders & Spinners</h2>
+            <div class="fp-d-flex fp-gap-4 fp-align-center fp-flex-wrap">
+                <div class="fp-spinner-border fp-text-primary"></div>
+                <div class="fp-spinner-grow fp-text-success"></div>
+                <div class="fp-loader-dots"><span></span><span></span><span></span></div>
+                <div class="fp-loader-line fp-flex-1" style="min-width: 100px;"></div>
+                <div class="fp-spinner-pulse fp-bg-danger" style="width: 2rem; height: 2rem; border-radius: 50%;"></div>
+            </div>
+            <p class="fp-text-xs fp-mt-2 fp-text-muted">Variantes : Border, Grow, Dots, Line, Pulse.</p>
+        </section>
+
+        <!-- 5.8 Interactive -->
+        <section id="interactive" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Interactifs</h2>
+            <div class="fp-d-flex fp-gap-4 fp-flex-wrap">
+                <!-- Dropdown -->
+                <div class="fp-dropdown">
+                    <button class="fp-btn fp-btn-secondary">Menu Déroulant <i class="bi bi-chevron-down"></i></button>
+                    <div class="fp-dropdown-menu">
+                        <a href="#" class="fp-dropdown-item">Action 1</a>
+                        <a href="#" class="fp-dropdown-item">Action 2</a>
+                    </div>
+                </div>
+                <!-- Tooltip -->
+                <button class="fp-btn fp-btn-outline-primary" data-fp-tooltip="Top Tooltip">Survolez-moi</button>
+            </div>
+            
+            <h4 class="fp-h5 fp-mt-5 fp-mb-3">Modale (Structure)</h4>
+            <div class="fp-p-4 fp-bg-soft-dark fp-rounded fp-text-center">
+                <button class="fp-btn fp-btn-primary" onclick="alert('Demo Modale')">Lancer Modale</button>
+                <p class="fp-text-xs fp-mt-2 fp-text-muted">Utilisez <code>.fp-modal-overlay</code> et <code>.fp-modal-content</code>.</p>
+            </div>
+
+            <h4 class="fp-h5 fp-mt-4 fp-mb-3">Carousel Lite</h4>
+            <div class="fp-carousel fp-border">
+                <div class="fp-carousel-inner">
+                    <div class="fp-carousel-item fp-bg-soft-primary fp-d-flex fp-align-center fp-justify-center">Slide 1</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Media -->
+        <section id="media" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Médias</h2>
+            <div class="fp-row">
+                <div class="fp-col-md-4">
+                    <div class="fp-ratio fp-ratio-1x1 mb-2">
+                        <img src="https://picsum.photos/200/200" class="fp-img-rounded fp-object-cover" alt="Square">
+                    </div>
+                    <p class="fp-text-center fp-text-xs">Ratio 1:1</p>
+                </div>
+                <div class="fp-col-md-8">
+                    <div class="fp-video-container">
+                        <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Utilities -->
+        <section id="utilities" class="fp-mb-5">
+            <h2 class="fp-h2 fp-docs-section-title">Utilitaires</h2>
+            <div class="fp-example">
+                <p>Marges : <code>.fp-m-0</code> à <code>.fp-m-5</code> (Top, Bottom, Left, Right).</p>
+                <p>Padding : <code>.fp-p-0</code> à <code>.fp-p-5</code>.</p>
+                <p>Ombres : <code>.fp-shadow-sm</code>, <code>.fp-shadow-md</code>, <code>.fp-shadow-lg</code>.</p>
+                <p>Coins : <code>.fp-rounded</code>, <code>.fp-rounded-lg</code>, <code>.fp-rounded-full</code>.</p>
+            </div>
+        </section>
+
+        <footer class="fp-mt-5 fp-pt-4 fp-border-top fp-text-muted fp-text-center">
+            <p>&copy; 2026 FIPIX CORE Framework. Créé avec passion pour Beni.</p>
+        </footer>
+    </main>
+</div>

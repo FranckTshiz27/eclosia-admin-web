@@ -168,6 +168,12 @@
   overflow-x: auto;
 }
 
+.load-error {
+  margin: 0 14px 12px;
+  color: #b42318;
+  font-size: 12px;
+}
+
 .groups-table {
   width: 100%;
   border-collapse: collapse;
@@ -188,6 +194,12 @@
   background: #fff;
 }
 
+.table-state {
+  text-align: center !important;
+  color: #607089;
+  font-style: italic;
+}
+
 .group-cell {
   display: flex;
   align-items: center;
@@ -205,6 +217,11 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.avatar-logo {
+  object-fit: cover;
+  border: 1px solid #dce4ee;
 }
 
 .avatar-blue { background: #2c89f5; }
@@ -436,6 +453,28 @@
   font-size: 11px;
 }
 
+.field-error {
+  align-self: flex-start !important;
+  color: #b42318 !important;
+  margin-top: -2px;
+}
+
+.input-invalid {
+  border-color: #f04438 !important;
+  background: #fff7f7 !important;
+}
+
+.input-invalid:focus {
+  border-color: #f04438 !important;
+  box-shadow: 0 0 0 0.2rem rgba(240, 68, 56, 0.12) !important;
+}
+
+.save-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 12px;
+}
+
 .modal-footer {
   border-top: 1px solid #ebf0f6;
   padding: 14px 22px;
@@ -476,6 +515,13 @@
 .btn-save:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 22px rgba(10, 83, 222, 0.3);
+}
+
+.btn-save:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 @media (max-width: 700px) {

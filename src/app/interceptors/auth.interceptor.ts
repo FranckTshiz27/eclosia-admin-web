@@ -1,7 +1,6 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, switchMap, throwError, Observable, BehaviorSubject, filter, take } from 'rxjs';
-import { Router } from '@angular/router';
 import { SecurityService } from '../services/security.service';
 
 // On utilise un BehaviorSubject pour gérer le rafraîchissement du token si plusieurs requêtes échouent en même temps
@@ -12,8 +11,7 @@ import { InactivityService } from '../services/inactivity.service';
 
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
   const securityService = inject(SecurityService);
-  const inactivityService = inject(InactivityService); // Injection du service d'inactivité
-  const router = inject(Router);
+  const inactivityService = inject(InactivityService);
 
   // 1. Ne pas intercepter la route de login
   if (req.url.includes('login')) {
@@ -23,9 +21,13 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   // 2. Vérification rapide de la session locale
   const token = localStorage.getItem('token');
   if (!token) {
-    // Si pas de token, on peut forcer la déconnexion via le service d'inactivité
-    inactivityService.logout(); 
-    return throwError(() => new Error('Session expirée'));
+    // Laisse passer la requête sans header Authorization.
+    // Evite de déconnecter l'utilisateur tant qu'on n'a pas une vraie session tokenisée.
+    return next(req).pipe(
+      catchError((error: HttpErrorResponse) => {
+        return throwError(() => error);
+      })
+    );
   }
 
   // 3. Cloner la requête pour ajouter le header Authorization
@@ -35,7 +37,7 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        return handle401Error(authReq, next, securityService, inactivityService, router);
+        return handle401Error(authReq, next, securityService, inactivityService);
       }
       return throwError(() => error);
     })
@@ -59,16 +61,27 @@ function addTokenHeader(request: HttpRequest<unknown>, token: string) {
 function handle401Error(
   request: HttpRequest<unknown>,
   next: HttpHandlerFn,
-  securityService: any,
-  inactivityService: InactivityService,
-  router: Router
+  securityService: SecurityService,
+  inactivityService: InactivityService
 ): Observable<HttpEvent<unknown>> {
-  
+  const currentToken = localStorage.getItem('token');
+  const refreshFn = (securityService as any).refreshToken;
+
+  // Si aucune session locale n'existe (ou pas de stratégie de refresh), on renvoie l'erreur
+  // au composant appelant au lieu de rediriger automatiquement vers login.
+  if (!currentToken || typeof refreshFn !== 'function') {
+    return throwError(() => new HttpErrorResponse({
+      status: 401,
+      statusText: 'Unauthorized',
+      url: request.url
+    }));
+  }
+
   if (!isRefreshing$.value) {
     isRefreshing$.next(true);
     refreshTokenSubject$.next(null);
 
-    return securityService.refreshToken().pipe(
+    return refreshFn.call(securityService).pipe(
       switchMap((newToken: any) => {
         isRefreshing$.next(false);
         localStorage.setItem('token', newToken.token);

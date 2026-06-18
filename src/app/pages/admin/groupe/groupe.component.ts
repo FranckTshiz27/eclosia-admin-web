@@ -1,11 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
+import { FormsModule, NgForm } from '@angular/forms';
+import { CreateGroupDto, GroupApiResponse, GroupService } from '../../../services/group.service';
 
 interface GroupItem {
+  id?: string | number;
+  logo?: string;
   initials: string;
   avatarClass: string;
   name: string;
+  description?: string;
   schools: number;
   email: string;
   phone: string;
@@ -20,19 +24,26 @@ interface GroupItem {
   templateUrl: './groupe.component.html',
   styleUrl: './groupe.component.css'
 })
-export class GroupeComponent {
+export class GroupeComponent implements OnInit {
   isCreateModalOpen = false;
+  isSaving = false;
+  isSubmitted = false;
+  isEditMode = false;
+  editingGroupId: string | number | null = null;
+  searchTerm = '';
+  saveError = '';
+  loadError = '';
+  isLoadingGroups = false;
 
-  groups: GroupItem[] = [
-    { initials: 'GC', avatarClass: 'avatar-blue', name: 'Groupe Catholique', schools: 5, email: 'contact@gc.cd', phone: '+243 810 000 001', status: 'Actif', createdAt: '12 janv. 2024' },
-    { initials: 'GP', avatarClass: 'avatar-green', name: 'Groupe Protestant', schools: 3, email: 'contact@gp.cd', phone: '+243 810 000 002', status: 'Actif', createdAt: '15 fevr. 2024' },
-    { initials: 'GE', avatarClass: 'avatar-purple', name: 'Groupe Evangelique', schools: 2, email: 'contact@ge.cd', phone: '+243 810 000 003', status: 'Actif', createdAt: '10 mars 2024' },
-    { initials: 'GL', avatarClass: 'avatar-orange', name: 'Groupe Laique', schools: 4, email: 'contact@gl.cd', phone: '+243 810 000 004', status: 'Inactif', createdAt: '18 avr. 2024' },
-    { initials: 'GS', avatarClass: 'avatar-cyan', name: 'Groupe Scolaire ABC', schools: 2, email: 'contact@gsabc.cd', phone: '+243 810 000 005', status: 'Actif', createdAt: '22 mai 2024' },
-    { initials: 'GD', avatarClass: 'avatar-pink', name: 'Groupe Democratique', schools: 1, email: 'contact@gd.cd', phone: '+243 810 000 006', status: 'Inactif', createdAt: '05 juin 2024' }
-  ];
+  groups: GroupItem[] = [];
 
   form = this.createEmptyForm();
+
+  constructor(private readonly groupService: GroupService) {}
+
+  ngOnInit(): void {
+    this.loadGroups();
+  }
 
   get totalGroups(): number {
     return this.groups.length;
@@ -46,42 +57,171 @@ export class GroupeComponent {
     return this.groups.filter((group) => group.status === 'Inactif').length;
   }
 
+  get filteredGroups(): GroupItem[] {
+    const term = this.normalize(this.searchTerm);
+    if (!term) {
+      return this.groups;
+    }
+    return this.groups.filter((group) => this.normalize(group.name).includes(term));
+  }
+
   openCreateModal(): void {
+    this.isEditMode = false;
+    this.editingGroupId = null;
+    this.isSubmitted = false;
+    this.saveError = '';
+    this.form = this.createEmptyForm();
+    this.isCreateModalOpen = true;
+  }
+
+  openEditModal(group: GroupItem): void {
+    this.isEditMode = true;
+    this.editingGroupId = group.id ?? null;
+    this.isSubmitted = false;
+    this.saveError = '';
+    this.form = {
+      name: group.name,
+      logo: group.logo || '',
+      email: group.email !== '--' ? group.email : '',
+      phone: group.phone !== '--' ? group.phone : '',
+      description: group.description || '',
+      status: group.status
+    };
     this.isCreateModalOpen = true;
   }
 
   closeCreateModal(): void {
+    this.isEditMode = false;
+    this.editingGroupId = null;
+    this.isSubmitted = false;
+    this.saveError = '';
     this.isCreateModalOpen = false;
     this.form = this.createEmptyForm();
   }
 
-  saveGroup(): void {
-    if (!this.form.name.trim() || !this.form.email.trim()) {
+  saveGroup(groupForm: NgForm): void {
+    this.isSubmitted = true;
+    const name = this.form.name.trim();
+    const email = this.form.email.trim();
+    if (!groupForm.valid || !name || !email || this.isSaving) {
+      groupForm.control.markAllAsTouched();
       return;
     }
 
-    const newGroup: GroupItem = {
-      initials: this.makeInitials(this.form.name),
-      avatarClass: this.pickAvatarClass(this.groups.length),
-      name: this.form.name.trim(),
-      schools: 1,
-      email: this.form.email.trim(),
-      phone: this.form.phone.trim() || '--',
-      status: this.form.status,
-      createdAt: this.formatToday()
+    const dto: CreateGroupDto = {
+      name,
+      logo: this.form.logo.trim() || undefined,
+      email,
+      phone: this.form.phone.trim() || undefined,
+      description: this.form.description.trim() || undefined,
+      status: this.form.status
     };
 
-    this.groups = [newGroup, ...this.groups];
-    this.closeCreateModal();
+    this.isSaving = true;
+    this.saveError = '';
+
+    if (this.isEditMode) {
+      if (this.editingGroupId === null || this.editingGroupId === undefined) {
+        this.isSaving = false;
+        this.saveError = "Impossible de modifier ce groupe: identifiant introuvable.";
+        return;
+      }
+
+      this.groupService.update(this.editingGroupId, dto).subscribe({
+        next: () => {
+          this.closeCreateModal();
+          this.isSaving = false;
+          this.loadGroups(false);
+        },
+        error: () => {
+          this.isSaving = false;
+          this.saveError = "Echec de mise a jour du groupe. Verifiez l'API gateway et reessayez.";
+        }
+      });
+      return;
+    }
+
+    this.groupService.create(dto).subscribe({
+      next: (createdGroup) => {
+        this.closeCreateModal();
+        this.isSaving = false;
+        this.groups = [this.toViewModel(createdGroup), ...this.groups];
+        this.loadGroups(false);
+      },
+      error: () => {
+        this.isSaving = false;
+        this.saveError = "Echec de creation du groupe. Verifiez l'API gateway et reessayez.";
+      }
+    });
   }
 
   private createEmptyForm() {
     return {
       name: '',
+      logo: '',
       email: '',
       phone: '',
       description: '',
       status: 'Actif' as 'Actif' | 'Inactif'
+    };
+  }
+
+  private toViewModel(group: GroupApiResponse): GroupItem {
+    const name = (group.name || '').trim();
+    const createdAt = group.createdAt || group.created_at || group.dateCreation || this.formatToday();
+    const status = this.getUiStatus(group);
+
+    return {
+      id: group.id,
+      logo: group.logo || undefined,
+      initials: this.makeInitials(name),
+      avatarClass: this.pickAvatarClass(this.groups.length),
+      name: name || 'Nouveau groupe',
+      description: group.description || '',
+      schools: Number.isFinite(group.schools) ? Number(group.schools) : 1,
+      email: (group.email || '').trim() || '--',
+      phone: (group.phone || '').trim() || '--',
+      status,
+      createdAt
+    };
+  }
+
+  private getUiStatus(group: GroupApiResponse): 'Actif' | 'Inactif' {
+    if (typeof group.status === 'boolean') {
+      return group.status ? 'Actif' : 'Inactif';
+    }
+    if (typeof group.active === 'boolean') {
+      return group.active ? 'Actif' : 'Inactif';
+    }
+    if (typeof group.isActive === 'boolean') {
+      return group.isActive ? 'Actif' : 'Inactif';
+    }
+    return group.status === 'Inactif' ? 'Inactif' : 'Actif';
+  }
+
+  private loadGroups(showLoader = true): void {
+    if (showLoader) {
+      this.isLoadingGroups = true;
+    }
+    this.loadError = '';
+
+    this.groupService.getAll().subscribe({
+      next: (groups) => {
+        this.groups = groups.map((group, index) => this.toViewModelWithIndex(group, index));
+        this.isLoadingGroups = false;
+      },
+      error: () => {
+        this.isLoadingGroups = false;
+        this.loadError = "Impossible de charger la liste des groupes depuis l'API.";
+      }
+    });
+  }
+
+  private toViewModelWithIndex(group: GroupApiResponse, index: number): GroupItem {
+    const viewModel = this.toViewModel(group);
+    return {
+      ...viewModel,
+      avatarClass: this.pickAvatarClass(index)
     };
   }
 
@@ -104,5 +244,13 @@ export class GroupeComponent {
       year: 'numeric'
     });
     return formatter.format(new Date()).replace('.', '');
+  }
+
+  private normalize(value: string): string {
+    return (value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
   }
 }

@@ -49,7 +49,7 @@
     <div class="table-toolbar">
       <div class="search-box">
         <i class="bi bi-search"></i>
-        <input type="text" placeholder="Rechercher un groupe..." />
+        <input type="text" [(ngModel)]="searchTerm" [ngModelOptions]="{ standalone: true }" placeholder="Rechercher un groupe..." />
       </div>
 
       <button class="status-filter" type="button">
@@ -58,6 +58,7 @@
         <i class="bi bi-chevron-down"></i>
       </button>
     </div>
+    <p class="load-error" *ngIf="loadError">{{ loadError }}</p>
 
     <div class="groups-table-wrapper">
       <table class="groups-table">
@@ -72,10 +73,21 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let group of groups">
+          <tr *ngIf="isLoadingGroups">
+            <td colspan="6" class="table-state">Chargement des groupes...</td>
+          </tr>
+          <tr *ngIf="!isLoadingGroups && filteredGroups.length === 0">
+            <td colspan="6" class="table-state">Aucun groupe trouve pour cette recherche.</td>
+          </tr>
+          <tr *ngFor="let group of filteredGroups">
             <td>
               <div class="group-cell">
-                <div class="avatar" [class]=" 'avatar ' + group.avatarClass ">{{ group.initials }}</div>
+                <ng-container *ngIf="group.logo; else initialsAvatar">
+                  <img class="avatar avatar-logo" [src]="group.logo" [alt]="'Logo de ' + group.name" />
+                </ng-container>
+                <ng-template #initialsAvatar>
+                  <div class="avatar" [class]=" 'avatar ' + group.avatarClass ">{{ group.initials }}</div>
+                </ng-template>
                 <div>
                   <p class="group-name">{{ group.name }}</p>
                   <span>{{ group.schools }} ecole<span *ngIf="group.schools > 1">s</span></span>
@@ -92,7 +104,7 @@
             <td>{{ group.createdAt }}</td>
             <td class="actions-col">
               <button type="button"><i class="bi bi-eye"></i></button>
-              <button type="button"><i class="bi bi-pencil"></i></button>
+              <button type="button" (click)="openEditModal(group)"><i class="bi bi-pencil"></i></button>
               <button type="button"><i class="bi bi-three-dots-vertical"></i></button>
             </td>
           </tr>
@@ -101,7 +113,7 @@
     </div>
 
     <div class="table-footer">
-      <p>Affichage de 1 a {{ groups.length }} sur {{ groups.length }} groupes</p>
+      <p>Affichage de 1 a {{ filteredGroups.length }} sur {{ groups.length }} groupes</p>
       <div class="pagination">
         <button type="button"><i class="bi bi-chevron-left"></i></button>
         <button class="active" type="button">1</button>
@@ -119,8 +131,8 @@
       <div class="modal-title-wrap">
         <span class="modal-badge"><i class="bi bi-people-fill"></i></span>
         <div>
-        <h3>Nouveau groupe</h3>
-        <p>Remplissez les informations pour creer un nouveau groupe</p>
+        <h3>{{ isEditMode ? 'Modifier le groupe' : 'Nouveau groupe' }}</h3>
+        <p>{{ isEditMode ? 'Mettez a jour les informations de ce groupe' : 'Remplissez les informations pour creer un nouveau groupe' }}</p>
         </div>
       </div>
       <button class="btn-close" type="button" (click)="closeCreateModal()">
@@ -128,44 +140,110 @@
       </button>
     </div>
 
-    <div class="modal-body">
-      <div class="field-group">
-        <label>Nom du groupe <span>*</span></label>
-        <input type="text" [(ngModel)]="form.name" placeholder="Ex : Groupe Catholique" />
-      </div>
-
-      <div class="field-row">
+    <form #groupForm="ngForm" (ngSubmit)="saveGroup(groupForm)" novalidate>
+      <div class="modal-body">
         <div class="field-group">
-          <label>Email <span>*</span></label>
-          <input type="email" [(ngModel)]="form.email" placeholder="Ex : contact&#64;groupe.cd" />
+          <label>Nom du groupe <span>*</span></label>
+          <input
+            type="text"
+            name="name"
+            [(ngModel)]="form.name"
+            #nameCtrl="ngModel"
+            required
+            minlength="3"
+            pattern=".*\S.*"
+            [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+            placeholder="Ex : Groupe Catholique"
+          />
+          <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.errors?.['required']">Le nom du groupe est obligatoire.</small>
+          <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.errors?.['pattern']">Le nom ne peut pas contenir uniquement des espaces.</small>
+          <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.errors?.['minlength']">Le nom doit contenir au moins 3 caracteres.</small>
         </div>
+
         <div class="field-group">
-          <label>Telephone</label>
-          <input type="text" [(ngModel)]="form.phone" placeholder="Ex : +243 810 000 000" />
+          <label>Logo (URL)</label>
+          <input
+            type="url"
+            name="logo"
+            [(ngModel)]="form.logo"
+            #logoCtrl="ngModel"
+            pattern="https?://.+"
+            [class.input-invalid]="(logoCtrl.invalid && logoCtrl.touched) || (isSubmitted && logoCtrl.invalid)"
+            placeholder="Ex : https://example.com/logo.png"
+          />
+          <small class="field-error" *ngIf="(logoCtrl.touched || isSubmitted) && logoCtrl.errors?.['pattern']">Entrez une URL valide (http:// ou https://).</small>
         </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label>Email <span>*</span></label>
+            <input
+              type="email"
+              name="email"
+              [(ngModel)]="form.email"
+              #emailCtrl="ngModel"
+              required
+              email
+              [class.input-invalid]="(emailCtrl.invalid && emailCtrl.touched) || (isSubmitted && emailCtrl.invalid)"
+              placeholder="Ex : contact&#64;groupe.cd"
+            />
+            <small class="field-error" *ngIf="(emailCtrl.touched || isSubmitted) && emailCtrl.errors?.['required']">L'email est obligatoire.</small>
+            <small class="field-error" *ngIf="(emailCtrl.touched || isSubmitted) && emailCtrl.errors?.['email']">Le format de l'email est invalide.</small>
+          </div>
+          <div class="field-group">
+            <label>Telephone</label>
+            <input
+              type="text"
+              name="phone"
+              [(ngModel)]="form.phone"
+              #phoneCtrl="ngModel"
+              pattern="^\+?[0-9 ]{8,20}$"
+              [class.input-invalid]="(phoneCtrl.invalid && phoneCtrl.touched) || (isSubmitted && phoneCtrl.invalid)"
+              placeholder="Ex : +243 810 000 000"
+            />
+            <small class="field-error" *ngIf="(phoneCtrl.touched || isSubmitted) && phoneCtrl.errors?.['pattern']">Le numero doit contenir entre 8 et 20 chiffres (espaces autorises).</small>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Description</label>
+          <textarea
+            rows="3"
+            name="description"
+            [(ngModel)]="form.description"
+            #descriptionCtrl="ngModel"
+            maxlength="200"
+            [class.input-invalid]="(descriptionCtrl.invalid && descriptionCtrl.touched) || (isSubmitted && descriptionCtrl.invalid)"
+            placeholder="Decrivez brievement ce groupe..."
+          ></textarea>
+          <small>{{ form.description.length }}/200</small>
+        </div>
+
+        <div class="field-group">
+          <label>Statut <span>*</span></label>
+          <select
+            name="status"
+            [(ngModel)]="form.status"
+            #statusCtrl="ngModel"
+            required
+            [class.input-invalid]="(statusCtrl.invalid && statusCtrl.touched) || (isSubmitted && statusCtrl.invalid)"
+          >
+            <option value="Actif">Actif</option>
+            <option value="Inactif">Inactif</option>
+          </select>
+          <small class="field-error" *ngIf="(statusCtrl.touched || isSubmitted) && statusCtrl.errors?.['required']">Le statut est obligatoire.</small>
+        </div>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
       </div>
 
-      <div class="field-group">
-        <label>Description</label>
-        <textarea rows="3" [(ngModel)]="form.description" maxlength="200" placeholder="Decrivez brievement ce groupe..."></textarea>
-        <small>{{ form.description.length }}/200</small>
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeCreateModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || groupForm.invalid">
+          <i class="bi bi-check2-circle"></i>
+          {{ isSaving ? (isEditMode ? 'Mise a jour...' : 'Enregistrement...') : (isEditMode ? 'Mettre a jour' : 'Enregistrer') }}
+        </button>
       </div>
-
-      <div class="field-group">
-        <label>Statut <span>*</span></label>
-        <select [(ngModel)]="form.status">
-          <option value="Actif">Actif</option>
-          <option value="Inactif">Inactif</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn-cancel" type="button" (click)="closeCreateModal()">Annuler</button>
-      <button class="btn-save" type="button" (click)="saveGroup()">
-        <i class="bi bi-check2-circle"></i>
-        Enregistrer
-      </button>
-    </div>
+    </form>
   </div>
 </div>

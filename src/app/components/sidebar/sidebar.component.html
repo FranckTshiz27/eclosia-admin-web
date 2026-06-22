@@ -45,6 +45,41 @@
                 </a>
             </li>
 
+            <!-- CONFIGURATION -->
+            <li class="has-submenu" [class.open]="isConfigurationExpanded">
+                <a (click)="isConfigurationExpanded = !isConfigurationExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
+                    <i class="bi bi-sliders2"></i>
+                    <span>CONFIGURATION</span>
+                    <span class="chevron-down"></span>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a routerLink="/configuration/modele-academique" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-journal-bookmark"></i>
+                            <span>Modele academique</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a routerLink="/configuration/cycle" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span>Cycle</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a routerLink="/configuration/section" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-columns-gap"></i>
+                            <span>Section</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a routerLink="/configuration/option" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-list-ul"></i>
+                            <span>Option</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             <!-- ADMIN -->
             <li class="has-submenu" [class.open]="isAdminExpanded">
                 <a (click)="isAdminExpanded = !isAdminExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
@@ -63,24 +98,6 @@
                         <a routerLink="/admin/ecole" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
                             <i class="bi bi-building"></i>
                             <span>École</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/admin/cycle" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-arrow-repeat"></i>
-                            <span>Cycle</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/admin/section" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-columns-gap"></i>
-                            <span>Section</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/admin/option" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-list-ul"></i>
-                            <span>Option</span>
                         </a>
                     </li>
                 </ul>

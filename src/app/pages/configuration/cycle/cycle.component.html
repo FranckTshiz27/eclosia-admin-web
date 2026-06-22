@@ -1,0 +1,280 @@
+<div class="page-container cycles-page">
+  <nav class="page-breadcrumb" aria-label="Fil d'Ariane">
+    <span>Parametres academiques</span>
+    <i class="bi bi-chevron-right"></i>
+    <span class="current">Cycles academiques</span>
+  </nav>
+
+  <div class="cycles-header">
+    <div class="cycles-title-wrap">
+      <span class="cycles-icon"><i class="bi bi-arrow-repeat"></i></span>
+      <div>
+        <h1>Cycles academiques</h1>
+        <p>Gerez les cycles du systeme educatif</p>
+      </div>
+    </div>
+    <button class="btn-new-cycle" type="button" (click)="openCreateModal()">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Nouveau cycle academique
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher un cycle..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Modele academique</label>
+          <select [(ngModel)]="modelFilter" [ngModelOptions]="{ standalone: true }">
+            <option value="all">Tous les modeles</option>
+            <option *ngFor="let model of modelFilterOptions" [value]="model.id">{{ model.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Reinitialiser
+        </button>
+
+        <button class="status-filter" type="button">
+          <i class="bi bi-funnel"></i>
+          Filtres
+        </button>
+      </div>
+    </div>
+
+    <div class="cycles-table-wrapper">
+      <table class="cycles-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nom du cycle</th>
+            <th>Modele academique</th>
+            <th>Duree (annees)</th>
+            <th>Ordre</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingCycles">
+            <td colspan="7" class="table-state">Chargement des cycles academiques...</td>
+          </tr>
+          <tr *ngIf="!isLoadingCycles && loadError">
+            <td colspan="7" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingCycles && !loadError && filteredCycles.length === 0">
+            <td colspan="7" class="table-state">Aucun cycle trouve pour cette recherche.</td>
+          </tr>
+          <tr *ngFor="let cycle of filteredCycles">
+            <td class="code-col">{{ cycle.code }}</td>
+            <td class="cycle-name">{{ cycle.name }}</td>
+            <td>{{ cycle.academicModelLabel }}</td>
+            <td>{{ cycle.durationYears }}</td>
+            <td>{{ cycle.order }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="cycle.status === 'Actif'"
+                [class.badge-muted]="cycle.status === 'Inactif'"
+              >
+                {{ cycle.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" (click)="openEditModal(cycle)"><i class="bi bi-pencil"></i></button>
+              <button type="button"><i class="bi bi-three-dots-vertical"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de 1 a {{ filteredCycles.length }} sur {{ cycles.length }} cycles</p>
+      <div class="pagination">
+        <button type="button"><i class="bi bi-chevron-left"></i> Precedent</button>
+        <button class="active" type="button">1</button>
+        <button type="button">Suivant <i class="bi bi-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-cycle-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier le cycle academique' : 'Nouveau cycle academique' }}</h3>
+        <p>{{ isEditMode ? 'Mettez a jour les informations de ce cycle academique' : 'Remplissez les informations pour creer un nouveau cycle academique' }}</p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #cycleForm="ngForm" (ngSubmit)="saveCycle(cycleForm)" novalidate>
+      <div class="modal-body">
+        <section class="form-section">
+          <h4>Informations generales</h4>
+
+          <div class="field-group">
+            <label>Modele academique <span>*</span></label>
+            <select
+              name="academicModelId"
+              [(ngModel)]="form.academicModelId"
+              #modelCtrl="ngModel"
+              required
+              [class.input-invalid]="(modelCtrl.invalid && modelCtrl.touched) || (isSubmitted && modelCtrl.invalid)"
+            >
+              <option value="" disabled>Selectionner un modele</option>
+              <option *ngFor="let model of academicModels" [value]="model.id">{{ model.label }}</option>
+            </select>
+            <small class="field-error" *ngIf="(modelCtrl.touched || isSubmitted) && modelCtrl.invalid">Le modele academique est obligatoire.</small>
+            <small class="field-error" *ngIf="modelLoadError">{{ modelLoadError }}</small>
+          </div>
+
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Code du cycle <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                pattern=".*\S.*"
+                placeholder="Ex: MATERNELLE"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">Le code est obligatoire.</small>
+            </div>
+
+            <div class="field-group">
+              <label>Nom du cycle <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                minlength="2"
+                placeholder="Ex: Maternelle"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">Le nom est obligatoire.</small>
+            </div>
+
+            <div class="field-group">
+              <label>Duree (en annees) <span>*</span></label>
+              <input
+                type="number"
+                name="durationYears"
+                [(ngModel)]="form.durationYears"
+                #durationCtrl="ngModel"
+                required
+                min="1"
+                max="20"
+                placeholder="Ex: 3"
+                [class.input-invalid]="(durationCtrl.invalid && durationCtrl.touched) || (isSubmitted && durationCtrl.invalid)"
+              />
+              <small class="field-hint">Nombre d annees que dure ce cycle</small>
+              <small class="field-error" *ngIf="(durationCtrl.touched || isSubmitted) && durationCtrl.invalid">La duree est obligatoire.</small>
+            </div>
+
+            <div class="field-group">
+              <label>Ordre d affichage <span>*</span></label>
+              <input
+                type="number"
+                name="order"
+                [(ngModel)]="form.order"
+                #orderCtrl="ngModel"
+                required
+                min="1"
+                max="99"
+                placeholder="Ex: 1"
+                [class.input-invalid]="(orderCtrl.invalid && orderCtrl.touched) || (isSubmitted && orderCtrl.invalid)"
+              />
+              <small class="field-hint">Ordre d affichage du cycle dans la liste</small>
+              <small class="field-error" *ngIf="(orderCtrl.touched || isSubmitted) && orderCtrl.invalid">L ordre est obligatoire.</small>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Description</label>
+            <textarea
+              name="description"
+              [(ngModel)]="form.description"
+              #descriptionCtrl="ngModel"
+              rows="3"
+              maxlength="500"
+              placeholder="Entrez une description (optionnelle)"
+            ></textarea>
+            <small class="field-hint char-counter">{{ descriptionLength }} / {{ descriptionMaxLength }}</small>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Statut</h4>
+          <label class="section-label">Statut du cycle <span>*</span></label>
+          <div class="status-cards" role="radiogroup" aria-label="Statut du cycle">
+            <button
+              type="button"
+              class="status-card"
+              role="radio"
+              [class.selected]="form.status === 'Actif'"
+              [attr.aria-checked]="form.status === 'Actif'"
+              (click)="selectStatus('Actif')"
+            >
+              <span class="status-dot dot-actif"></span>
+              <div>
+                <strong>Actif</strong>
+                <small>Cycle actuellement disponible</small>
+              </div>
+            </button>
+            <button
+              type="button"
+              class="status-card"
+              role="radio"
+              [class.selected]="form.status === 'Inactif'"
+              [attr.aria-checked]="form.status === 'Inactif'"
+              (click)="selectStatus('Inactif')"
+            >
+              <span class="status-dot dot-inactif"></span>
+              <div>
+                <strong>Inactif</strong>
+                <small>Cycle desactive</small>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || cycleForm.invalid">
+          <i class="bi bi-save"></i>
+          {{ isSaving ? 'Enregistrement...' : (isEditMode ? 'Mettre a jour' : 'Enregistrer') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

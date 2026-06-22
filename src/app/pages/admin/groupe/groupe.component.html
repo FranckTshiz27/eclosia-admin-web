@@ -103,7 +103,7 @@
             </td>
             <td>{{ group.createdAt }}</td>
             <td class="actions-col">
-              <button type="button"><i class="bi bi-eye"></i></button>
+              <button type="button" (click)="openDetailsDrawer(group)"><i class="bi bi-eye"></i></button>
               <button type="button" (click)="openEditModal(group)"><i class="bi bi-pencil"></i></button>
               <button type="button"><i class="bi bi-three-dots-vertical"></i></button>
             </td>
@@ -124,6 +124,65 @@
     </div>
   </div>
 </div>
+
+<div class="details-drawer-backdrop" *ngIf="isDetailsDrawerOpen" (click)="closeDetailsDrawer()"></div>
+<aside class="details-drawer" *ngIf="isDetailsDrawerOpen && selectedGroup" role="dialog" aria-label="Details du groupe">
+  <div class="drawer-header">
+    <div class="drawer-identity">
+      <ng-container *ngIf="selectedGroup.logo; else groupDrawerInitials">
+        <img class="avatar avatar-logo drawer-avatar" [src]="selectedGroup.logo" [alt]="'Logo de ' + selectedGroup.name" />
+      </ng-container>
+      <ng-template #groupDrawerInitials>
+        <div class="avatar drawer-avatar" [class]=" 'avatar ' + selectedGroup.avatarClass ">{{ selectedGroup.initials }}</div>
+      </ng-template>
+      <div>
+        <h3>{{ selectedGroup.name }}</h3>
+        <p>{{ selectedGroup.schools }} ecole<span *ngIf="selectedGroup.schools > 1">s</span></p>
+      </div>
+    </div>
+    <button class="drawer-close" type="button" (click)="closeDetailsDrawer()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+    <div class="drawer-status-row">
+      <span class="badge" [class.badge-success]="selectedGroup.status === 'Actif'" [class.badge-danger]="selectedGroup.status === 'Inactif'">
+        {{ selectedGroup.status }}
+      </span>
+      <span class="drawer-date">Cree le {{ selectedGroup.createdAt }}</span>
+    </div>
+
+    <section class="drawer-section">
+      <h4>Contact</h4>
+      <div class="drawer-grid two">
+        <div class="drawer-item">
+          <span class="drawer-label">Email</span>
+          <p>{{ selectedGroup.email }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Telephone</span>
+          <p>{{ selectedGroup.phone }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="drawer-section">
+      <h4>Description</h4>
+      <p class="drawer-description">{{ selectedGroup.description || 'Aucune description renseignee.' }}</p>
+    </section>
+
+    <section class="drawer-section">
+      <h4>Meta donnees</h4>
+      <div class="drawer-grid">
+        <div class="drawer-item">
+          <span class="drawer-label">Identifiant</span>
+          <p>{{ selectedGroup.id || '--' }}</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</aside>
 
 <div class="modal-backdrop" *ngIf="isCreateModalOpen" (click)="closeCreateModal()">
   <div class="create-group-modal" (click)="$event.stopPropagation()">

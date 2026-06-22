@@ -26,10 +26,12 @@ interface GroupItem {
 })
 export class GroupeComponent implements OnInit {
   isCreateModalOpen = false;
+  isDetailsDrawerOpen = false;
   isSaving = false;
   isSubmitted = false;
   isEditMode = false;
   editingGroupId: string | number | null = null;
+  selectedGroup: GroupItem | null = null;
   searchTerm = '';
   saveError = '';
   loadError = '';
@@ -88,6 +90,16 @@ export class GroupeComponent implements OnInit {
       status: group.status
     };
     this.isCreateModalOpen = true;
+  }
+
+  openDetailsDrawer(group: GroupItem): void {
+    this.selectedGroup = group;
+    this.isDetailsDrawerOpen = true;
+  }
+
+  closeDetailsDrawer(): void {
+    this.isDetailsDrawerOpen = false;
+    this.selectedGroup = null;
   }
 
   closeCreateModal(): void {

@@ -1,0 +1,326 @@
+<div class="page-container models-page">
+  <div class="models-header">
+    <div class="models-title-wrap">
+      <span class="models-icon"><i class="bi bi-journal-bookmark-fill"></i></span>
+      <div>
+        <h1>Modeles academiques</h1>
+        <p>Gerez les differents modeles du systeme educatif</p>
+      </div>
+    </div>
+    <button class="btn-new-model" type="button" (click)="openCreateModal()">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Nouveau modele academique
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher un modele..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Pays</label>
+          <div class="searchable-select">
+            <input
+              type="text"
+              [(ngModel)]="countryFilter"
+              [ngModelOptions]="{ standalone: true }"
+              autocomplete="off"
+              [placeholder]="isLoadingCountries ? 'Chargement des pays...' : 'Tous les pays'"
+              (focus)="openCountryFilterDropdown()"
+              (input)="onCountryFilterInput()"
+              (blur)="closeCountryFilterDropdown()"
+            />
+            <i class="bi bi-chevron-down select-chevron"></i>
+            <div class="select-dropdown" *ngIf="isCountryFilterDropdownOpen">
+              <button
+                type="button"
+                class="select-option"
+                *ngFor="let option of filteredFilterCountryOptions"
+                (mousedown)="selectFilterCountry(option)"
+              >
+                {{ option.label }}
+              </button>
+              <div class="select-empty" *ngIf="countryFilter && filteredFilterCountryOptions.length <= 1">Aucun pays trouve.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Periode</label>
+          <select [(ngModel)]="periodFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of periodOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Reinitialiser
+        </button>
+
+        <button class="status-filter" type="button">
+          <i class="bi bi-funnel"></i>
+          Filtres
+        </button>
+      </div>
+    </div>
+
+    <div class="models-table-wrapper">
+      <table class="models-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nom du modele</th>
+            <th>Version</th>
+            <th>Pays</th>
+            <th>Periode de validite</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingModels">
+            <td colspan="7" class="table-state">Chargement des modeles academiques...</td>
+          </tr>
+          <tr *ngIf="!isLoadingModels && loadError">
+            <td colspan="7" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingModels && !loadError && filteredModels.length === 0">
+            <td colspan="7" class="table-state">Aucun modele trouve pour cette recherche.</td>
+          </tr>
+          <tr *ngFor="let model of filteredModels">
+            <td class="code-col">{{ model.code }}</td>
+            <td>
+              <div class="model-name-cell">
+                <span class="model-name">{{ model.name }}</span>
+                <span class="badge badge-current" *ngIf="model.isCurrent">Actuel</span>
+              </div>
+            </td>
+            <td>{{ model.version }}</td>
+            <td>
+              <div class="country-cell">
+                <span class="country-flag">{{ getCountryFlag(model.countryIso2) }}</span>
+                <span>{{ model.country }}</span>
+              </div>
+            </td>
+            <td>{{ model.validityPeriod }}</td>
+            <td>
+              <span class="badge" [class.badge-success]="model.status === 'Actif'" [class.badge-muted]="model.status === 'Inactif'">
+                {{ model.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" (click)="openEditModal(model)"><i class="bi bi-pencil"></i></button>
+              <button type="button"><i class="bi bi-three-dots-vertical"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de 1 a {{ filteredModels.length }} sur {{ models.length }} modeles</p>
+      <div class="pagination">
+        <button type="button"><i class="bi bi-chevron-left"></i> Precedent</button>
+        <button class="active" type="button">1</button>
+        <button type="button">Suivant <i class="bi bi-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-model-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier le modele academique' : 'Nouveau modele academique' }}</h3>
+        <p>{{ isEditMode ? 'Mettez a jour les informations de ce modele academique' : 'Remplissez les informations pour creer un nouveau modele academique' }}</p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #modelForm="ngForm" (ngSubmit)="saveModel(modelForm)" novalidate>
+      <div class="modal-body">
+        <section class="form-section">
+          <h4>Informations generales</h4>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Code <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                pattern=".*\S.*"
+                placeholder="Ex: RDC_2025"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+              <small class="field-hint">Code unique du modele</small>
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">Le code est obligatoire.</small>
+            </div>
+
+            <div class="field-group">
+              <label>Nom du modele <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                minlength="3"
+                placeholder="Ex: Modele Educatif RDC"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+              <small class="field-hint">Nom complet du modele</small>
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">Le nom est obligatoire (3 caracteres min).</small>
+            </div>
+
+            <div class="field-group">
+              <label>Version <span>*</span></label>
+              <input
+                type="number"
+                name="version"
+                [(ngModel)]="form.version"
+                #versionCtrl="ngModel"
+                required
+                min="1900"
+                max="2100"
+                placeholder="Ex: 2025"
+                [class.input-invalid]="(versionCtrl.invalid && versionCtrl.touched) || (isSubmitted && versionCtrl.invalid)"
+              />
+              <small class="field-hint">Version du modele</small>
+              <small class="field-error" *ngIf="(versionCtrl.touched || isSubmitted) && versionCtrl.invalid">La version est obligatoire.</small>
+            </div>
+
+            <div class="field-group">
+              <label>Pays <span>*</span></label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  name="country"
+                  [(ngModel)]="form.country"
+                  #countryCtrl="ngModel"
+                  required
+                  autocomplete="off"
+                  [placeholder]="isLoadingCountries ? 'Chargement des pays...' : 'Rechercher ou selectionner un pays'"
+                  [class.input-invalid]="(countryCtrl.invalid && countryCtrl.touched) || (isSubmitted && countryCtrl.invalid)"
+                  (focus)="openCountryDropdown()"
+                  (input)="openCountryDropdown()"
+                  (blur)="closeCountryDropdown()"
+                />
+                <i class="bi bi-chevron-down select-chevron"></i>
+                <div class="select-dropdown" *ngIf="isCountryDropdownOpen">
+                  <button
+                    type="button"
+                    class="select-option"
+                    *ngFor="let country of filteredCountryOptions"
+                    (mousedown)="selectCountry(country.name)"
+                  >
+                    {{ country.name }}
+                  </button>
+                  <div class="select-empty" *ngIf="filteredCountryOptions.length === 0">Aucun pays trouve.</div>
+                </div>
+              </div>
+              <small class="field-hint">Pays concerne par ce modele</small>
+              <small class="field-error" *ngIf="(countryCtrl.touched || isSubmitted) && countryCtrl.invalid">Le pays est obligatoire.</small>
+              <small class="field-error" *ngIf="countryLoadError">{{ countryLoadError }}</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Periode de validite</h4>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Annee de debut <span>*</span></label>
+              <div class="input-with-icon">
+                <input
+                  type="number"
+                  name="startYear"
+                  [(ngModel)]="form.startYear"
+                  #startYearCtrl="ngModel"
+                  required
+                  min="1900"
+                  max="2100"
+                  placeholder="Ex: 2025"
+                  [class.input-invalid]="(startYearCtrl.invalid && startYearCtrl.touched) || (isSubmitted && startYearCtrl.invalid)"
+                />
+                <i class="bi bi-calendar3"></i>
+              </div>
+              <small class="field-hint">Annee de debut d application</small>
+              <small class="field-error" *ngIf="(startYearCtrl.touched || isSubmitted) && startYearCtrl.invalid">L annee de debut est obligatoire.</small>
+            </div>
+
+            <div class="field-group">
+              <label>Annee de fin</label>
+              <div class="input-with-icon">
+                <input
+                  type="number"
+                  name="endYear"
+                  [(ngModel)]="form.endYear"
+                  #endYearCtrl="ngModel"
+                  min="1900"
+                  max="2100"
+                  placeholder="Ex: 2028"
+                />
+                <i class="bi bi-calendar3"></i>
+              </div>
+              <small class="field-hint">Annee de fin (laisser vide si en cours)</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Statut</h4>
+          <label class="section-label">Statut du modele <span>*</span></label>
+          <div class="status-cards">
+            <label class="status-card" [class.selected]="form.status === 'Actif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Actif" required />
+              <span class="status-dot active"></span>
+              <div>
+                <strong>Actif</strong>
+                <small>Modele actuellement en vigueur</small>
+              </div>
+            </label>
+            <label class="status-card" [class.selected]="form.status === 'Inactif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Inactif" required />
+              <span class="status-dot inactive"></span>
+              <div>
+                <strong>Inactif</strong>
+                <small>Modele archive ou remplace</small>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || modelForm.invalid">
+          <i class="bi bi-save"></i>
+          {{ isSaving ? (isEditMode ? 'Mise a jour...' : 'Enregistrement...') : (isEditMode ? 'Mettre a jour' : 'Enregistrer') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

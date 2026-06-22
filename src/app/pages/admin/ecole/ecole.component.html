@@ -1,4 +1,524 @@
-<div class="admin-page">
-  <h1>Ecole</h1>
-  <p>Page par defaut de gestion des ecoles.</p>
+<div class="page-container schools-page">
+  <div class="schools-header">
+    <div>
+      <h1>{{ schools.length }} ecole<span *ngIf="schools.length > 1">s</span></h1>
+      <p>Gerez toutes les ecoles de votre organisation</p>
+    </div>
+    <button class="btn-new-school" type="button" (click)="openCreateModal()">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Ajouter une ecole
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" [(ngModel)]="searchTerm" [ngModelOptions]="{ standalone: true }" placeholder="Rechercher une ecole par nom..." />
+      </div>
+      <button class="status-filter" type="button">
+        <i class="bi bi-funnel"></i>
+        Tous les status
+        <i class="bi bi-chevron-down"></i>
+      </button>
+    </div>
+    <p class="load-error" *ngIf="schoolLoadError">{{ schoolLoadError }}</p>
+
+    <div class="schools-table-wrapper">
+      <table class="schools-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Ecole</th>
+            <th>Groupe</th>
+            <th>Localisation</th>
+            <th>Directeur</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingSchools">
+            <td colspan="7" class="table-state">Chargement des ecoles...</td>
+          </tr>
+          <tr *ngIf="!isLoadingSchools && filteredSchools.length === 0">
+            <td colspan="7" class="table-state">Aucune ecole trouvee.</td>
+          </tr>
+          <tr *ngFor="let school of filteredSchools">
+            <td class="code-col">{{ school.code }}</td>
+            <td>
+              <div class="school-cell">
+                <ng-container *ngIf="hasSchoolLogo(school); else schoolInitialsAvatar">
+                  <img class="avatar avatar-logo" [src]="school.logo" [alt]="'Logo de ' + school.name" (error)="onSchoolLogoError(school.id)" />
+                </ng-container>
+                <ng-template #schoolInitialsAvatar>
+                  <div class="avatar" [class]=" 'avatar ' + school.avatarClass ">{{ school.shortName }}</div>
+                </ng-template>
+                <div>
+                  <p class="school-name">{{ school.name }}</p>
+                  <span>{{ getSchoolTypeLabel(school.type) || '--' }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <p class="group-name">{{ school.groupName }}</p>
+              <span class="muted-text">{{ school.code }}</span>
+            </td>
+            <td>
+              <p class="location-name">{{ getAddressLine(school) }}</p>
+              <span class="muted-text">{{ getLocationSecondary(school) }}</span>
+            </td>
+            <td>
+              <p class="director-name">{{ school.directorName }}</p>
+              <span class="director-phone">{{ school.directorPhone }}</span>
+            </td>
+            <td>
+              <span class="badge" [class.badge-success]="school.status === 'Actif'" [class.badge-danger]="school.status === 'Inactif'">
+                {{ school.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" (click)="openDetailsDrawer(school)"><i class="bi bi-eye"></i></button>
+              <button type="button" (click)="openEditModal(school)"><i class="bi bi-pencil"></i></button>
+              <button type="button"><i class="bi bi-three-dots-vertical"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="details-drawer-backdrop" *ngIf="isDetailsDrawerOpen" (click)="closeDetailsDrawer()"></div>
+<aside class="details-drawer" *ngIf="isDetailsDrawerOpen && selectedSchool" role="dialog" aria-label="Details de l'ecole">
+  <div class="drawer-header">
+    <div class="drawer-identity">
+      <ng-container *ngIf="hasSchoolLogo(selectedSchool); else schoolDrawerInitials">
+        <img class="avatar avatar-logo drawer-avatar" [src]="selectedSchool.logo" [alt]="'Logo de ' + selectedSchool.name" (error)="onSchoolLogoError(selectedSchool.id)" />
+      </ng-container>
+      <ng-template #schoolDrawerInitials>
+        <div class="avatar drawer-avatar" [class]=" 'avatar ' + selectedSchool.avatarClass ">{{ selectedSchool.shortName }}</div>
+      </ng-template>
+      <div>
+        <h3>{{ selectedSchool.name }}</h3>
+        <p>{{ selectedSchool.code }} - {{ getSchoolTypeLabel(selectedSchool.type) || '--' }}</p>
+      </div>
+    </div>
+    <button class="drawer-close" type="button" (click)="closeDetailsDrawer()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+    <div class="drawer-status-row">
+      <span class="badge" [class.badge-success]="selectedSchool.status === 'Actif'" [class.badge-danger]="selectedSchool.status === 'Inactif'">
+        {{ selectedSchool.status }}
+      </span>
+      <span class="drawer-date">Creation: {{ selectedSchool.createdAt }}</span>
+    </div>
+
+    <section class="drawer-section">
+      <h4>Rattachement</h4>
+      <div class="drawer-grid two">
+        <div class="drawer-item">
+          <span class="drawer-label">Groupe</span>
+          <p>{{ selectedSchool.groupName }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Type d'ecole</span>
+          <p>{{ getSchoolTypeLabel(selectedSchool.type) || '--' }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="drawer-section">
+      <h4>Localisation</h4>
+      <div class="drawer-grid">
+        <div class="drawer-item">
+          <span class="drawer-label">Adresse complete</span>
+          <p>{{ selectedSchool.address }}</p>
+        </div>
+      </div>
+      <div class="drawer-grid two">
+        <div class="drawer-item">
+          <span class="drawer-label">Pays</span>
+          <p>{{ selectedSchool.country }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Province</span>
+          <p>{{ selectedSchool.province }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Ville</span>
+          <p>{{ selectedSchool.city }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Commune</span>
+          <p>{{ selectedSchool.commune }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="drawer-section">
+      <h4>Contacts</h4>
+      <div class="drawer-grid two">
+        <div class="drawer-item">
+          <span class="drawer-label">Telephone</span>
+          <p>{{ selectedSchool.phone }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Telephone alternatif</span>
+          <p>{{ selectedSchool.altPhone }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Email</span>
+          <p>{{ selectedSchool.email }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Site web</span>
+          <p>{{ selectedSchool.website }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="drawer-section">
+      <h4>Responsable et capacite</h4>
+      <div class="drawer-grid two">
+        <div class="drawer-item">
+          <span class="drawer-label">Directeur</span>
+          <p>{{ selectedSchool.directorName }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Telephone directeur</span>
+          <p>{{ selectedSchool.directorPhone }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Email directeur</span>
+          <p>{{ selectedSchool.directorEmail }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Capacite</span>
+          <p>{{ selectedSchool.capacity || 0 }}</p>
+        </div>
+        <div class="drawer-item">
+          <span class="drawer-label">Nombre de classes</span>
+          <p>{{ selectedSchool.classCount || 0 }}</p>
+        </div>
+      </div>
+      <div class="drawer-grid">
+        <div class="drawer-item">
+          <span class="drawer-label">Description</span>
+          <p>{{ selectedSchool.description || '--' }}</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</aside>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-school-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier ecole' : 'Nouvelle ecole' }}</h3>
+        <p>Remplissez les informations pour ajouter une nouvelle ecole</p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #schoolForm="ngForm" (ngSubmit)="saveSchool(schoolForm)" novalidate>
+      <div class="modal-body">
+        <section class="form-section">
+          <h4>Informations generales</h4>
+          <div class="field-grid three">
+            <div class="field-group">
+              <label>Code de l'ecole <span>*</span></label>
+              <input type="text" name="code" [(ngModel)]="form.code" #codeCtrl="ngModel" required />
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">Le code est obligatoire.</small>
+            </div>
+            <div class="field-group two-col">
+              <label>Nom de l'ecole <span>*</span></label>
+              <input type="text" name="name" [(ngModel)]="form.name" #nameCtrl="ngModel" required minlength="3" />
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">Le nom est obligatoire (3 caracteres min).</small>
+            </div>
+            <div class="field-group">
+              <label>Nom court</label>
+              <input type="text" name="shortName" [(ngModel)]="form.shortName" />
+            </div>
+            <div class="field-group">
+              <label>Type d'ecole <span>*</span></label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  name="type"
+                  [(ngModel)]="form.type"
+                  #typeCtrl="ngModel"
+                  required
+                  autocomplete="off"
+                  [placeholder]="isLoadingSchoolTypes ? 'Chargement des types...' : 'Rechercher ou selectionner un type'"
+                  (focus)="openSchoolTypeDropdown()"
+                  (input)="openSchoolTypeDropdown()"
+                  (blur)="closeSchoolTypeDropdown()"
+                />
+                <i class="bi bi-chevron-down select-chevron"></i>
+                <div class="select-dropdown" *ngIf="isSchoolTypeDropdownOpen">
+                  <button type="button" class="select-option" *ngFor="let schoolType of filteredSchoolTypeOptions" (mousedown)="selectSchoolType(schoolType.label)">
+                    {{ schoolType.label }}
+                  </button>
+                  <div class="select-empty" *ngIf="filteredSchoolTypeOptions.length === 0">Aucun type trouve.</div>
+                </div>
+              </div>
+              <small class="field-error" *ngIf="(typeCtrl.touched || isSubmitted) && typeCtrl.invalid">Le type est obligatoire.</small>
+              <small class="field-error" *ngIf="schoolTypeLoadError">{{ schoolTypeLoadError }}</small>
+            </div>
+            <div class="field-group">
+              <label>Groupe scolaire <span>*</span></label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  name="groupName"
+                  [(ngModel)]="form.groupName"
+                  #groupNameCtrl="ngModel"
+                  required
+                  autocomplete="off"
+                  placeholder="Rechercher ou selectionner un groupe"
+                  (focus)="openGroupDropdown()"
+                  (input)="openGroupDropdown()"
+                  (blur)="closeGroupDropdown()"
+                />
+                <i class="bi bi-chevron-down select-chevron"></i>
+                <div class="select-dropdown" *ngIf="isGroupDropdownOpen">
+                  <button type="button" class="select-option" *ngFor="let group of filteredGroupOptions" (mousedown)="selectGroup(group.name)">
+                    {{ group.name }}
+                  </button>
+                  <div class="select-empty" *ngIf="filteredGroupOptions.length === 0">Aucun groupe trouve.</div>
+                </div>
+              </div>
+              <small class="field-error" *ngIf="(groupNameCtrl.touched || isSubmitted) && groupNameCtrl.invalid">Le groupe est obligatoire.</small>
+              <small class="field-error" *ngIf="groupLoadError">{{ groupLoadError }}</small>
+            </div>
+            <div class="field-group">
+              <label>Devise / Motto</label>
+              <input type="text" name="motto" [(ngModel)]="form.motto" />
+            </div>
+            <div class="field-group full">
+              <label>Description</label>
+              <textarea rows="2" name="description" [(ngModel)]="form.description"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Localisation</h4>
+          <div class="field-grid three">
+            <div class="field-group">
+              <label>Pays <span>*</span></label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  name="country"
+                  [(ngModel)]="form.country"
+                  #countryCtrl="ngModel"
+                  required
+                  autocomplete="off"
+                  [placeholder]="isLoadingCountries ? 'Chargement des pays...' : 'Rechercher ou selectionner un pays'"
+                  (focus)="openCountryDropdown()"
+                  (input)="openCountryDropdown()"
+                  (blur)="closeCountryDropdown()"
+                />
+                <i class="bi bi-chevron-down select-chevron"></i>
+                <div class="select-dropdown" *ngIf="isCountryDropdownOpen">
+                  <button type="button" class="select-option" *ngFor="let country of filteredCountryOptions" (mousedown)="selectCountry(country.name)">
+                    {{ country.name }}
+                  </button>
+                  <div class="select-empty" *ngIf="filteredCountryOptions.length === 0">Aucun pays trouve.</div>
+                </div>
+              </div>
+              <small class="field-error" *ngIf="(countryCtrl.touched || isSubmitted) && countryCtrl.invalid">Le pays est obligatoire.</small>
+              <small class="field-error" *ngIf="countryLoadError">{{ countryLoadError }}</small>
+            </div>
+            <div class="field-group">
+              <label>Province <span>*</span></label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  name="province"
+                  [(ngModel)]="form.province"
+                  #provinceCtrl="ngModel"
+                  required
+                  autocomplete="off"
+                  [placeholder]="isLoadingStates ? 'Chargement des provinces...' : 'Rechercher ou selectionner une province'"
+                  (focus)="openProvinceDropdown()"
+                  (input)="openProvinceDropdown()"
+                  (blur)="closeProvinceDropdown()"
+                />
+                <i class="bi bi-chevron-down select-chevron"></i>
+                <div class="select-dropdown" *ngIf="isProvinceDropdownOpen">
+                  <button type="button" class="select-option" *ngFor="let state of filteredStateOptions" (mousedown)="selectProvince(state.name)">
+                    {{ state.name }}
+                  </button>
+                  <div class="select-empty" *ngIf="filteredStateOptions.length === 0">Aucune province trouvee.</div>
+                </div>
+              </div>
+              <small class="field-error" *ngIf="(provinceCtrl.touched || isSubmitted) && provinceCtrl.invalid">La province est obligatoire.</small>
+              <small class="field-error" *ngIf="stateLoadError">{{ stateLoadError }}</small>
+            </div>
+            <div class="field-group">
+              <label>Ville <span>*</span></label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  name="city"
+                  [(ngModel)]="form.city"
+                  #cityCtrl="ngModel"
+                  required
+                  autocomplete="off"
+                  [placeholder]="isLoadingCities ? 'Chargement des villes...' : 'Rechercher ou selectionner une ville'"
+                  (focus)="openCityDropdown()"
+                  (input)="openCityDropdown()"
+                  (blur)="closeCityDropdown()"
+                />
+                <i class="bi bi-chevron-down select-chevron"></i>
+                <div class="select-dropdown" *ngIf="isCityDropdownOpen">
+                  <button type="button" class="select-option" *ngFor="let city of filteredCityOptions" (mousedown)="selectCity(city.name)">
+                    {{ city.name }}
+                  </button>
+                  <div class="select-empty" *ngIf="filteredCityOptions.length === 0">Aucune ville trouvee.</div>
+                </div>
+              </div>
+              <small class="field-error" *ngIf="(cityCtrl.touched || isSubmitted) && cityCtrl.invalid">La ville est obligatoire.</small>
+              <small class="field-error" *ngIf="cityLoadError">{{ cityLoadError }}</small>
+            </div>
+            <div class="field-group">
+              <label>Commune <span>*</span></label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  name="commune"
+                  [(ngModel)]="form.commune"
+                  #communeCtrl="ngModel"
+                  required
+                  autocomplete="off"
+                  [placeholder]="isLoadingCommunes ? 'Chargement des communes...' : 'Rechercher ou selectionner une commune'"
+                  (focus)="openCommuneDropdown()"
+                  (input)="openCommuneDropdown()"
+                  (blur)="closeCommuneDropdown()"
+                />
+                <i class="bi bi-chevron-down select-chevron"></i>
+                <div class="select-dropdown" *ngIf="isCommuneDropdownOpen">
+                  <button type="button" class="select-option" *ngFor="let commune of filteredCommuneOptions" (mousedown)="selectCommune(commune.name)">
+                    {{ commune.name }}
+                  </button>
+                  <div class="select-empty" *ngIf="filteredCommuneOptions.length === 0">Aucune commune trouvee.</div>
+                </div>
+              </div>
+              <small class="field-error" *ngIf="(communeCtrl.touched || isSubmitted) && communeCtrl.invalid">La commune est obligatoire.</small>
+              <small class="field-error" *ngIf="communeLoadError">{{ communeLoadError }}</small>
+            </div>
+            <div class="field-group full">
+              <label>Adresse complete <span>*</span></label>
+              <input type="text" name="address" [(ngModel)]="form.address" #addressCtrl="ngModel" required />
+              <small class="field-error" *ngIf="(addressCtrl.touched || isSubmitted) && addressCtrl.invalid">L'adresse est obligatoire.</small>
+            </div>
+            <div class="field-group">
+              <label>Latitude</label>
+              <input type="text" name="latitude" [(ngModel)]="form.latitude" />
+            </div>
+            <div class="field-group">
+              <label>Longitude</label>
+              <input type="text" name="longitude" [(ngModel)]="form.longitude" />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Contacts</h4>
+          <div class="field-grid three">
+            <div class="field-group">
+              <label>Telephone <span>*</span></label>
+              <input type="text" name="phone" [(ngModel)]="form.phone" #phoneCtrl="ngModel" required pattern="^[+]?[0-9() .-]{8,25}$" />
+              <small class="field-error" *ngIf="(phoneCtrl.touched || isSubmitted) && phoneCtrl.invalid">Telephone invalide (8-25 caracteres, chiffres et separateurs autorises).</small>
+            </div>
+            <div class="field-group">
+              <label>Telephone alternatif</label>
+              <input type="text" name="altPhone" [(ngModel)]="form.altPhone" pattern="^[+]?[0-9() .-]{8,25}$" #altPhoneCtrl="ngModel" />
+              <small class="field-error" *ngIf="(altPhoneCtrl.touched || isSubmitted) && altPhoneCtrl.invalid">Telephone invalide (8-25 caracteres, chiffres et separateurs autorises).</small>
+            </div>
+            <div class="field-group">
+              <label>Email <span>*</span></label>
+              <input type="email" name="email" [(ngModel)]="form.email" #emailCtrl="ngModel" required email />
+              <small class="field-error" *ngIf="(emailCtrl.touched || isSubmitted) && emailCtrl.invalid">Email invalide.</small>
+            </div>
+            <div class="field-group full">
+              <label>Site web</label>
+              <input type="url" name="website" [(ngModel)]="form.website" pattern="https?://.+" #websiteCtrl="ngModel" />
+              <small class="field-error" *ngIf="(websiteCtrl.touched || isSubmitted) && websiteCtrl.invalid">URL invalide (http/https).</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Responsable</h4>
+          <div class="field-grid three">
+            <div class="field-group">
+              <label>Nom du directeur <span>*</span></label>
+              <input type="text" name="directorName" [(ngModel)]="form.directorName" #directorNameCtrl="ngModel" required />
+              <small class="field-error" *ngIf="(directorNameCtrl.touched || isSubmitted) && directorNameCtrl.invalid">Le nom est obligatoire.</small>
+            </div>
+            <div class="field-group">
+              <label>Telephone</label>
+              <input type="text" name="directorPhone" [(ngModel)]="form.directorPhone" pattern="^[+]?[0-9() .-]{8,25}$" #directorPhoneCtrl="ngModel" />
+              <small class="field-error" *ngIf="(directorPhoneCtrl.touched || isSubmitted) && directorPhoneCtrl.invalid">Telephone invalide (8-25 caracteres, chiffres et separateurs autorises).</small>
+            </div>
+            <div class="field-group">
+              <label>Email</label>
+              <input type="email" name="directorEmail" [(ngModel)]="form.directorEmail" email #directorEmailCtrl="ngModel" />
+              <small class="field-error" *ngIf="(directorEmailCtrl.touched || isSubmitted) && directorEmailCtrl.invalid">Email invalide.</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Autres informations</h4>
+          <div class="field-grid four">
+            <div class="field-group">
+              <label>Capacite d'accueil</label>
+              <input type="number" name="capacity" [(ngModel)]="form.capacity" min="0" />
+            </div>
+            <div class="field-group">
+              <label>Nombre de classes</label>
+              <input type="number" name="classCount" [(ngModel)]="form.classCount" min="0" />
+            </div>
+            <div class="field-group">
+              <label>Date de creation</label>
+              <input type="text" name="createdAt" [(ngModel)]="form.createdAt" placeholder="jj/mm/aaaa" />
+            </div>
+            <div class="field-group">
+              <label>Logo de l'ecole</label>
+              <input type="url" name="logo" [(ngModel)]="form.logo" pattern="https?://.+" #logoCtrl="ngModel" placeholder="https://..." />
+              <small class="field-error" *ngIf="(logoCtrl.touched || isSubmitted) && logoCtrl.invalid">URL invalide (http/https).</small>
+            </div>
+          </div>
+          <div class="status-row">
+            <label>Statut <span>*</span></label>
+            <label class="radio-label">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Actif" required />
+              Active
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Inactif" required />
+              Inactive
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <small class="field-error" *ngIf="saveError">{{ saveError }}</small>
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving">{{ isSaving ? 'Enregistrement...' : (isEditMode ? 'Mettre a jour' : 'Enregistrer') }}</button>
+      </div>
+    </form>
+  </div>
 </div>

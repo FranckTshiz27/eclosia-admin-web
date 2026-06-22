@@ -6,5 +6,13 @@ export const API_CONFIG = {
 } as const;
 
 export const API_ENDPOINTS = {
-  group: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/group`
+  group: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/group`,
+  country: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/country`,
+  state: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/state`,
+  city: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/city`,
+  commune: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/commune`,
+  schoolTypes: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/reference-data/school-types`,
+  school: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/school`,
+  academicModel: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-model`,
+  academicCycle: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-cycle`
 } as const;

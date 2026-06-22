@@ -15,6 +15,7 @@ export class SidebarComponent implements OnInit {
   isCollapsed = false;
   isAgentsExpanded = false;
   isAdminExpanded = false;
+  isConfigurationExpanded = false;
   isSettingsExpanded = false;
 
   constructor(

@@ -12,6 +12,15 @@
     --sidebar-width: 260px;
     --header-height: 60px;
     --sidebar-overlay: rgba(0, 183, 255, 0.85);
+    --form-label-color: #020617;
+    --form-label-on-surface: #020617;
+    --form-label-weight: 800;
+    --form-section-title: #0842b3;
+    --scrollbar-size: 8px;
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: #c7d8ef;
+    --scrollbar-thumb-hover: #0a53de;
+    --filter-select-chevron: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2364748B' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
 }
 
 body.dark-theme {
@@ -22,12 +31,30 @@ body.dark-theme {
     --white: #161E31; /* Card background in midnight blue */
     --sidebar-bg: #111827;
     --sidebar-overlay: rgba(10, 15, 29, 0.94);
+    --form-label-color: #e2e8f0;
+    --form-label-on-surface: #020617;
+    --form-section-title: #0842b3;
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: #64748b;
+    --scrollbar-thumb-hover: #60a5fa;
 }
 
-/* Explicitly fix labels in Dark Mode */
-body.dark-theme label,
+/* Labels sur fond sombre uniquement (hors modals blanches) */
+body.dark-theme .page-container > label,
 body.dark-theme .form-group label {
-    color: #CBD5E1 !important; /* Brighter slate for high visibility */
+    color: #CBD5E1 !important;
+}
+
+body.dark-theme .modal-backdrop .field-group > label,
+body.dark-theme .modal-backdrop .section-label,
+body.dark-theme .modal-backdrop .toggle-row strong,
+body.dark-theme .modal-backdrop .pattern-block > label,
+body.dark-theme .modal-backdrop .form-section h4 {
+    color: var(--form-label-on-surface) !important;
+}
+
+body.dark-theme .modal-backdrop .form-section h4 {
+    color: var(--form-section-title) !important;
 }
 
 body.dark-theme .stat-card,
@@ -50,6 +77,118 @@ body.dark-theme .main-header {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+html,
+body,
+.router-wrapper,
+.page-container,
+.modal-backdrop,
+.create-cycle-modal,
+.create-level-modal,
+.create-model-modal {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+    height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Labels de formulaires — lisibilite renforcee */
+.field-group > label,
+.section-label,
+.form-section > h4,
+.pattern-block > label,
+.toggle-row strong,
+.modal-body label:not(.status-card):not(.toggle-switch) {
+    color: var(--form-label-on-surface);
+    font-weight: var(--form-label-weight);
+    letter-spacing: 0.01em;
+}
+
+.form-section h4 {
+    color: var(--form-section-title);
+    font-weight: 800;
+}
+
+/* Filtres de liste (toolbar) */
+body .table-toolbar.filters-toolbar .filter-group > label {
+    color: #6b7890;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: normal;
+}
+
+body .table-toolbar.filters-toolbar .filter-group select {
+    width: 100%;
+    height: 40px;
+    min-width: 0;
+    padding: 0 34px 0 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    background-image: var(--filter-select-chevron);
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px 10px;
+    color: #344054;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+body .table-toolbar.filters-toolbar .filter-group select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    background-color: #fff;
+}
+
+body.dark-theme .table-toolbar.filters-toolbar .filter-group select {
+    background-color: #f8fafc !important;
+    background-image: var(--filter-select-chevron) !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 14px 10px !important;
+    color: #344054 !important;
+    border-color: #e2e8f0 !important;
+}
+
+.field-group label span,
+.section-label span {
+    color: #dc2626;
+    font-weight: 700;
 }
 
 body {

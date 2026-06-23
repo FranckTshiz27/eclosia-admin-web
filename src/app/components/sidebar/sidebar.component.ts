@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { SidebarService, MenuItem } from '../../services/sidebar.service';
-import { SecurityService, Permission } from '../../services/security.service';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { SidebarService } from '../../services/sidebar.service';
+import { SecurityService } from '../../services/security.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -20,13 +21,25 @@ export class SidebarComponent implements OnInit {
 
   constructor(
     private sidebarService: SidebarService,
-    private securityService: SecurityService
+    private securityService: SecurityService,
+    private router: Router
   ) {}
 
   ngOnInit() {
     this.sidebarService.isCollapsed$.subscribe(
       collapsed => this.isCollapsed = collapsed
     );
+    this.syncExpandedMenus(this.router.url);
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event) => this.syncExpandedMenus(event.urlAfterRedirects));
+  }
+
+  private syncExpandedMenus(url: string): void {
+    this.isConfigurationExpanded = url.startsWith('/configuration');
+    this.isAdminExpanded = url.startsWith('/admin');
+    this.isAgentsExpanded = url.startsWith('/agents');
+    this.isSettingsExpanded = url.startsWith('/settings');
   }
 
   canSee(permission: string): boolean {

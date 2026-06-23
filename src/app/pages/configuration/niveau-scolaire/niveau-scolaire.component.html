@@ -1,0 +1,366 @@
+<div class="page-container levels-page">
+  <nav class="page-breadcrumb" aria-label="Fil d'Ariane">
+    <span>Parametres academiques</span>
+    <i class="bi bi-chevron-right"></i>
+    <span class="current">Niveaux academiques</span>
+  </nav>
+
+  <div class="levels-header">
+    <div class="levels-title-wrap">
+      <span class="levels-icon"><i class="bi bi-bar-chart-steps"></i></span>
+      <div>
+        <h1>Niveaux academiques</h1>
+        <p>Gerez les niveaux du cycle : {{ subtitleCycleLabel }}</p>
+      </div>
+    </div>
+    <button class="btn-new-level" type="button" (click)="openCreateModal()">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Ajouter un niveau
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher un niveau..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Cycle</label>
+          <select [(ngModel)]="cycleFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let cycle of cycleFilterOptions" [value]="cycle.value">{{ cycle.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Type de niveau</label>
+          <select [(ngModel)]="typeFilter" [ngModelOptions]="{ standalone: true }">
+            <option value="all">Tous les types</option>
+            <option *ngFor="let type of levelTypes" [value]="type.value">{{ type.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Reinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="levels-table-wrapper">
+      <table class="levels-table">
+        <thead>
+          <tr>
+            <th>Ordre</th>
+            <th>Code</th>
+            <th>Nom du niveau</th>
+            <th>Abreviation</th>
+            <th>Cycle</th>
+            <th>Type de niveau</th>
+            <th>Section requise</th>
+            <th>Option requise</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingLevels">
+            <td colspan="10" class="table-state">Chargement des niveaux academiques...</td>
+          </tr>
+          <tr *ngIf="!isLoadingLevels && loadError">
+            <td colspan="10" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingLevels && !loadError && filteredLevels.length === 0">
+            <td colspan="10" class="table-state">Aucun niveau trouve pour cette recherche.</td>
+          </tr>
+          <tr *ngFor="let level of paginatedLevels">
+            <td>{{ level.order }}</td>
+            <td class="code-col">{{ level.code }}</td>
+            <td class="level-name">{{ level.name }}</td>
+            <td>{{ level.abbreviation }}</td>
+            <td>{{ level.cycle }}</td>
+            <td>
+              <span class="badge type-badge" [ngClass]="getLevelTypeMeta(level.levelType).badgeClass">
+                {{ getLevelTypeMeta(level.levelType).label }}
+              </span>
+            </td>
+            <td>
+              <span class="req-yes" *ngIf="level.sectionRequired">Oui</span>
+              <span class="req-no" *ngIf="!level.sectionRequired">Non</span>
+            </td>
+            <td>
+              <span class="req-yes" *ngIf="level.optionRequired">Oui</span>
+              <span class="req-no" *ngIf="!level.optionRequired">Non</span>
+            </td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="level.status === 'Actif'"
+                [class.badge-muted]="level.status === 'Inactif'"
+              >
+                {{ level.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" (click)="openEditModal(level)"><i class="bi bi-pencil"></i></button>
+              <button type="button"><i class="bi bi-three-dots-vertical"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredLevels.length }} niveaux</p>
+      <div class="pagination-wrap">
+        <div class="pagination">
+          <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i> Precedent
+          </button>
+          <button class="active" type="button">{{ currentPage }}</button>
+          <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
+            Suivant <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <select class="page-size-select" [(ngModel)]="pageSize" [ngModelOptions]="{ standalone: true }" (change)="onPageSizeChange()">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} / page</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <section class="legend-panel">
+    <div class="legend-content">
+      <h3>Legende des types de niveaux</h3>
+      <ul class="legend-list">
+        <li *ngFor="let type of levelTypes">
+          <span class="badge type-badge" [ngClass]="type.badgeClass">{{ type.label }}</span>
+          <span>{{ type.description }}</span>
+        </li>
+      </ul>
+    </div>
+    <aside class="info-box">
+      <i class="bi bi-info-circle"></i>
+      <p>
+        Les labels (A, B, C...) des classes seront definis par chaque etablissement lors de la creation des classes.
+      </p>
+    </aside>
+  </section>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-level-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier le niveau academique' : 'Creer un niveau academique' }}</h3>
+        <p>{{ isEditMode ? 'Mettez a jour les informations de ce niveau' : 'Definissez un nouveau niveau pour un cycle academique' }}</p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #levelForm="ngForm" (ngSubmit)="saveLevel(levelForm)" novalidate>
+      <div class="modal-body">
+        <section class="form-section">
+          <h4>Informations generales</h4>
+
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Cycle academique <span>*</span></label>
+              <div class="select-with-icon">
+                <i class="bi bi-building"></i>
+                <select
+                  name="cycleId"
+                  [(ngModel)]="form.cycleId"
+                  #cycleCtrl="ngModel"
+                  required
+                  [class.input-invalid]="(cycleCtrl.invalid && cycleCtrl.touched) || (isSubmitted && cycleCtrl.invalid)"
+                >
+                  <option value="" disabled>Selectionner un cycle</option>
+                  <option *ngFor="let cycle of cycleFormOptions" [value]="cycle.value">{{ cycle.label }}</option>
+                </select>
+              </div>
+              <small class="field-error" *ngIf="(cycleCtrl.touched || isSubmitted) && cycleCtrl.invalid">Le cycle est obligatoire.</small>
+              <small class="field-error" *ngIf="cycleLoadError">{{ cycleLoadError }}</small>
+              <small class="field-hint" *ngIf="isLoadingCycles">Chargement des cycles...</small>
+            </div>
+
+            <div class="field-group">
+              <label>Nom du niveau <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                minlength="2"
+                placeholder="Ex: 5eme Secondaire"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+              <small class="field-hint">Nom complet du niveau</small>
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">Le nom est obligatoire.</small>
+            </div>
+
+            <div class="field-group full-row">
+              <label>Description</label>
+              <textarea
+                name="description"
+                [(ngModel)]="form.description"
+                rows="3"
+                maxlength="500"
+                placeholder="Ex: Cinquieme annee du cycle secondaire"
+              ></textarea>
+              <small class="field-hint">Description optionnelle du niveau</small>
+              <small class="field-hint char-counter">{{ descriptionLength }} / {{ descriptionMaxLength }}</small>
+            </div>
+
+            <div class="field-group">
+              <label>Code du niveau <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                pattern=".*\S.*"
+                placeholder="Ex: S5"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+              <small class="field-hint">Code court et unique (ex: S5, P3, T6...)</small>
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">Le code est obligatoire.</small>
+            </div>
+
+            <div class="field-group">
+              <label>Abreviation</label>
+              <input
+                type="text"
+                name="abbreviation"
+                [(ngModel)]="form.abbreviation"
+                placeholder="Ex: 5emes"
+              />
+              <small class="field-hint">Abreviation utilisee (ex: 5emes, 3eme...)</small>
+            </div>
+
+            <div class="field-group">
+              <label>Ordre du niveau <span>*</span></label>
+              <div class="stepper-input">
+                <button type="button" class="stepper-btn" (click)="decrementOrder()">-</button>
+                <input
+                  type="number"
+                  name="order"
+                  [(ngModel)]="form.order"
+                  #orderCtrl="ngModel"
+                  required
+                  min="1"
+                  max="99"
+                  [class.input-invalid]="(orderCtrl.invalid && orderCtrl.touched) || (isSubmitted && orderCtrl.invalid)"
+                />
+                <button type="button" class="stepper-btn" (click)="incrementOrder()">+</button>
+              </div>
+              <small class="field-hint">Position du niveau dans le cycle (1, 2, 3...)</small>
+              <small class="field-error" *ngIf="(orderCtrl.touched || isSubmitted) && orderCtrl.invalid">L ordre est obligatoire.</small>
+            </div>
+          </div>
+        </section>
+
+        <div class="modal-bottom-grid">
+          <section class="form-section">
+            <h4>Exigences pour la classe</h4>
+
+            <div class="toggle-row">
+              <div>
+                <strong>Section requise ?</strong>
+                <small>Le choix d une section est-il obligatoire pour ce niveau ?</small>
+              </div>
+              <button
+                type="button"
+                class="toggle-switch"
+                [class.on]="form.sectionRequired"
+                (click)="toggleSectionRequired()"
+              >
+                {{ form.sectionRequired ? 'Oui' : 'Non' }}
+              </button>
+            </div>
+            <div class="hint-box success" *ngIf="form.sectionRequired">
+              Exemples : Generale, Technique, Artistique...
+            </div>
+
+            <div class="toggle-row">
+              <div>
+                <strong>Option requise ?</strong>
+                <small>Le choix d une option est-il obligatoire pour ce niveau ?</small>
+              </div>
+              <button
+                type="button"
+                class="toggle-switch"
+                [class.on]="form.optionRequired"
+                (click)="toggleOptionRequired()"
+              >
+                {{ form.optionRequired ? 'Oui' : 'Non' }}
+              </button>
+            </div>
+            <div class="hint-box success" *ngIf="form.optionRequired">
+              Exemples : Scientifique, Commerciale, Electricite...
+            </div>
+
+            <div class="pattern-block">
+              <label>Pattern de denomination</label>
+              <div class="pattern-chips">
+                <span class="pattern-chip chip-level">Niveau</span>
+                <span class="pattern-plus" *ngIf="form.sectionRequired">+</span>
+                <span class="pattern-chip chip-section" *ngIf="form.sectionRequired">Section</span>
+                <span class="pattern-plus" *ngIf="form.optionRequired">+</span>
+                <span class="pattern-chip chip-option" *ngIf="form.optionRequired">Option</span>
+                <span class="pattern-plus">+</span>
+                <span class="pattern-chip chip-label">Libelle (A, B, C...)</span>
+              </div>
+              <div class="pattern-example">
+                <span>Exemple : {{ namingExample }} &#8594;</span>
+                <strong>{{ namingResult }}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-section preview-section">
+            <h4>Apercu</h4>
+            <p class="preview-title">Exemples de classes possibles :</p>
+            <ul class="preview-list">
+              <li *ngFor="let example of previewClassExamples">
+                <i class="bi bi-people"></i>
+                <span>{{ example }}</span>
+              </li>
+            </ul>
+            <div class="hint-box warning">
+              Les sections et options disponibles dependront de la configuration du modele academique et de l etablissement.
+            </div>
+          </section>
+        </div>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || levelForm.invalid">
+          <i class="bi bi-save"></i>
+          {{ isSaving ? 'Enregistrement...' : (isEditMode ? 'Mettre a jour le niveau' : 'Enregistrer le niveau') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

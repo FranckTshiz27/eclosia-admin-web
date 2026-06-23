@@ -46,6 +46,7 @@ export interface AcademicCycleApiResponse {
 type AcademicCycleListPayload =
   | AcademicCycleApiResponse[]
   | {
+      value?: AcademicCycleApiResponse[];
       data?: AcademicCycleApiResponse[];
       content?: AcademicCycleApiResponse[];
       items?: AcademicCycleApiResponse[];
@@ -74,7 +75,14 @@ export class AcademicCycleService {
         if (Array.isArray(response)) {
           return response;
         }
-        return response.data ?? response.content ?? response.items ?? response.results ?? [];
+        return (
+          response.value ??
+          response.data ??
+          response.content ??
+          response.items ??
+          response.results ??
+          []
+        );
       })
     );
   }

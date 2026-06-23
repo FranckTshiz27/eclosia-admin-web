@@ -305,11 +305,20 @@
 :host-context(body.dark-theme) .cycles-page .table-toolbar,
 :host-context(body.dark-theme) .cycles-page .table-footer,
 :host-context(body.dark-theme) .cycles-page .search-box input,
-:host-context(body.dark-theme) .cycles-page .filter-group select,
 :host-context(body.dark-theme) .cycles-page .btn-reset,
 :host-context(body.dark-theme) .cycles-page .status-filter,
 :host-context(body.dark-theme) .cycles-page .pagination button {
   background: #ffffff !important;
+  color: #1f293f !important;
+  border-color: #e2e8f0 !important;
+}
+
+:host-context(body.dark-theme) .cycles-page .filter-group select {
+  background-color: #ffffff !important;
+  background-image: var(--filter-select-chevron) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 14px 10px !important;
   color: #1f293f !important;
   border-color: #e2e8f0 !important;
 }
@@ -410,7 +419,7 @@
 
 .form-section h4 {
   margin: 0 0 10px;
-  color: #1d4fd7;
+  color: var(--form-section-title);
   font-size: 13px;
   font-weight: 700;
 }
@@ -438,8 +447,8 @@
 .field-group label,
 .section-label {
   font-size: 13px;
-  font-weight: 700;
-  color: #1f2937;
+  font-weight: var(--form-label-weight);
+  color: var(--form-label-on-surface);
 }
 
 .field-group label span,

@@ -14,5 +14,8 @@ export const API_ENDPOINTS = {
   schoolTypes: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/reference-data/school-types`,
   school: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/school`,
   academicModel: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-model`,
-  academicCycle: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-cycle`
+  academicCycle: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-cycle`,
+  academicLevel: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-level`,
+  academicSection: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-section`,
+  academicOption: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-option`
 } as const;

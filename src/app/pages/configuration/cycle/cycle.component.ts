@@ -23,7 +23,7 @@ interface AcademicCycleItem {
   academicModelLabel: string;
   durationYears: number;
   description?: string;
-  order: number;
+  displayOrder: number | null;
   status: CycleStatus;
 }
 
@@ -269,7 +269,11 @@ export class CycleComponent implements OnInit {
         this.cycleApiRows = rows;
         this.cycles = rows
           .map((row) => this.mapApiCycleToItem(row))
-          .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, 'fr'));
+          .sort(
+            (a, b) =>
+              (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER) ||
+              a.name.localeCompare(b.name, 'fr')
+          );
         this.isLoadingCycles = false;
       },
       error: () => {
@@ -288,7 +292,7 @@ export class CycleComponent implements OnInit {
       name: cycle.name,
       durationYears: String(cycle.durationYears),
       description: cycle.description ?? '',
-      order: String(cycle.order),
+      order: String(cycle.displayOrder ?? 1),
       status
     };
   }
@@ -336,9 +340,21 @@ export class CycleComponent implements OnInit {
       academicModelLabel: modelLabel,
       durationYears: row.durationYears ?? row.duration_years ?? 0,
       description: row.description?.trim() || undefined,
-      order: row.displayOrder ?? row.display_order ?? 0,
+      displayOrder: this.readDisplayOrder(row),
       status: this.resolveStatusFromRow(row)
     };
+  }
+
+  private readDisplayOrder(row: AcademicCycleApiResponse): number | null {
+    const record = row as Record<string, unknown>;
+    const value = record['displayOrder'] ?? record['display_order'];
+
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private resolveStatusFromRow(row: Partial<AcademicCycleApiResponse>): CycleStatus {

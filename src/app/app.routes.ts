@@ -78,6 +78,13 @@ export const routes: Routes = [
       {
         path: 'option',
         loadComponent: () => import('./pages/configuration/option/option.component').then((m) => m.OptionComponent)
+      },
+      {
+        path: 'niveau-scolaire',
+        loadComponent: () =>
+          import('./pages/configuration/niveau-scolaire/niveau-scolaire.component').then(
+            (m) => m.NiveauScolaireComponent
+          )
       }
     ]
   },
@@ -95,7 +102,8 @@ export const routes: Routes = [
       },
       { path: 'cycle', redirectTo: '/configuration/cycle', pathMatch: 'full' },
       { path: 'section', redirectTo: '/configuration/section', pathMatch: 'full' },
-      { path: 'option', redirectTo: '/configuration/option', pathMatch: 'full' }
+      { path: 'option', redirectTo: '/configuration/option', pathMatch: 'full' },
+      { path: 'niveau-scolaire', redirectTo: '/configuration/niveau-scolaire', pathMatch: 'full' }
     ]
   },
   {

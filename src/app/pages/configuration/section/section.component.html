@@ -1,4 +1,310 @@
-<div class="admin-page">
-  <h1>Section</h1>
-  <p>Page par defaut de gestion des sections.</p>
+<div class="page-container sections-page">
+  <nav class="page-breadcrumb" aria-label="Fil d'Ariane">
+    <span>Parametres academiques</span>
+    <i class="bi bi-chevron-right"></i>
+    <span class="current">Sections</span>
+  </nav>
+
+  <div class="sections-header">
+    <div class="sections-title-wrap">
+      <span class="sections-icon"><i class="bi bi-columns-gap"></i></span>
+      <div>
+        <h1>Sections</h1>
+        <p>Gerez les sections du cycle : {{ subtitleCycleLabel }}</p>
+      </div>
+    </div>
+    <button class="btn-new-section" type="button" (click)="openCreateModal()">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Ajouter une section
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher une section..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Cycle</label>
+          <select [(ngModel)]="cycleFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let cycle of cycleFilterOptions" [value]="cycle.value">{{ cycle.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Reinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="sections-table-wrapper">
+      <table class="sections-table">
+        <thead>
+          <tr>
+            <th class="display-order-col">Ordre</th>
+            <th>Code</th>
+            <th>Nom de la section</th>
+            <th>Cycle</th>
+            <th>Description</th>
+            <th>Nombre d options</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingSections">
+            <td colspan="8" class="table-state">Chargement des sections...</td>
+          </tr>
+          <tr *ngIf="!isLoadingSections && loadError">
+            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingSections && !loadError && filteredSections.length === 0">
+            <td colspan="8" class="table-state">
+              {{
+                sections.length === 0
+                  ? 'Aucune section enregistree.'
+                  : 'Aucune section trouvee pour cette recherche.'
+              }}
+            </td>
+          </tr>
+          <tr *ngFor="let section of paginatedSections">
+            <td class="display-order-col">{{ section.displayOrder ?? '—' }}</td>
+            <td class="code-col">{{ section.code }}</td>
+            <td class="section-name">{{ section.name }}</td>
+            <td class="cycle-col">{{ section.cycle }}</td>
+            <td class="description-col">{{ section.description }}</td>
+            <td>
+              <button type="button" class="options-badge">
+                {{ getOptionsLabel(section.optionsCount) }}
+              </button>
+            </td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="section.status === 'Actif'"
+                [class.badge-muted]="section.status === 'Inactif'"
+              >
+                {{ section.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" (click)="openEditModal(section)" title="Modifier"><i class="bi bi-pencil"></i></button>
+              <button type="button" (click)="deleteSection(section)" title="Supprimer"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredSections.length }} sections</p>
+      <div class="pagination-wrap">
+        <div class="pagination">
+          <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="active" type="button">{{ currentPage }}</button>
+          <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <select class="page-size-select" [(ngModel)]="pageSize" [ngModelOptions]="{ standalone: true }" (change)="onPageSizeChange()">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} / page</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <section class="info-panel">
+    <div class="info-panel-main">
+      <h3><i class="bi bi-info-circle"></i> A propos des sections</h3>
+      <p>
+        Les sections permettent d organiser les eleves en filieres principales. Chaque section peut contenir
+        plusieurs options qui precisent la specialisation des classes.
+      </p>
+    </div>
+    <aside class="examples-panel">
+      <h4>Exemples de sections</h4>
+      <div class="example-tags">
+        <span *ngFor="let example of sectionExamples" class="example-tag" [ngClass]="example.tagClass">
+          {{ example.label }}
+        </span>
+        <button type="button" class="example-tag tag-more" aria-label="Plus d exemples">...</button>
+      </div>
+    </aside>
+  </section>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-section-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier la section' : 'Creer une section' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez a jour les informations de cette section'
+              : 'Ajoutez une nouvelle section au cycle : ' + modalCycleLabel
+          }}
+        </p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #sectionForm="ngForm" (ngSubmit)="saveSection(sectionForm)" novalidate>
+      <div class="modal-body">
+        <div class="form-section">
+          <h4>Informations generales</h4>
+
+          <div class="form-columns">
+            <div class="form-column">
+              <div class="field-group">
+                <label>Cycle academique <span>*</span></label>
+                <div class="select-with-icon">
+                  <i class="bi bi-building"></i>
+                  <select
+                    name="cycleId"
+                    [(ngModel)]="form.cycleId"
+                    #cycleCtrl="ngModel"
+                    required
+                    (ngModelChange)="onFormCycleChange()"
+                    [class.input-invalid]="(cycleCtrl.invalid && cycleCtrl.touched) || (isSubmitted && cycleCtrl.invalid)"
+                  >
+                    <option value="" disabled>{{ isLoadingCycles ? 'Chargement des cycles...' : 'Selectionner un cycle' }}</option>
+                    <option *ngFor="let cycle of cycleFormOptions" [value]="cycle.value">{{ cycle.label }}</option>
+                  </select>
+                </div>
+                <small class="field-hint">Le cycle auquel cette section appartient</small>
+                <small class="field-error" *ngIf="(cycleCtrl.touched || isSubmitted) && cycleCtrl.invalid">Le cycle est obligatoire.</small>
+                <small class="field-error" *ngIf="cycleLoadError">{{ cycleLoadError }}</small>
+              </div>
+
+              <div class="field-group">
+                <label>Code de la section <span>*</span></label>
+                <input
+                  type="text"
+                  name="code"
+                  [(ngModel)]="form.code"
+                  #codeCtrl="ngModel"
+                  required
+                  pattern=".*\S.*"
+                  placeholder="Ex: GEN"
+                  [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+                />
+                <small class="field-hint">Code court et unique (ex: GEN, TECH, PEDA...)</small>
+                <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">Le code est obligatoire.</small>
+              </div>
+
+              <div class="field-group">
+                <label>Nom de la section <span>*</span></label>
+                <input
+                  type="text"
+                  name="name"
+                  [(ngModel)]="form.name"
+                  #nameCtrl="ngModel"
+                  required
+                  minlength="2"
+                  placeholder="Ex: Generale"
+                  [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+                />
+                <small class="field-hint">Nom complet de la section</small>
+                <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">Le nom est obligatoire.</small>
+              </div>
+            </div>
+
+            <div class="form-column">
+              <div class="field-group description-field">
+                <label>Description</label>
+                <textarea
+                  name="description"
+                  [(ngModel)]="form.description"
+                  rows="5"
+                  maxlength="500"
+                  placeholder="Ex: Section generale du cycle secondaire."
+                ></textarea>
+                <small class="field-hint">Description detaillee de la section (optionnel)</small>
+                <small class="field-hint char-counter">{{ descriptionLength }} / {{ descriptionMaxLength }}</small>
+              </div>
+
+              <div class="field-group">
+                <label>Ordre d affichage <span>*</span></label>
+                <div class="stepper-input">
+                  <button type="button" class="stepper-btn" (click)="decrementDisplayOrder()">-</button>
+                  <input
+                    type="number"
+                    name="displayOrder"
+                    [(ngModel)]="form.displayOrder"
+                    #displayOrderCtrl="ngModel"
+                    required
+                    min="1"
+                    max="99"
+                    [class.input-invalid]="(displayOrderCtrl.invalid && displayOrderCtrl.touched) || (isSubmitted && displayOrderCtrl.invalid)"
+                  />
+                  <button type="button" class="stepper-btn" (click)="incrementDisplayOrder()">+</button>
+                </div>
+                <small class="field-hint">Position d affichage dans la liste des sections</small>
+                <small class="field-error" *ngIf="(displayOrderCtrl.touched || isSubmitted) && displayOrderCtrl.invalid">L ordre est obligatoire.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-bottom-grid">
+          <div class="form-section status-section">
+            <h4>Statut de la section</h4>
+            <div class="toggle-row">
+              <div>
+                <strong>Statut <span class="required">*</span></strong>
+                <small>Une section inactive ne sera plus proposee lors de la creation des classes</small>
+              </div>
+              <button
+                type="button"
+                class="toggle-switch"
+                [class.on]="form.active"
+                (click)="toggleActiveStatus()"
+              >
+                {{ form.active ? 'Actif' : 'Inactif' }}
+              </button>
+            </div>
+          </div>
+
+          <aside class="status-info-box">
+            <h5><i class="bi bi-info-circle"></i> Informations</h5>
+            <p>
+              Les sections permettent d organiser les eleves selon les grandes filieres ou orientations.
+              Les options seront creees a l interieur de chaque section.
+            </p>
+          </aside>
+        </div>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || sectionForm.invalid">
+          <i class="bi bi-save"></i>
+          {{ isSaving ? 'Enregistrement...' : (isEditMode ? 'Mettre a jour la section' : 'Enregistrer la section') }}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

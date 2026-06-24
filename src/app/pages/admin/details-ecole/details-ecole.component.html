@@ -1,0 +1,247 @@
+<div class="page-container details-ecole-page" [class.drawer-open]="isDrawerOpen">
+  <div class="details-header">
+    <div>
+      <h1>Details ecole</h1>
+      <p>Consultez et gerez la configuration academique de chaque ecole.</p>
+    </div>
+  </div>
+
+  <div class="school-selector-card">
+    <div class="school-selector-main">
+      <label for="schoolSelect">Selectionner l ecole</label>
+      <div class="school-select-wrap">
+        <span class="school-select-icon"><i class="bi bi-building"></i></span>
+        <select
+          id="schoolSelect"
+          [(ngModel)]="selectedSchoolId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onSchoolChange()"
+          [disabled]="isLoadingSchools || schools.length === 0"
+        >
+          <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Choisir une ecole' }}</option>
+          <option *ngFor="let school of schools" [value]="school.id">{{ school.name }}</option>
+        </select>
+      </div>
+      <p class="field-error" *ngIf="schoolLoadError">{{ schoolLoadError }}</p>
+    </div>
+    <div class="school-status-badge" *ngIf="selectedSchool">
+      <span class="badge badge-success" *ngIf="selectedSchool.active">Active</span>
+      <span class="badge badge-muted" *ngIf="!selectedSchool.active">Inactive</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+  </div>
+
+  <nav class="details-tabs" aria-label="Sections details ecole">
+    <button
+      *ngFor="let tab of tabs"
+      type="button"
+      class="details-tab"
+      [class.active]="activeTab === tab.id"
+      (click)="setActiveTab(tab.id)"
+    >
+      <i class="bi" [ngClass]="tab.icon"></i>
+      {{ tab.label }}
+    </button>
+  </nav>
+
+  <section *ngIf="activeTab === 'modeles-academiques'" class="tab-panel">
+    <div class="panel-header">
+      <div>
+        <h2>Modeles academiques associes</h2>
+        <p>Gerez les modeles academiques utilises par cette ecole au fil du temps.</p>
+      </div>
+      <button class="btn-primary" type="button" (click)="openCreateDrawer()" [disabled]="!selectedSchoolId">
+        <i class="bi bi-plus-lg"></i>
+        Associer un modele
+      </button>
+    </div>
+
+    <div class="table-card">
+      <div class="models-table-wrapper">
+        <table class="models-table">
+          <thead>
+            <tr>
+              <th>Modele academique</th>
+              <th>Date debut</th>
+              <th>Date fin</th>
+              <th>Statut</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoadingModels || isLoadingAssociations">
+              <td colspan="5" class="table-state">Chargement des modeles associes...</td>
+            </tr>
+            <tr *ngIf="!isLoadingModels && !isLoadingAssociations && (modelLoadError || loadError)">
+              <td colspan="5" class="table-state table-state-error">{{ modelLoadError || loadError }}</td>
+            </tr>
+            <tr *ngIf="!isLoadingModels && !isLoadingAssociations && !modelLoadError && !loadError && !selectedSchoolId">
+              <td colspan="5" class="table-state">Selectionnez une ecole pour afficher ses modeles.</td>
+            </tr>
+            <tr *ngIf="!isLoadingModels && !isLoadingAssociations && !modelLoadError && !loadError && selectedSchoolId && filteredAssociations.length === 0">
+              <td colspan="5" class="table-state">Aucun modele academique associe a cette ecole.</td>
+            </tr>
+            <tr *ngFor="let association of filteredAssociations">
+              <td>
+                <div class="model-cell">
+                  <span class="model-icon"><i class="bi bi-journal-bookmark"></i></span>
+                  <div>
+                    <strong>{{ association.modelCode }}</strong>
+                    <p>{{ association.modelName }} Version {{ association.modelVersion || '—' }}</p>
+                  </div>
+                </div>
+              </td>
+              <td>{{ formatDisplayDate(association.startDate) }}</td>
+              <td>{{ formatDisplayDate(association.endDate) }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [class.badge-success]="association.status === 'Actif'"
+                  [class.badge-muted]="association.status === 'Archive'"
+                >
+                  {{ association.status === 'Archive' ? 'Archive' : association.status }}
+                </span>
+              </td>
+              <td class="actions-col">
+                <button type="button" (click)="openEditDrawer(association)" title="Modifier">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" (click)="deleteAssociation(association)" title="Supprimer">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer">
+        <p>
+          Affichage de
+          {{ filteredAssociations.length === 0 ? 0 : 1 }}
+          a {{ filteredAssociations.length }}
+          sur {{ filteredAssociations.length }} modeles
+        </p>
+      </div>
+    </div>
+
+    <aside class="info-panel">
+      <h3><i class="bi bi-info-circle"></i> A propos des modeles academiques</h3>
+      <p>
+        Chaque modele academique definit les niveaux, sections et options disponibles pour la creation
+        des classes. Une ecole peut etre associee a plusieurs modeles dans le temps, mais un seul peut
+        etre actif a la fois.
+      </p>
+    </aside>
+  </section>
+
+  <section *ngIf="activeTab !== 'modeles-academiques'" class="tab-panel tab-placeholder">
+    <div class="placeholder-card">
+      <i class="bi bi-tools"></i>
+      <h2>{{ activeTabLabel }}</h2>
+      <p>Cette section sera disponible prochainement.</p>
+    </div>
+  </section>
+</div>
+
+<div class="drawer-backdrop" *ngIf="isDrawerOpen" (click)="closeDrawer()"></div>
+<aside class="association-drawer" *ngIf="isDrawerOpen" role="dialog" aria-label="Associer un modele academique">
+  <div class="drawer-header">
+    <div class="drawer-title-wrap">
+      <span class="drawer-icon"><i class="bi bi-journal-bookmark"></i></span>
+      <div>
+        <h3>{{ isEditMode ? 'Modifier l association' : 'Associer un modele academique' }}</h3>
+        <p>Associez un modele academique a l ecole selectionnee.</p>
+      </div>
+    </div>
+    <button class="drawer-close" type="button" (click)="closeDrawer()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <form #associationForm="ngForm" (ngSubmit)="saveAssociation(associationForm)" novalidate>
+    <div class="drawer-body">
+      <div class="field-group">
+        <label>Modele academique <span>*</span></label>
+        <select
+          name="modelId"
+          [(ngModel)]="form.modelId"
+          #modelCtrl="ngModel"
+          required
+          [class.input-invalid]="(modelCtrl.invalid && modelCtrl.touched) || (isSubmitted && modelCtrl.invalid)"
+        >
+          <option value="" disabled>
+            {{
+              isLoadingModels
+                ? 'Chargement...'
+                : academicModelFormOptions.length === 0
+                  ? 'Aucun modele disponible'
+                  : 'Selectionner un modele'
+            }}
+          </option>
+          <option *ngFor="let model of academicModelFormOptions" [value]="model.id">{{ model.displayLabel }}</option>
+        </select>
+        <small class="field-hint">Le modele academique a utiliser pour cette ecole.</small>
+        <small class="field-error" *ngIf="modelLoadError">{{ modelLoadError }}</small>
+        <small class="field-error" *ngIf="(modelCtrl.touched || isSubmitted) && modelCtrl.invalid">
+          Le modele academique est obligatoire.
+        </small>
+      </div>
+
+      <div class="field-group">
+        <label>Date debut <span>*</span></label>
+        <input
+          type="date"
+          name="startDate"
+          [(ngModel)]="form.startDate"
+          #startDateCtrl="ngModel"
+          required
+          [class.input-invalid]="(startDateCtrl.invalid && startDateCtrl.touched) || (isSubmitted && startDateCtrl.invalid)"
+        />
+        <small class="field-hint">Date a partir de laquelle ce modele est utilise.</small>
+        <small class="field-error" *ngIf="(startDateCtrl.touched || isSubmitted) && startDateCtrl.invalid">
+          La date de debut est obligatoire.
+        </small>
+      </div>
+
+      <div class="field-group">
+        <label>Date fin (optionnelle)</label>
+        <input type="date" name="endDate" [(ngModel)]="form.endDate" />
+        <small class="field-hint">Laisser vide si le modele est toujours actif.</small>
+      </div>
+
+      <div class="field-group">
+        <label>Statut <span>*</span></label>
+        <select
+          name="status"
+          [(ngModel)]="form.status"
+          #statusCtrl="ngModel"
+          required
+        >
+          <option *ngFor="let status of statusFormOptions" [value]="status">{{ status }}</option>
+        </select>
+        <small class="field-hint">Le statut determine si ce modele est actuellement utilise.</small>
+      </div>
+
+      <aside class="drawer-info-box">
+        <h4><i class="bi bi-info-circle"></i> Informations</h4>
+        <p>Ce modele academique permettra a l ecole de :</p>
+        <ul>
+          <li><i class="bi bi-check-circle-fill"></i> Creer des classes</li>
+          <li><i class="bi bi-check-circle-fill"></i> Gerer les niveaux, sections et options disponibles</li>
+          <li><i class="bi bi-check-circle-fill"></i> Organiser les annees scolaires futures</li>
+        </ul>
+      </aside>
+
+      <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+    </div>
+
+    <div class="drawer-footer">
+      <button class="btn-cancel" type="button" (click)="closeDrawer()">Annuler</button>
+      <button class="btn-save" type="submit" [disabled]="isSaving || associationForm.invalid">
+        <i class="bi bi-save"></i>
+        {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+      </button>
+    </div>
+  </form>
+</aside>

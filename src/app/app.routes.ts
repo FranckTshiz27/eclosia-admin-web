@@ -100,6 +100,11 @@ export const routes: Routes = [
         path: 'ecole',
         loadComponent: () => import('./pages/admin/ecole/ecole.component').then(m => m.EcoleComponent)
       },
+      {
+        path: 'details-ecole',
+        loadComponent: () =>
+          import('./pages/admin/details-ecole/details-ecole.component').then((m) => m.DetailsEcoleComponent)
+      },
       { path: 'cycle', redirectTo: '/configuration/cycle', pathMatch: 'full' },
       { path: 'section', redirectTo: '/configuration/section', pathMatch: 'full' },
       { path: 'option', redirectTo: '/configuration/option', pathMatch: 'full' },

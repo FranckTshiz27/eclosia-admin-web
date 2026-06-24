@@ -47,6 +47,7 @@ export interface AcademicModelApiResponse {
 type AcademicModelListPayload =
   | AcademicModelApiResponse[]
   | {
+      value?: AcademicModelApiResponse[];
       data?: AcademicModelApiResponse[];
       content?: AcademicModelApiResponse[];
       items?: AcademicModelApiResponse[];
@@ -75,7 +76,14 @@ export class AcademicModelService {
         if (Array.isArray(response)) {
           return response;
         }
-        return response.data ?? response.content ?? response.items ?? response.results ?? [];
+        return (
+          response.value ??
+          response.data ??
+          response.content ??
+          response.items ??
+          response.results ??
+          []
+        );
       })
     );
   }

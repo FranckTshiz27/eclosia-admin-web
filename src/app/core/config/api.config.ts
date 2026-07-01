@@ -18,5 +18,12 @@ export const API_ENDPOINTS = {
   academicLevel: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-level`,
   academicSection: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-section`,
   academicOption: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-option`,
-  schoolAcademicModel: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/school-academic-model`
+  schoolAcademicModel: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/school-academic-model`,
+  academicYear: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/academic-year`,
+  schoolAcademicYear: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/school-academic-year`,
+  schoolClass: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/school-class`,
+  classroom: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/classroom`,
+  classroomDesignation: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/classroom-designation`,
+  guardian: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/guardian`,
+  enrollment: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/enrollment`
 } as const;

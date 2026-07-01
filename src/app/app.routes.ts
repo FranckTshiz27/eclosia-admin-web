@@ -19,6 +19,13 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
   },
   {
+    path: 'inscriptions',
+    loadComponent: () =>
+      import('./pages/admin/details-ecole/ecole-inscriptions/ecole-inscriptions.component').then(
+        (m) => m.EcoleInscriptionsComponent
+      )
+  },
+  {
     path: 'agents',
     loadComponent: () => import('./pages/agents/agents.component').then(m => m.AgentsComponent),
     children: [

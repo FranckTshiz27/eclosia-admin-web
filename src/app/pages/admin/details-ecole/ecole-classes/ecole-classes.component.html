@@ -1,0 +1,362 @@
+<div class="classes-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Classes</h2>
+      <p>Gerez les classes de l ecole (niveau, section, option et designation de salle).</p>
+    </div>
+    <div class="panel-actions">
+      <button class="btn-primary" type="button" (click)="openCreateModal()" [disabled]="!schoolId || isLoadingFilters">
+        <i class="bi bi-plus-lg"></i>
+        Nouvelle classe
+      </button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onFilterChange()"
+          placeholder="Rechercher une classe..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Niveau</label>
+          <select
+            [(ngModel)]="levelFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onFilterChange()"
+            [disabled]="!schoolId || isLoadingFilters"
+          >
+            <option *ngFor="let option of levelFilterOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Section</label>
+          <select
+            [(ngModel)]="sectionFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onFilterChange()"
+            [disabled]="!schoolId || isLoadingFilters"
+          >
+            <option *ngFor="let option of sectionFilterOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select
+            [(ngModel)]="statusFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onFilterChange()"
+          >
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Reinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="classes-table-wrapper">
+      <table class="classes-table">
+        <thead>
+          <tr>
+            <th>Nom affiche</th>
+            <th>Designation</th>
+            <th>Niveau</th>
+            <th>Section</th>
+            <th>Option</th>
+            <th>Capacite</th>
+            <th>Description</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="!schoolId">
+            <td colspan="9" class="table-state">Selectionnez une ecole pour afficher ses classes.</td>
+          </tr>
+          <tr *ngIf="schoolId && (isLoadingClasses || isLoadingFilters)">
+            <td colspan="9" class="table-state">Chargement des classes...</td>
+          </tr>
+          <tr *ngIf="schoolId && !isLoadingClasses && !isLoadingFilters && loadError">
+            <td colspan="9" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="schoolId && !isLoadingClasses && !isLoadingFilters && !loadError && filteredClasses.length === 0">
+            <td colspan="9" class="table-state">
+              {{
+                classes.length === 0
+                  ? 'Aucune classe enregistree pour cette ecole.'
+                  : 'Aucune classe trouvee pour cette recherche.'
+              }}
+            </td>
+          </tr>
+          <tr *ngFor="let item of paginatedClasses">
+            <td class="class-name">{{ item.displayName }}</td>
+            <td>
+              <div class="designation-cell">
+                <strong class="code-col">{{ item.designationCode }}</strong>
+                <span>{{ item.designationName }}</span>
+              </div>
+            </td>
+            <td>{{ item.levelName }}</td>
+            <td>{{ item.sectionName }}</td>
+            <td>{{ item.optionName }}</td>
+            <td>{{ item.capacity }}</td>
+            <td class="description-col">{{ item.description }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="item.status === 'Active'"
+                [class.badge-muted]="item.status === 'Inactive'"
+              >
+                {{ item.status === 'Active' ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" (click)="openEditModal(item)" title="Modifier">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" (click)="deleteClassroom(item)" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredClasses.length }} classes</p>
+      <div class="pagination-wrap">
+        <div class="pagination">
+          <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button
+            *ngFor="let page of pageNumbers"
+            type="button"
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <select
+          class="page-size-select"
+          [(ngModel)]="pageSize"
+          [ngModelOptions]="{ standalone: true }"
+          (change)="onPageSizeChange()"
+        >
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} / page</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="classroom-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier la classe' : 'Nouvelle classe' }}</h3>
+        <p>Definissez la combinaison niveau, section, option et designation de salle.</p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #classroomForm="ngForm" (ngSubmit)="saveClassroom(classroomForm)" novalidate>
+      <div class="modal-body">
+        <div class="form-columns">
+          <div class="form-column">
+            <div class="field-group">
+              <label>Designation de salle <span>*</span></label>
+              <select
+                name="classroomDesignationId"
+                [(ngModel)]="form.classroomDesignationId"
+                #designationCtrl="ngModel"
+                required
+                [class.input-invalid]="(designationCtrl.invalid && designationCtrl.touched) || (isSubmitted && designationCtrl.invalid)"
+              >
+                <option value="" disabled>
+                  {{
+                    designationFormOptions.length === 0
+                      ? 'Aucune designation disponible'
+                      : 'Selectionner une designation'
+                  }}
+                </option>
+                <option *ngFor="let option of designationFormOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+              <small class="field-hint">Creez des designations dans l onglet Designations salles si besoin.</small>
+              <small class="field-error" *ngIf="(designationCtrl.touched || isSubmitted) && designationCtrl.invalid">
+                La designation est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Niveau <span>*</span></label>
+              <select
+                name="academicLevelId"
+                [(ngModel)]="form.academicLevelId"
+                #levelCtrl="ngModel"
+                required
+                (ngModelChange)="onFormLevelChange()"
+                [class.input-invalid]="(levelCtrl.invalid && levelCtrl.touched) || (isSubmitted && levelCtrl.invalid)"
+              >
+                <option value="" disabled>Selectionner un niveau</option>
+                <option *ngFor="let option of levelFormOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+              <small class="field-error" *ngIf="(levelCtrl.touched || isSubmitted) && levelCtrl.invalid">
+                Le niveau est obligatoire.
+              </small>
+            </div>
+
+            <div
+              class="field-group"
+              [class.field-group--unavailable]="!isSectionFieldAvailable"
+            >
+              <label>
+                Section
+                <span *ngIf="isSectionFieldAvailable">*</span>
+              </label>
+              <select
+                *ngIf="isSectionFieldAvailable; else sectionUnavailableSelect"
+                name="academicSectionId"
+                [ngModel]="form.academicSectionId"
+                (ngModelChange)="onFormSectionChange($event)"
+                [compareWith]="compareSelectValues"
+                required
+              >
+                <option value="">Selectionner une section</option>
+                <option *ngFor="let option of sectionFormOptions; trackBy: trackFilterOption" [value]="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+              <ng-template #sectionUnavailableSelect>
+                <select disabled class="input-unavailable">
+                  <option selected>Non applicable pour ce niveau</option>
+                </select>
+              </ng-template>
+              <small class="field-hint" *ngIf="isSectionFieldAvailable">
+                Requise pour ce niveau scolaire.
+              </small>
+              <small class="field-hint field-hint--unavailable" *ngIf="!isSectionFieldAvailable">
+                <i class="bi bi-lock-fill"></i>
+                Ce niveau ne necessite pas de section.
+              </small>
+            </div>
+
+            <div
+              class="field-group"
+              [class.field-group--unavailable]="!isOptionFieldAvailable"
+            >
+              <label>
+                Option
+                <span *ngIf="isOptionFieldAvailable">*</span>
+              </label>
+              <select
+                *ngIf="isOptionFieldAvailable && !isOptionSelectDisabled; else optionDisabledSelect"
+                name="academicOptionId"
+                [ngModel]="form.academicOptionId"
+                (ngModelChange)="onFormOptionChange($event)"
+                [compareWith]="compareSelectValues"
+                required
+              >
+                <option value="">Selectionner une option</option>
+                <option *ngFor="let option of optionFormOptions; trackBy: trackFilterOption" [value]="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+              <ng-template #optionDisabledSelect>
+                <select disabled class="input-unavailable">
+                  <option selected>{{ optionPlaceholder }}</option>
+                </select>
+              </ng-template>
+              <small class="field-hint" *ngIf="isOptionFieldAvailable && isSectionFieldAvailable">
+                Requise pour ce niveau. Selectionnez d abord une section.
+              </small>
+              <small class="field-hint" *ngIf="isOptionFieldAvailable && !isSectionFieldAvailable">
+                Requise pour ce niveau scolaire.
+              </small>
+              <small class="field-hint field-hint--unavailable" *ngIf="!isOptionFieldAvailable">
+                <i class="bi bi-lock-fill"></i>
+                Ce niveau ne necessite pas d option.
+              </small>
+            </div>
+          </div>
+
+          <div class="form-column">
+            <div class="field-group">
+              <label>Capacite <span>*</span></label>
+              <input
+                type="number"
+                name="capacity"
+                [(ngModel)]="form.capacity"
+                #capacityCtrl="ngModel"
+                required
+                min="1"
+                max="999"
+                [class.input-invalid]="(capacityCtrl.invalid && capacityCtrl.touched) || (isSubmitted && capacityCtrl.invalid)"
+              />
+              <small class="field-hint">Nombre maximum d eleves pour cette classe.</small>
+              <small class="field-error" *ngIf="(capacityCtrl.touched || isSubmitted) && capacityCtrl.invalid">
+                La capacite est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Description</label>
+              <textarea
+                name="description"
+                [(ngModel)]="form.description"
+                maxlength="500"
+                rows="5"
+                placeholder="Description optionnelle..."
+              ></textarea>
+              <small class="field-hint">{{ descriptionLength }} / {{ descriptionMaxLength }} caracteres</small>
+            </div>
+
+            <div class="field-group">
+              <label>Statut</label>
+              <div class="toggle-row">
+                <div>
+                  <strong>{{ form.active ? 'Active' : 'Inactive' }}</strong>
+                  <p>Les classes inactives ne sont plus disponibles pour de nouvelles affectations.</p>
+                </div>
+                <button type="button" class="toggle-btn" [class.active]="form.active" (click)="toggleActiveStatus()">
+                  <span></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || classroomForm.invalid">
+          <i class="bi bi-save"></i>
+          {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

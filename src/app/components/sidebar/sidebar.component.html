@@ -14,6 +14,13 @@
                 </a>
             </li>
 
+            <li>
+                <a routerLink="/inscriptions" routerLinkActive="active" class="nav-link" (click)="onLinkClick()">
+                    <i class="bi bi-journal-check"></i>
+                    <span>INSCRIPTIONS</span>
+                </a>
+            </li>
+
             <!-- GESTION AGENTS -->
             <li *ngIf="canSee('VIEW_AGENTS')" class="has-submenu" [class.open]="isAgentsExpanded">
                 <a (click)="isAgentsExpanded = !isAgentsExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">

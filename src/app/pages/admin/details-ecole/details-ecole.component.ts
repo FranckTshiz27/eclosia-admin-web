@@ -1,6 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
+import { EcoleClassesComponent } from './ecole-classes/ecole-classes.component';
+import { EcoleClassroomDesignationsComponent } from './ecole-classroom-designations/ecole-classroom-designations.component';
+import { EcoleAcademicYearsComponent } from './ecole-academic-years/ecole-academic-years.component';
 import {
   AcademicModelApiResponse,
   AcademicModelService
@@ -12,7 +15,7 @@ import {
   SchoolAcademicModelService
 } from '../../../services/school-academic-model.service';
 
-type DetailsTab = 'annee-scolaire' | 'modeles-academiques' | 'classes' | 'enseignants';
+type DetailsTab = 'annee-scolaire' | 'modeles-academiques' | 'designations-salles' | 'classes' | 'enseignants';
 type AssociationStatus = 'Actif' | 'Archive';
 
 interface SchoolOption {
@@ -55,7 +58,7 @@ interface AssociationForm {
 @Component({
   selector: 'app-details-ecole',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EcoleClassesComponent, EcoleClassroomDesignationsComponent, EcoleAcademicYearsComponent],
   templateUrl: './details-ecole.component.html',
   styleUrl: './details-ecole.component.css'
 })
@@ -89,6 +92,7 @@ export class DetailsEcoleComponent implements OnInit {
   readonly tabs: { id: DetailsTab; label: string; icon: string }[] = [
     { id: 'annee-scolaire', label: 'Annee scolaire', icon: 'bi-calendar3' },
     { id: 'modeles-academiques', label: 'Modeles academiques', icon: 'bi-journal-bookmark' },
+    { id: 'designations-salles', label: 'Designations salles', icon: 'bi-door-open' },
     { id: 'classes', label: 'Classes', icon: 'bi-easel' },
     { id: 'enseignants', label: 'Enseignants', icon: 'bi-people' }
   ];

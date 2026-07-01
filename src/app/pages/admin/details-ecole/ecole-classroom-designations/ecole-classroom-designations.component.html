@@ -1,0 +1,262 @@
+<div class="designations-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Designations de salles</h2>
+      <p>Definissez les codes et libelles de salles utilises pour cette ecole.</p>
+    </div>
+    <button class="btn-primary" type="button" (click)="openCreateModal()" [disabled]="!schoolId">
+      <i class="bi bi-plus-lg"></i>
+      Nouvelle designation
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher une designation..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Reinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="designations-table-wrapper">
+      <table class="designations-table">
+        <thead>
+          <tr>
+            <th class="display-order-col">Ordre</th>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Description</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="!schoolId">
+            <td colspan="6" class="table-state">Selectionnez une ecole pour afficher ses designations.</td>
+          </tr>
+          <tr *ngIf="schoolId && isLoading">
+            <td colspan="6" class="table-state">Chargement des designations...</td>
+          </tr>
+          <tr *ngIf="schoolId && !isLoading && loadError">
+            <td colspan="6" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="schoolId && !isLoading && !loadError && filteredDesignations.length === 0">
+            <td colspan="6" class="table-state">
+              {{
+                designations.length === 0
+                  ? 'Aucune designation enregistree pour cette ecole.'
+                  : 'Aucune designation trouvee pour cette recherche.'
+              }}
+            </td>
+          </tr>
+          <tr *ngFor="let item of paginatedDesignations">
+            <td class="display-order-col">{{ item.displayOrder ?? '—' }}</td>
+            <td class="code-col">{{ item.code }}</td>
+            <td class="name-col">{{ item.name }}</td>
+            <td class="description-col">{{ item.description }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="item.status === 'Actif'"
+                [class.badge-muted]="item.status === 'Inactif'"
+              >
+                {{ item.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" (click)="openEditModal(item)" title="Modifier">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" (click)="deleteDesignation(item)" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredDesignations.length }} designations</p>
+      <div class="pagination-wrap">
+        <div class="pagination">
+          <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button
+            *ngFor="let page of pageNumbers"
+            type="button"
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <select
+          class="page-size-select"
+          [(ngModel)]="pageSize"
+          [ngModelOptions]="{ standalone: true }"
+          (change)="onPageSizeChange()"
+        >
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} / page</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <aside class="info-panel">
+    <h3><i class="bi bi-info-circle"></i> A propos des designations</h3>
+    <p>
+      Chaque designation identifie une salle ou un espace de classe (ex: S01, Labo sciences). Le code
+      et le nom doivent etre uniques par ecole.
+    </p>
+  </aside>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="designation-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier la designation' : 'Nouvelle designation' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez a jour les informations de cette designation de salle'
+              : 'Ajoutez une designation de salle pour l ecole selectionnee'
+          }}
+        </p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #designationForm="ngForm" (ngSubmit)="saveDesignation(designationForm)" novalidate>
+      <div class="modal-body">
+        <div class="form-columns">
+          <div class="form-column">
+            <div class="field-group">
+              <label>Code <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                maxlength="30"
+                pattern=".*\S.*"
+                placeholder="Ex: S01"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+              <small class="field-hint">Code court unique pour cette ecole (max. 30 caracteres).</small>
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">
+                Le code est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Nom <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                maxlength="100"
+                pattern=".*\S.*"
+                placeholder="Ex: Salle 01"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+              <small class="field-hint">Libelle affiche dans l application (max. 100 caracteres).</small>
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">
+                Le nom est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Ordre d affichage <span>*</span></label>
+              <div class="stepper">
+                <button type="button" class="stepper-btn" (click)="decrementDisplayOrder()">
+                  <i class="bi bi-dash"></i>
+                </button>
+                <input
+                  type="number"
+                  name="displayOrder"
+                  [(ngModel)]="form.displayOrder"
+                  #orderCtrl="ngModel"
+                  required
+                  min="1"
+                  max="99"
+                  [class.input-invalid]="(orderCtrl.invalid && orderCtrl.touched) || (isSubmitted && orderCtrl.invalid)"
+                />
+                <button type="button" class="stepper-btn" (click)="incrementDisplayOrder()">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+              <small class="field-hint">Position dans les listes de selection.</small>
+            </div>
+          </div>
+
+          <div class="form-column">
+            <div class="field-group">
+              <label>Description</label>
+              <textarea
+                name="description"
+                [(ngModel)]="form.description"
+                maxlength="500"
+                rows="5"
+                placeholder="Description optionnelle..."
+              ></textarea>
+              <small class="field-hint">{{ descriptionLength }} / {{ descriptionMaxLength }} caracteres</small>
+            </div>
+
+            <div class="field-group">
+              <label>Statut</label>
+              <div class="toggle-row">
+                <div>
+                  <strong>{{ form.active ? 'Actif' : 'Inactif' }}</strong>
+                  <p>Les designations inactives ne sont plus proposees lors de la creation de classes.</p>
+                </div>
+                <button type="button" class="toggle-btn" [class.active]="form.active" (click)="toggleActiveStatus()">
+                  <span></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || designationForm.invalid">
+          <i class="bi bi-save"></i>
+          {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -14,11 +14,50 @@
                 </a>
             </li>
 
-            <li>
-                <a routerLink="/inscriptions" routerLinkActive="active" class="nav-link" (click)="onLinkClick()">
-                    <i class="bi bi-journal-check"></i>
-                    <span>INSCRIPTIONS</span>
+            <li class="has-submenu students-menu" [class.open]="isStudentsExpanded">
+                <a (click)="isStudentsExpanded = !isStudentsExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
+                    <i class="bi bi-people"></i>
+                    <span>ÉLÈVES</span>
+                    <span class="chevron-down"></span>
                 </a>
+                <ul class="submenu students-submenu">
+                    <li>
+                        <a
+                            routerLink="/inscriptions"
+                            [queryParams]="{ tab: 'inscriptions' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Inscriptions</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/inscriptions"
+                            [queryParams]="{ tab: 'tuteurs' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Tuteurs</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/inscriptions"
+                            [queryParams]="{ tab: 'categories-eleves' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Catégories d'élèves</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
             <!-- GESTION AGENTS -->

@@ -1,35 +1,219 @@
 <div class="page-container inscriptions-page">
 <div class="inscriptions-panel">
-  <div class="hero-card">
-    <div class="panel-header">
+  <section class="eleves-dashboard" *ngIf="activeTab === 'inscriptions'">
+    <div class="eleves-header-row">
       <div>
-        <h2>Inscriptions</h2>
-        <p>Gerez les inscriptions des eleves par ecole et annee scolaire courante.</p>
+        <h2>Eleves</h2>
+        <p>Consultez et gerez les eleves de votre etablissement.</p>
       </div>
-      <div class="panel-actions">
+      <div class="eleves-header-actions">
+        <button
+          class="btn-secondary"
+          type="button"
+          (click)="exportStudents()"
+          [disabled]="!selectedSchoolId || !selectedYearId || isExportingStudentsReport"
+        >
+          <i class="bi bi-download"></i>
+          {{ isExportingStudentsReport ? 'Generation...' : 'Exporter' }}
+        </button>
         <button class="btn-primary" type="button" (click)="openNewInscription()" [disabled]="!selectedSchoolId || !selectedYearId">
           <i class="bi bi-plus-lg"></i>
           Nouvelle inscription
         </button>
-        <button class="btn-secondary" type="button" (click)="openReinscription()" [disabled]="!selectedSchoolId || !selectedYearId">
-          <i class="bi bi-arrow-repeat"></i>
-          Reinscription
-        </button>
       </div>
     </div>
 
-    <div class="stats-grid">
-      <article class="stat-card" *ngFor="let stat of statsCards; let i = index" [ngClass]="getStatCardTheme(i)">
-        <div class="stat-icon"><i class="bi" [ngClass]="stat.icon"></i></div>
+    <div class="context-cards">
+      <div class="context-card">
+        <span>Ecole</span>
+        <select
+          class="context-select"
+          [(ngModel)]="selectedSchoolId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onSchoolChange()"
+          [disabled]="isLoadingSchools || schools.length === 0"
+        >
+          <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Selectionner' }}</option>
+          <option *ngFor="let school of schools" [value]="school.id">{{ school.name }}</option>
+        </select>
+      </div>
+      <div class="context-card">
+        <span>Annee scolaire courante</span>
+        <select
+          class="context-select"
+          [(ngModel)]="selectedYearId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onYearChange()"
+          [disabled]="isLoadingYears || yearOptions.length === 0"
+        >
+          <option value="" disabled>{{ isLoadingYears ? 'Chargement...' : 'Selectionner' }}</option>
+          <option *ngFor="let year of yearOptions" [value]="year.id">{{ year.label }}</option>
+        </select>
+      </div>
+      <div class="context-card">
+        <span>Periode en cours</span>
+        <div class="period-row">
+          <strong>{{ currentPeriodLabel }}</strong>
+          <span class="period-badge">Active</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid sleek">
+      <article class="stat-card sleek" *ngFor="let stat of statsCards">
+        <div class="stat-icon" [ngClass]="'tone-' + (stat.tone || 'blue')"><i class="bi" [ngClass]="stat.icon"></i></div>
         <div class="stat-content">
           <span>{{ stat.label }}</span>
           <strong>{{ stat.value }}</strong>
+          <small>{{ stat.hint || '' }}</small>
         </div>
       </article>
     </div>
-  </div>
 
-  <div class="filters-card">
+    <div class="table-card eleves-table-card">
+      <div class="table-filters-bar">
+        <div class="students-search">
+          <i class="bi bi-search"></i>
+          <input
+            type="text"
+            [(ngModel)]="studentSearchTerm"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onStudentSearchChange()"
+            [maxlength]="studentSearchMaxLength"
+            placeholder="Rechercher un eleve (nom, prenom, matricule...)"
+          />
+        </div>
+
+        <select class="dashboard-select" [(ngModel)]="studentClassFilter" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onStudentFiltersChange()">
+          <option value="all">Toutes les classes</option>
+          <option *ngFor="let option of classFilterOptions" [value]="option">{{ option }}</option>
+        </select>
+
+        <select class="dashboard-select" [(ngModel)]="studentCategoryFilter" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onStudentFiltersChange()">
+          <option value="all">Toutes les categories</option>
+          <option *ngFor="let option of categoryFilterOptions" [value]="option">{{ option }}</option>
+        </select>
+
+        <select class="dashboard-select" [(ngModel)]="studentStatusFilter" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onStudentFiltersChange()">
+          <option value="all">Tous les statuts</option>
+          <option *ngFor="let option of statusFilterOptions" [value]="option">{{ option }}</option>
+        </select>
+
+        <button type="button" class="filters-btn" (click)="resetStudentFilters()">
+          <i class="bi bi-funnel"></i>
+          Filtres
+        </button>
+      </div>
+
+      <p class="load-error" *ngIf="loadError">{{ loadError }}</p>
+      <div class="table-wrap">
+        <table class="students-table dashboard-table">
+          <thead>
+            <tr>
+              <th class="check-col">
+                <input type="checkbox" aria-label="Selection globale" />
+              </th>
+              <th>Eleve <i class="bi bi-arrow-down-up th-sort"></i></th>
+              <th>Matricule <i class="bi bi-arrow-down-up th-sort"></i></th>
+              <th>Classe</th>
+              <th>Categorie</th>
+              <th>Tuteur <i class="bi bi-arrow-down-up th-sort"></i></th>
+              <th>Telephone <i class="bi bi-arrow-down-up th-sort"></i></th>
+              <th>Statut <i class="bi bi-arrow-down-up th-sort"></i></th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="!selectedSchoolId || !selectedYearId">
+              <td colspan="9" class="table-state">Selectionnez une ecole et une annee pour afficher les eleves.</td>
+            </tr>
+            <tr *ngIf="selectedSchoolId && selectedYearId && isLoadingEnrollments">
+              <td colspan="9" class="table-state">Chargement des inscriptions...</td>
+            </tr>
+            <tr *ngIf="selectedSchoolId && selectedYearId && !isLoadingEnrollments && filteredStudents.length === 0">
+              <td colspan="9" class="table-state">
+                {{ students.length === 0 ? 'Aucun eleve inscrit pour le moment.' : 'Aucun eleve trouve pour cette recherche.' }}
+              </td>
+            </tr>
+            <tr *ngFor="let student of paginatedStudents">
+              <td class="check-col">
+                <input type="checkbox" aria-label="Selectionner l eleve" />
+              </td>
+              <td>
+                <div class="student-main-cell">
+                  <span class="student-avatar">
+                    <img
+                      *ngIf="student.photoUrl"
+                      [src]="student.photoUrl"
+                      [alt]="student.fullName || 'Eleve'"
+                      (error)="onStudentPhotoError(student)"
+                    />
+                    <ng-container *ngIf="!student.photoUrl">{{ getStudentInitials(student.fullName) }}</ng-container>
+                  </span>
+                  <div>
+                    <strong>{{ student.fullName }}</strong>
+                    <small>{{ getStudentIdentityMeta(student) }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>{{ student.matricule }}</td>
+              <td>{{ student.classe }}</td>
+              <td><span class="soft-chip" [ngClass]="getCategoryChipClass(student.category)">{{ student.category }}</span></td>
+              <td class="compact-cell">
+                <span>{{ student.tutorName }}</span>
+                <small>{{ student.tutorPhone }}</small>
+              </td>
+              <td class="phone-cell">
+                <i class="bi bi-telephone"></i>
+                {{ student.tutorPhone }}
+              </td>
+              <td><span class="status-chip" [ngClass]="getStatusChipClass(student.statut)">{{ student.statut }}</span></td>
+              <td class="actions-col row-actions">
+                <button type="button" title="Voir">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button type="button" title="Plus">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer">
+        <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredStudents.length }} eleves</p>
+        <div class="pagination-wrap">
+          <div class="pagination">
+            <button type="button" (click)="goToPage(1)" [disabled]="currentPage === 1">
+              <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button
+              *ngFor="let page of visiblePageItems"
+              type="button"
+              [class.active]="isPageNumber(page) && page === currentPage"
+              [disabled]="!isPageNumber(page)"
+              (click)="isPageNumber(page) ? goToPage(page) : null"
+            >
+              {{ page }}
+            </button>
+            <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <button type="button" (click)="goToPage(totalPages)" [disabled]="currentPage >= totalPages">
+              <i class="bi bi-chevron-double-right"></i>
+            </button>
+            <span class="page-size-chip">{{ pageSize }} / page</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="filters-card single-filter" *ngIf="activeTab === 'tuteurs' || activeTab === 'categories-eleves'">
     <div class="filter-group">
       <label>Ecole</label>
       <select
@@ -43,107 +227,9 @@
       </select>
       <small class="field-hint">Limite : 1 ecole active a la fois.</small>
     </div>
-
-    <div class="filter-group">
-      <label>Annee scolaire courante</label>
-      <select
-        [(ngModel)]="selectedYearId"
-        [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="onYearChange()"
-        [disabled]="isLoadingYears || yearOptions.length === 0"
-      >
-        <option value="" disabled>{{ isLoadingYears ? 'Chargement...' : 'Selectionner' }}</option>
-        <option *ngFor="let year of yearOptions" [value]="year.id">{{ year.label }}</option>
-      </select>
-      <small class="field-hint">Affiche uniquement les annees marquees courantes.</small>
-    </div>
   </div>
 
-  <p class="load-error" *ngIf="loadError">{{ loadError }}</p>
-
-  <div class="inscriptions-tabs">
-    <button
-      type="button"
-      *ngFor="let tab of tabs"
-      [class.active]="activeTab === tab.id"
-      (click)="setActiveTab(tab.id)"
-    >
-      <i class="bi" [ngClass]="tab.icon"></i>
-      {{ tab.label }}
-    </button>
-  </div>
-
-  <div class="table-card" *ngIf="activeTab === 'inscriptions'">
-    <div class="table-head">
-      <h3>Eleves</h3>
-      <div class="students-search">
-        <i class="bi bi-search"></i>
-        <input
-          type="text"
-          [(ngModel)]="studentSearchTerm"
-          [ngModelOptions]="{ standalone: true }"
-          (ngModelChange)="onStudentSearchChange()"
-          [maxlength]="studentSearchMaxLength"
-          placeholder="Rechercher un eleve..."
-        />
-      </div>
-      <small class="field-hint search-limit">{{ studentSearchLength }} / {{ studentSearchMaxLength }} caracteres</small>
-    </div>
-
-    <div class="table-wrap">
-      <table class="students-table">
-        <thead>
-          <tr>
-            <th>Matricule</th>
-            <th>Nom complet</th>
-            <th>Classe</th>
-            <th>Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="!selectedSchoolId || !selectedYearId">
-            <td colspan="4" class="table-state">Selectionnez une ecole et une annee pour afficher les eleves.</td>
-          </tr>
-          <tr *ngIf="selectedSchoolId && selectedYearId && isLoadingEnrollments">
-            <td colspan="4" class="table-state">Chargement des inscriptions...</td>
-          </tr>
-          <tr *ngIf="selectedSchoolId && selectedYearId && !isLoadingEnrollments && filteredStudents.length === 0">
-            <td colspan="4" class="table-state">
-              {{ students.length === 0 ? 'Aucun eleve inscrit pour le moment.' : 'Aucun eleve trouve pour cette recherche.' }}
-            </td>
-          </tr>
-          <tr *ngFor="let student of paginatedStudents">
-            <td>{{ student.matricule }}</td>
-            <td>{{ student.fullName }}</td>
-            <td>{{ student.classe }}</td>
-            <td>{{ student.statut }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="table-footer">
-      <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredStudents.length }} eleves</p>
-      <div class="pagination-wrap">
-        <div class="pagination">
-          <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <button
-            *ngFor="let page of pageNumbers"
-            type="button"
-            [class.active]="page === currentPage"
-            (click)="goToPage(page)"
-          >
-            {{ page }}
-          </button>
-          <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <p class="load-error" *ngIf="loadError && activeTab === 'tuteurs'">{{ loadError }}</p>
 
   <div class="table-card" *ngIf="activeTab === 'tuteurs'">
     <div class="table-head">
@@ -160,7 +246,7 @@
             placeholder="Rechercher un tuteur..."
           />
         </div>
-        <button class="btn-primary" type="button" (click)="openNewTutor()" [disabled]="!selectedSchoolId || !selectedYearId">
+        <button class="btn-primary" type="button" (click)="openNewTutor()" [disabled]="!selectedSchoolId">
           <i class="bi bi-person-plus"></i>
           Nouveau tuteur
         </button>
@@ -181,13 +267,13 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngIf="!selectedSchoolId || !selectedYearId">
-            <td colspan="7" class="table-state">Selectionnez une ecole et une annee pour afficher les tuteurs.</td>
+          <tr *ngIf="!selectedSchoolId">
+            <td colspan="7" class="table-state">Selectionnez une ecole pour afficher les tuteurs.</td>
           </tr>
-          <tr *ngIf="selectedSchoolId && selectedYearId && isLoadingTutors">
+          <tr *ngIf="selectedSchoolId && isLoadingTutors">
             <td colspan="7" class="table-state">Chargement des tuteurs...</td>
           </tr>
-          <tr *ngIf="selectedSchoolId && selectedYearId && !isLoadingTutors && filteredTutors.length === 0">
+          <tr *ngIf="selectedSchoolId && !isLoadingTutors && filteredTutors.length === 0">
             <td colspan="7" class="table-state">
               {{ tutors.length === 0 ? 'Aucun tuteur enregistre pour cette selection.' : 'Aucun tuteur trouve pour cette recherche.' }}
             </td>
@@ -231,15 +317,22 @@
       </div>
     </div>
   </div>
+
+  <section class="tab-panel" *ngIf="activeTab === 'categories-eleves'">
+    <app-ecole-student-categories [schoolId]="selectedSchoolId"></app-ecole-student-categories>
+  </section>
 </div>
 </div>
 
 <div class="modal-backdrop" *ngIf="isEnrollmentModalOpen" (click)="closeEnrollmentModal()">
-  <div class="tutor-modal enrollment-modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <div>
-        <h3>Nouvelle inscription</h3>
-        <p>Enregistrez un eleve et son inscription a l annee courante.</p>
+  <div class="tutor-modal enrollment-modal reimagined-enrollment-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header premium-header">
+      <div class="enrollment-title-wrap">
+        <span class="header-badge"><i class="bi bi-mortarboard"></i></span>
+        <div>
+          <h3>Nouvelle inscription</h3>
+          <p>Enregistrez un eleve et son inscription a l annee courante.</p>
+        </div>
       </div>
       <button class="btn-close" type="button" (click)="closeEnrollmentModal()">
         <i class="bi bi-x-lg"></i>
@@ -247,119 +340,372 @@
     </div>
 
     <form #enrollmentFormRef="ngForm" (ngSubmit)="saveEnrollment(enrollmentFormRef)" novalidate>
-      <div class="modal-body">
-        <div class="form-columns">
-          <div class="form-column form-column-card">
-            <h4 class="form-section-title">Identite eleve</h4>
-            <div class="field-group">
-              <label>Nom <span>*</span></label>
-              <input
-                type="text"
-                name="enrollmentLastName"
-                [(ngModel)]="enrollmentForm.lastName"
-                #enrollmentLastNameCtrl="ngModel"
-                required
-                maxlength="100"
-                pattern=".*\S.*"
-                [class.input-invalid]="(enrollmentLastNameCtrl.invalid && enrollmentLastNameCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentLastNameCtrl.invalid)"
-              />
+      <div class="modal-body premium-body">
+        <div class="enrollment-steps">
+          <div class="step-item active">
+            <span>1</span>
+            <div>
+              <strong>Eleve</strong>
+              <small>Identite & informations</small>
+            </div>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step-item active">
+            <span>2</span>
+            <div>
+              <strong>Inscription</strong>
+              <small>Scolarite & responsable</small>
+            </div>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step-item">
+            <span>3</span>
+            <div>
+              <strong>Recapitulatif</strong>
+              <small>Verification & validation</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="premium-grid">
+          <div class="premium-col">
+            <div class="premium-card">
+              <h4 class="form-section-title"><i class="bi bi-person"></i> Informations sur l eleve</h4>
+              <div class="inline-grid two">
+                <div class="field-group">
+                  <label>Nom <span>*</span></label>
+                  <input
+                    type="text"
+                    name="enrollmentLastName"
+                    [(ngModel)]="enrollmentForm.lastName"
+                    #enrollmentLastNameCtrl="ngModel"
+                    required
+                    maxlength="100"
+                    pattern=".*\S.*"
+                    placeholder="Nom de famille"
+                    [class.input-invalid]="(enrollmentLastNameCtrl.invalid && enrollmentLastNameCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentLastNameCtrl.invalid)"
+                  />
+                </div>
+
+                <div class="field-group">
+                  <label>Postnom <span>*</span></label>
+                  <input
+                    type="text"
+                    name="enrollmentMiddleName"
+                    [(ngModel)]="enrollmentForm.middleName"
+                    #enrollmentMiddleNameCtrl="ngModel"
+                    required
+                    maxlength="100"
+                    pattern=".*\S.*"
+                    placeholder="Postnom"
+                    [class.input-invalid]="(enrollmentMiddleNameCtrl.invalid && enrollmentMiddleNameCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentMiddleNameCtrl.invalid)"
+                  />
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label>Prenom <span>*</span></label>
+                <input
+                  type="text"
+                  name="enrollmentFirstName"
+                  [(ngModel)]="enrollmentForm.firstName"
+                  #enrollmentFirstNameCtrl="ngModel"
+                  required
+                  maxlength="100"
+                  pattern=".*\S.*"
+                  placeholder="Prenom"
+                  [class.input-invalid]="(enrollmentFirstNameCtrl.invalid && enrollmentFirstNameCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentFirstNameCtrl.invalid)"
+                />
+              </div>
+
+              <div class="inline-grid two">
+                <div class="field-group">
+                  <label>Genre <span>*</span></label>
+                  <select name="enrollmentGender" [(ngModel)]="enrollmentForm.gender" required>
+                    <option *ngFor="let gender of enrollmentGenderOptions" [value]="gender.value">{{ gender.label }}</option>
+                  </select>
+                </div>
+
+                <div class="field-group">
+                  <label>Date de naissance <span>*</span></label>
+                  <input
+                    type="date"
+                    name="enrollmentBirthDate"
+                    [(ngModel)]="enrollmentForm.birthDate"
+                    #enrollmentBirthDateCtrl="ngModel"
+                    required
+                    [class.input-invalid]="(enrollmentBirthDateCtrl.invalid && enrollmentBirthDateCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentBirthDateCtrl.invalid)"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div class="field-group">
-              <label>Postnom <span>*</span></label>
-              <input
-                type="text"
-                name="enrollmentMiddleName"
-                [(ngModel)]="enrollmentForm.middleName"
-                #enrollmentMiddleNameCtrl="ngModel"
-                required
-                maxlength="100"
-                pattern=".*\S.*"
-                [class.input-invalid]="(enrollmentMiddleNameCtrl.invalid && enrollmentMiddleNameCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentMiddleNameCtrl.invalid)"
-              />
+            <div class="premium-card">
+              <h4 class="form-section-title"><i class="bi bi-globe"></i> Lieu de naissance</h4>
+              <div class="inline-grid two">
+                <div class="field-group">
+                  <label>Pays de naissance <span>*</span></label>
+                  <div class="searchable-select">
+                    <input
+                      type="text"
+                      name="birthCountrySearch"
+                      [(ngModel)]="birthCountrySearchTerm"
+                      #enrollmentBirthCountryCtrl="ngModel"
+                      required
+                      autocomplete="off"
+                      [disabled]="isLoadingEnrollmentReferences"
+                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des pays...' : 'Selectionner un pays'"
+                      [class.input-invalid]="(enrollmentBirthCountryCtrl.invalid && enrollmentBirthCountryCtrl.touched) || (isEnrollmentFormSubmitted && !enrollmentForm.birthCountryId)"
+                      (focus)="openBirthCountryDropdown()"
+                      (input)="openBirthCountryDropdown()"
+                      (blur)="closeBirthCountryDropdown()"
+                    />
+                    <i class="bi bi-chevron-down select-chevron"></i>
+                    <div class="select-dropdown" *ngIf="isBirthCountryDropdownOpen">
+                      <button type="button" class="select-option" *ngFor="let country of filteredBirthCountryOptions" (mousedown)="selectBirthCountry(country)">
+                        {{ country.name }}
+                      </button>
+                      <div class="select-empty" *ngIf="filteredBirthCountryOptions.length === 0">Aucun pays trouve.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label>Ville de naissance</label>
+                  <div class="searchable-select">
+                    <input
+                      type="text"
+                      name="birthCitySearch"
+                      [(ngModel)]="birthCitySearchTerm"
+                      autocomplete="off"
+                      [disabled]="isLoadingEnrollmentReferences"
+                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des villes...' : 'Selectionner une ville'"
+                      (focus)="openBirthCityDropdown()"
+                      (input)="openBirthCityDropdown()"
+                      (blur)="closeBirthCityDropdown()"
+                    />
+                    <i class="bi bi-chevron-down select-chevron"></i>
+                    <div class="select-dropdown" *ngIf="isBirthCityDropdownOpen">
+                      <button type="button" class="select-option" *ngFor="let city of filteredBirthCityOptions" (mousedown)="selectBirthCity(city)">
+                        {{ city.name }}
+                      </button>
+                      <div class="select-empty" *ngIf="filteredBirthCityOptions.length === 0">Aucune ville trouvee.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="field-group">
-              <label>Prenom <span>*</span></label>
-              <input
-                type="text"
-                name="enrollmentFirstName"
-                [(ngModel)]="enrollmentForm.firstName"
-                #enrollmentFirstNameCtrl="ngModel"
-                required
-                maxlength="100"
-                pattern=".*\S.*"
-                [class.input-invalid]="(enrollmentFirstNameCtrl.invalid && enrollmentFirstNameCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentFirstNameCtrl.invalid)"
-              />
-            </div>
+            <div class="premium-card">
+              <h4 class="form-section-title"><i class="bi bi-info-circle"></i> Informations complementaires</h4>
+              <div class="inline-grid two">
+                <div class="field-group">
+                  <label>Telephone</label>
+                  <input type="text" name="enrollmentPhoneNumber" [(ngModel)]="enrollmentForm.phoneNumber" maxlength="30" placeholder="Numero de telephone" />
+                </div>
+                <div class="field-group">
+                  <label>Email</label>
+                  <input type="email" name="enrollmentEmail" [(ngModel)]="enrollmentForm.email" maxlength="150" placeholder="Adresse email" />
+                </div>
+              </div>
 
-            <div class="field-group">
-              <label>Genre <span>*</span></label>
-              <select name="enrollmentGender" [(ngModel)]="enrollmentForm.gender" required>
-                <option *ngFor="let gender of enrollmentGenderOptions" [value]="gender.value">{{ gender.label }}</option>
-              </select>
-            </div>
+              <div class="field-group">
+                <label>Nationalite</label>
+                <div class="searchable-select">
+                  <input
+                    type="text"
+                    name="nationalitySearch"
+                    [(ngModel)]="nationalitySearchTerm"
+                    (ngModelChange)="enrollmentForm.nationality = $event"
+                    autocomplete="off"
+                    [disabled]="isLoadingEnrollmentReferences"
+                    [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des nationalites...' : 'Selectionner une nationalite'"
+                    (focus)="openNationalityDropdown()"
+                    (input)="openNationalityDropdown()"
+                    (blur)="closeNationalityDropdown()"
+                  />
+                  <i class="bi bi-chevron-down select-chevron"></i>
+                  <div class="select-dropdown" *ngIf="isNationalityDropdownOpen">
+                    <button type="button" class="select-option" *ngFor="let country of filteredNationalityOptions" (mousedown)="selectNationality(country)">
+                      {{ country.name }}
+                    </button>
+                    <div class="select-empty" *ngIf="filteredNationalityOptions.length === 0">Aucune nationalite trouvee.</div>
+                  </div>
+                </div>
+              </div>
 
-            <div class="field-group">
-              <label>Date de naissance <span>*</span></label>
-              <input
-                type="date"
-                name="enrollmentBirthDate"
-                [(ngModel)]="enrollmentForm.birthDate"
-                #enrollmentBirthDateCtrl="ngModel"
-                required
-                [class.input-invalid]="(enrollmentBirthDateCtrl.invalid && enrollmentBirthDateCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentBirthDateCtrl.invalid)"
-              />
+              <div class="field-group no-margin">
+                <label>Commentaire (facultatif)</label>
+                <textarea
+                  name="enrollmentStudentComment"
+                  [(ngModel)]="enrollmentForm.studentComment"
+                  maxlength="500"
+                  rows="3"
+                  placeholder="Informations complementaires sur l eleve..."
+                ></textarea>
+              </div>
             </div>
           </div>
 
-          <div class="form-column stacked-sections">
-            <div class="form-column-card">
-              <h4 class="form-section-title">Inscription</h4>
+          <div class="premium-col">
+            <div class="premium-card">
+              <h4 class="form-section-title"><i class="bi bi-journal-check"></i> Inscription</h4>
               <div class="field-group">
-                <label>Recherche tuteur (nom ou code famille)</label>
-                <input type="text" [(ngModel)]="guardianSearchTerm" [ngModelOptions]="{ standalone: true }" placeholder="Ex: Mukendi ou FAM-001" />
-              </div>
-              <div class="field-group">
-                <label>Tuteur <span>*</span></label>
-                <select
-                  name="enrollmentGuardianId"
-                  [(ngModel)]="enrollmentForm.guardianId"
-                  #enrollmentGuardianCtrl="ngModel"
-                  required
-                  [disabled]="isLoadingEnrollmentReferences || guardianOptions.length === 0"
-                  [class.input-invalid]="(enrollmentGuardianCtrl.invalid && enrollmentGuardianCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentGuardianCtrl.invalid)"
-                >
-                  <option value="" disabled>{{ isLoadingEnrollmentReferences ? 'Chargement...' : 'Selectionner' }}</option>
-                  <option *ngFor="let guardian of filteredGuardianOptions" [value]="guardian.id">{{ guardian.label }}</option>
-                </select>
-              </div>
-
-              <div class="field-group">
-                <label>Recherche classe</label>
-                <input
-                  type="text"
-                  [(ngModel)]="classroomSearchTerm"
-                  [ngModelOptions]="{ standalone: true }"
-                  placeholder="Rechercher par nom, niveau, section, option..."
-                />
-              </div>
-              <div class="field-group">
-                <label>Classe <span>*</span></label>
-                <select
-                  name="enrollmentClassroomId"
-                  [(ngModel)]="enrollmentForm.classroomId"
-                  #enrollmentClassroomCtrl="ngModel"
-                  required
-                  [disabled]="isLoadingEnrollmentReferences || classroomOptions.length === 0"
-                  [class.input-invalid]="(enrollmentClassroomCtrl.invalid && enrollmentClassroomCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentClassroomCtrl.invalid)"
-                >
-                  <option value="" disabled>{{ isLoadingEnrollmentReferences ? 'Chargement...' : 'Selectionner' }}</option>
-                  <option *ngFor="let classroom of filteredClassroomOptions" [value]="classroom.id">{{ classroom.label }}</option>
-                </select>
+                <label>Tuteur (nom ou code famille) <span>*</span></label>
+                <div class="inline-action">
+                  <div class="searchable-select">
+                    <input
+                      type="text"
+                      name="guardianSearch"
+                      [(ngModel)]="guardianSearchTerm"
+                      #enrollmentGuardianCtrl="ngModel"
+                      required
+                      autocomplete="off"
+                      [disabled]="isLoadingEnrollmentReferences || guardianOptions.length === 0"
+                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des tuteurs...' : 'Rechercher ou selectionner le tuteur'"
+                      [class.input-invalid]="(enrollmentGuardianCtrl.invalid && enrollmentGuardianCtrl.touched) || (isEnrollmentFormSubmitted && !enrollmentForm.guardianId)"
+                      (focus)="openGuardianDropdown()"
+                      (input)="openGuardianDropdown()"
+                      (blur)="closeGuardianDropdown()"
+                    />
+                    <i class="bi bi-chevron-down select-chevron"></i>
+                    <div class="select-dropdown" *ngIf="isGuardianDropdownOpen">
+                      <button type="button" class="select-option" *ngFor="let guardian of filteredGuardianOptions" (mousedown)="selectGuardian(guardian)">
+                        {{ guardian.label }}
+                      </button>
+                      <div class="select-empty" *ngIf="filteredGuardianOptions.length === 0">Aucun tuteur trouve.</div>
+                    </div>
+                  </div>
+                  <button type="button" class="mini-action-btn" title="Nouveau tuteur" (click)="openNewTutor()">
+                    <i class="bi bi-plus-lg"></i>
+                  </button>
+                </div>
               </div>
 
-              <div class="field-group">
+              <div class="photo-box">
+                <p class="photo-title"><i class="bi bi-camera"></i> Photo de l eleve (obligatoire)</p>
+                <div class="photo-content">
+                  <div class="photo-placeholder">
+                    <img *ngIf="studentPhotoPreview; else emptyPhotoState" [src]="studentPhotoPreview" alt="Photo eleve" />
+                    <ng-template #emptyPhotoState>
+                      <i class="bi bi-person-square"></i>
+                    </ng-template>
+                  </div>
+                  <div class="photo-actions">
+                    <div class="switch-actions">
+                      <button type="button" [class.active]="photoMode === 'camera'" (click)="setPhotoMode('camera')">
+                        <i class="bi bi-camera"></i> Prendre une photo
+                      </button>
+                      <button type="button" [class.active]="photoMode === 'upload'" (click)="triggerPhotoUpload()">
+                        <i class="bi bi-folder2-open"></i> Importer une image
+                      </button>
+                    </div>
+                    <input
+                      #photoFileInput
+                      class="photo-file-input"
+                      type="file"
+                      accept="image/*"
+                      (change)="onPhotoFileSelected($event)"
+                    />
+
+                    <div class="webcam-callout" *ngIf="photoMode === 'camera'">
+                      <i class="bi bi-camera-video"></i>
+                      <span>Utilisez votre webcam pour prendre une photo de l eleve.</span>
+                    </div>
+                    <div class="camera-source-row" *ngIf="photoMode === 'camera' && availableCameras.length > 0">
+                      <label for="cameraSelect">Source webcam</label>
+                      <select
+                        id="cameraSelect"
+                        [ngModelOptions]="{ standalone: true }"
+                        [ngModel]="selectedCameraId"
+                        (ngModelChange)="onCameraChange($event)"
+                      >
+                        <option *ngFor="let camera of availableCameras" [value]="camera.deviceId">
+                          {{ camera.label }}
+                        </option>
+                      </select>
+                    </div>
+                    <video
+                      *ngIf="isWebcamOpen"
+                      #webcamVideo
+                      class="webcam-preview"
+                      autoplay
+                      playsinline
+                      muted
+                    ></video>
+                    <p class="save-error" *ngIf="webcamError">{{ webcamError }}</p>
+                    <div class="webcam-buttons" *ngIf="photoMode === 'camera'">
+                      <button type="button" class="btn-primary webcam-btn" (click)="openWebcam()" [disabled]="isStartingWebcam || isWebcamOpen">
+                        <i class="bi bi-camera-video"></i>
+                        {{ isStartingWebcam ? 'Ouverture...' : 'Ouvrir la webcam' }}
+                      </button>
+                      <button type="button" class="btn-secondary webcam-btn" (click)="capturePhotoFromWebcam()" [disabled]="!isWebcamOpen">
+                        <i class="bi bi-camera"></i>
+                        Capturer
+                      </button>
+                      <button type="button" class="btn-cancel webcam-btn" (click)="closeWebcam()" [disabled]="!isWebcamOpen">
+                        <i class="bi bi-x-circle"></i>
+                        Fermer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="inline-grid two">
+                <div class="field-group">
+                  <label>Classe <span>*</span></label>
+                  <div class="searchable-select">
+                    <input
+                      type="text"
+                      name="classroomSearch"
+                      [(ngModel)]="classroomSearchTerm"
+                      #enrollmentClassroomCtrl="ngModel"
+                      required
+                      autocomplete="off"
+                      [disabled]="isLoadingEnrollmentReferences || classroomOptions.length === 0"
+                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des classes...' : 'Rechercher ou selectionner une classe'"
+                      [class.input-invalid]="(enrollmentClassroomCtrl.invalid && enrollmentClassroomCtrl.touched) || (isEnrollmentFormSubmitted && !enrollmentForm.classroomId)"
+                      (focus)="openClassroomDropdown()"
+                      (input)="openClassroomDropdown()"
+                      (blur)="closeClassroomDropdown()"
+                    />
+                    <i class="bi bi-chevron-down select-chevron"></i>
+                    <div class="select-dropdown" *ngIf="isClassroomDropdownOpen">
+                      <button type="button" class="select-option" *ngFor="let classroom of filteredClassroomOptions" (mousedown)="selectClassroom(classroom)">
+                        {{ classroom.label }}
+                      </button>
+                      <div class="select-empty" *ngIf="filteredClassroomOptions.length === 0">Aucune classe trouvee.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label>Categorie de l eleve</label>
+                  <div class="searchable-select">
+                    <input
+                      type="text"
+                      name="studentCategorySearch"
+                      [(ngModel)]="studentCategorySearchTerm"
+                      autocomplete="off"
+                      [disabled]="isLoadingEnrollmentReferences || studentCategoryOptions.length === 0"
+                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des categories...' : 'Rechercher ou selectionner une categorie'"
+                      (focus)="openStudentCategoryDropdown()"
+                      (input)="onStudentCategorySearchInput(); openStudentCategoryDropdown()"
+                      (blur)="closeStudentCategoryDropdown()"
+                    />
+                    <i class="bi bi-chevron-down select-chevron"></i>
+                    <div class="select-dropdown" *ngIf="isStudentCategoryDropdownOpen">
+                      <button type="button" class="select-option" *ngFor="let category of filteredStudentCategoryOptions" (mousedown)="selectStudentCategory(category)">
+                        {{ category.label }}
+                      </button>
+                      <div class="select-empty" *ngIf="filteredStudentCategoryOptions.length === 0">Aucune categorie trouvee.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-group no-margin">
                 <label>Date d inscription <span>*</span></label>
                 <input
                   type="date"
@@ -370,137 +716,116 @@
                   [class.input-invalid]="(enrollmentDateCtrl.invalid && enrollmentDateCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentDateCtrl.invalid)"
                 />
               </div>
-
-              <div class="field-group">
-                <label>Telephone</label>
-                <input type="text" name="enrollmentPhoneNumber" [(ngModel)]="enrollmentForm.phoneNumber" maxlength="30" />
-              </div>
-
-              <div class="field-group">
-                <label>Email</label>
-                <input type="email" name="enrollmentEmail" [(ngModel)]="enrollmentForm.email" maxlength="150" />
-              </div>
             </div>
 
-            <div class="form-column-card">
-              <h4 class="form-section-title">Lieu de naissance</h4>
-              <div class="field-group">
-                <label>Recherche pays de naissance</label>
-                <input
-                  type="text"
-                  [(ngModel)]="birthCountrySearchTerm"
-                  [ngModelOptions]="{ standalone: true }"
-                  placeholder="Rechercher un pays..."
-                />
-              </div>
-              <div class="field-group">
-                <label>Pays de naissance <span>*</span></label>
-                <select
-                  name="enrollmentBirthCountryId"
-                  [(ngModel)]="enrollmentForm.birthCountryId"
-                  #enrollmentBirthCountryCtrl="ngModel"
-                  required
-                  [disabled]="isLoadingEnrollmentReferences"
-                  [class.input-invalid]="(enrollmentBirthCountryCtrl.invalid && enrollmentBirthCountryCtrl.touched) || (isEnrollmentFormSubmitted && enrollmentBirthCountryCtrl.invalid)"
-                >
-                  <option value="" disabled>{{ isLoadingEnrollmentReferences ? 'Chargement...' : 'Selectionner' }}</option>
-                  <option *ngFor="let country of filteredBirthCountryOptions" [value]="country.id">{{ country.name }}</option>
-                </select>
+            <div class="premium-card">
+              <h4 class="form-section-title"><i class="bi bi-geo-alt"></i> Adresse de residence</h4>
+              <div class="inline-grid three">
+                <div class="field-group">
+                  <label>Pays</label>
+                  <div class="searchable-select">
+                    <input
+                      type="text"
+                      name="addressCountrySearch"
+                      [(ngModel)]="addressCountrySearchTerm"
+                      autocomplete="off"
+                      [disabled]="isLoadingEnrollmentReferences"
+                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des pays...' : 'Selectionner un pays'"
+                      (focus)="openAddressCountryDropdown()"
+                      (input)="openAddressCountryDropdown()"
+                      (blur)="closeAddressCountryDropdown()"
+                    />
+                    <i class="bi bi-chevron-down select-chevron"></i>
+                    <div class="select-dropdown" *ngIf="isAddressCountryDropdownOpen">
+                      <button type="button" class="select-option" *ngFor="let country of filteredAddressCountryOptions" (mousedown)="selectAddressCountry(country)">
+                        {{ country.name }}
+                      </button>
+                      <div class="select-empty" *ngIf="filteredAddressCountryOptions.length === 0">Aucun pays trouve.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label>Ville</label>
+                  <div class="searchable-select">
+                    <input
+                      type="text"
+                      name="addressCitySearch"
+                      [(ngModel)]="addressCitySearchTerm"
+                      autocomplete="off"
+                      [disabled]="isLoadingEnrollmentReferences"
+                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des villes...' : 'Selectionner une ville'"
+                      (focus)="openAddressCityDropdown()"
+                      (input)="openAddressCityDropdown()"
+                      (blur)="closeAddressCityDropdown()"
+                    />
+                    <i class="bi bi-chevron-down select-chevron"></i>
+                    <div class="select-dropdown" *ngIf="isAddressCityDropdownOpen">
+                      <button type="button" class="select-option" *ngFor="let city of filteredAddressCityOptions" (mousedown)="selectAddressCity(city)">
+                        {{ city.name }}
+                      </button>
+                      <div class="select-empty" *ngIf="filteredAddressCityOptions.length === 0">Aucune ville trouvee.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label>Commune</label>
+                  <div class="searchable-select">
+                    <input
+                      type="text"
+                      name="addressCommuneSearch"
+                      [(ngModel)]="addressCommuneSearchTerm"
+                      autocomplete="off"
+                      [disabled]="isLoadingEnrollmentReferences || addressCommuneOptions.length === 0"
+                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des communes...' : 'Selectionner une commune'"
+                      (focus)="openAddressCommuneDropdown()"
+                      (input)="openAddressCommuneDropdown()"
+                      (blur)="closeAddressCommuneDropdown()"
+                    />
+                    <i class="bi bi-chevron-down select-chevron"></i>
+                    <div class="select-dropdown" *ngIf="isAddressCommuneDropdownOpen">
+                      <button type="button" class="select-option" *ngFor="let commune of filteredAddressCommuneOptions" (mousedown)="selectAddressCommune(commune)">
+                        {{ commune.name }}
+                      </button>
+                      <div class="select-empty" *ngIf="filteredAddressCommuneOptions.length === 0">Aucune commune trouvee.</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div class="field-group">
-                <label>Recherche ville de naissance</label>
-                <input
-                  type="text"
-                  [(ngModel)]="birthCitySearchTerm"
-                  [ngModelOptions]="{ standalone: true }"
-                  placeholder="Rechercher une ville..."
-                />
-              </div>
-              <div class="field-group">
-                <label>Ville de naissance</label>
-                <select name="enrollmentBirthCityId" [(ngModel)]="enrollmentForm.birthCityId" [disabled]="isLoadingEnrollmentReferences">
-                  <option value="">Selectionner</option>
-                  <option *ngFor="let city of filteredBirthCityOptions" [value]="city.id">{{ city.name }}</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-column-card">
-              <h4 class="form-section-title">Adresse</h4>
-              <div class="field-group">
-                <label>Recherche pays</label>
-                <input type="text" [(ngModel)]="addressCountrySearchTerm" [ngModelOptions]="{ standalone: true }" placeholder="Rechercher un pays..." />
-              </div>
-              <div class="field-group">
-                <label>Pays</label>
-                <select name="enrollmentCountryId" [(ngModel)]="enrollmentForm.countryId" [disabled]="isLoadingEnrollmentReferences">
-                  <option value="">Selectionner</option>
-                  <option *ngFor="let country of filteredAddressCountryOptions" [value]="country.id">{{ country.name }}</option>
-                </select>
-              </div>
-
-              <div class="field-group">
-                <label>Recherche ville</label>
-                <input type="text" [(ngModel)]="addressCitySearchTerm" [ngModelOptions]="{ standalone: true }" placeholder="Rechercher une ville..." />
-              </div>
-              <div class="field-group">
-                <label>Ville</label>
-                <select
-                  name="enrollmentCityId"
-                  [(ngModel)]="enrollmentForm.cityId"
-                  (ngModelChange)="enrollmentForm.communeId = ''"
-                  [disabled]="isLoadingEnrollmentReferences"
-                >
-                  <option value="">Selectionner</option>
-                  <option *ngFor="let city of filteredAddressCityOptions" [value]="city.id">{{ city.name }}</option>
-                </select>
-              </div>
-
-              <div class="field-group">
-                <label>Recherche commune</label>
-                <input type="text" [(ngModel)]="addressCommuneSearchTerm" [ngModelOptions]="{ standalone: true }" placeholder="Rechercher une commune..." />
-              </div>
-              <div class="field-group">
-                <label>Commune</label>
-                <select name="enrollmentCommuneId" [(ngModel)]="enrollmentForm.communeId" [disabled]="isLoadingEnrollmentReferences || filteredAddressCommuneOptions.length === 0">
-                  <option value="">Selectionner</option>
-                  <option *ngFor="let commune of filteredAddressCommuneOptions" [value]="commune.id">{{ commune.name }}</option>
-                </select>
-              </div>
-
-              <div class="field-group">
-                <label>Quartier</label>
-                <input type="text" name="enrollmentQuarter" [(ngModel)]="enrollmentForm.quarter" maxlength="150" />
-              </div>
-
-              <div class="field-group">
-                <label>Avenue</label>
-                <input type="text" name="enrollmentAvenue" [(ngModel)]="enrollmentForm.avenue" maxlength="150" />
-              </div>
-
-              <div class="field-group">
-                <label>Numero</label>
-                <input type="text" name="enrollmentNumber" [(ngModel)]="enrollmentForm.number" maxlength="50" />
+              <div class="inline-grid three no-margin">
+                <div class="field-group no-margin">
+                  <label>Quartier</label>
+                  <input type="text" name="enrollmentQuarter" [(ngModel)]="enrollmentForm.quarter" maxlength="150" placeholder="Ex: Mont-Ngafula" />
+                </div>
+                <div class="field-group no-margin">
+                  <label>Avenue</label>
+                  <input type="text" name="enrollmentAvenue" [(ngModel)]="enrollmentForm.avenue" maxlength="150" placeholder="Ex: Avenue Lumumba" />
+                </div>
+                <div class="field-group no-margin">
+                  <label>Ndeg / Immeuble</label>
+                  <input type="text" name="enrollmentNumber" [(ngModel)]="enrollmentForm.number" maxlength="50" placeholder="Ex: Ndeg 15" />
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="field-group">
-          <label>Commentaire</label>
-          <textarea name="enrollmentStudentComment" [(ngModel)]="enrollmentForm.studentComment" maxlength="500" rows="3"></textarea>
-        </div>
-
         <p class="save-error" *ngIf="enrollmentSaveError">{{ enrollmentSaveError }}</p>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-cancel" type="button" (click)="closeEnrollmentModal()">Annuler</button>
-        <button class="btn-save" type="submit" [disabled]="isSavingEnrollment || enrollmentFormRef.invalid">
-          <i class="bi bi-save"></i>
-          {{ isSavingEnrollment ? 'Enregistrement...' : 'Enregistrer' }}
-        </button>
+      <div class="modal-footer premium-footer">
+        <div class="footer-left">
+          <button class="btn-cancel" type="button" (click)="closeEnrollmentModal()"><i class="bi bi-x-lg"></i> Annuler</button>
+          <button class="btn-secondary" type="button"><i class="bi bi-save2"></i> Enregistrer le brouillon</button>
+        </div>
+        <div class="footer-right">
+          <button class="btn-save" type="submit" [disabled]="isSavingEnrollment || enrollmentFormRef.invalid">
+            <i class="bi bi-check2-square"></i>
+            {{ isSavingEnrollment ? 'Enregistrement...' : 'Suivant - Etape 2 : Inscription' }}
+          </button>
+        </div>
       </div>
     </form>
   </div>

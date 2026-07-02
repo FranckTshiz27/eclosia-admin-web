@@ -15,6 +15,7 @@ import { SecurityService } from '../../services/security.service';
 export class SidebarComponent implements OnInit {
   isCollapsed = false;
   isAgentsExpanded = false;
+  isStudentsExpanded = false;
   isAdminExpanded = false;
   isConfigurationExpanded = false;
   isSettingsExpanded = false;
@@ -38,6 +39,7 @@ export class SidebarComponent implements OnInit {
   private syncExpandedMenus(url: string): void {
     this.isConfigurationExpanded = url.startsWith('/configuration');
     this.isAdminExpanded = url.startsWith('/admin');
+    this.isStudentsExpanded = url.startsWith('/inscriptions') || url.includes('tab=categories-eleves');
     this.isAgentsExpanded = url.startsWith('/agents');
     this.isSettingsExpanded = url.startsWith('/settings');
   }

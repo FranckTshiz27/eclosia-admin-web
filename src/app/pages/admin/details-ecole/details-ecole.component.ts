@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { EcoleClassesComponent } from './ecole-classes/ecole-classes.component';
 import { EcoleClassroomDesignationsComponent } from './ecole-classroom-designations/ecole-classroom-designations.component';
 import { EcoleAcademicYearsComponent } from './ecole-academic-years/ecole-academic-years.component';
@@ -15,7 +16,12 @@ import {
   SchoolAcademicModelService
 } from '../../../services/school-academic-model.service';
 
-type DetailsTab = 'annee-scolaire' | 'modeles-academiques' | 'designations-salles' | 'classes' | 'enseignants';
+type DetailsTab =
+  | 'annee-scolaire'
+  | 'modeles-academiques'
+  | 'designations-salles'
+  | 'classes'
+  | 'enseignants';
 type AssociationStatus = 'Actif' | 'Archive';
 
 interface SchoolOption {
@@ -58,7 +64,13 @@ interface AssociationForm {
 @Component({
   selector: 'app-details-ecole',
   standalone: true,
-  imports: [CommonModule, FormsModule, EcoleClassesComponent, EcoleClassroomDesignationsComponent, EcoleAcademicYearsComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    EcoleClassesComponent,
+    EcoleClassroomDesignationsComponent,
+    EcoleAcademicYearsComponent
+  ],
   templateUrl: './details-ecole.component.html',
   styleUrl: './details-ecole.component.css'
 })
@@ -100,12 +112,20 @@ export class DetailsEcoleComponent implements OnInit {
   readonly statusFormOptions: AssociationStatus[] = ['Actif', 'Archive'];
 
   constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
     private readonly schoolService: SchoolService,
     private readonly academicModelService: AcademicModelService,
     private readonly schoolAcademicModelService: SchoolAcademicModelService
   ) {}
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const tab = params.get('tab');
+      if (tab && this.tabs.some((item) => item.id === tab)) {
+        this.activeTab = tab as DetailsTab;
+      }
+    });
     this.bootstrapData();
   }
 
@@ -148,6 +168,12 @@ export class DetailsEcoleComponent implements OnInit {
 
   setActiveTab(tab: DetailsTab): void {
     this.activeTab = tab;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   onSchoolChange(): void {

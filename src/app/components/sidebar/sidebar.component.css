@@ -177,6 +177,57 @@ body.dark-theme .sidebar {
     padding-bottom: 10px;
 }
 
+.students-menu.has-submenu.open .submenu {
+    max-height: 260px;
+}
+
+.students-submenu {
+    margin-top: 4px;
+    padding-left: 16px;
+    position: relative;
+}
+
+.students-submenu::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 24px;
+    bottom: 10px;
+    width: 2px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.submenu-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px 4px 0;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.timeline-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #2b7fff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
+}
+
+.students-submenu .submenu-link {
+    margin-left: 12px;
+    padding-left: 8px;
+}
+
+.students-submenu .submenu-link i {
+    display: none;
+}
+
 .submenu-link {
     color: rgba(239, 247, 255, 0.82);
     text-decoration: none;

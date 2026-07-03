@@ -26,6 +26,10 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'finances',
+    loadComponent: () => import('./pages/finances/finances.component').then((m) => m.FinancesComponent)
+  },
+  {
     path: 'agents',
     loadComponent: () => import('./pages/agents/agents.component').then(m => m.AgentsComponent),
     children: [

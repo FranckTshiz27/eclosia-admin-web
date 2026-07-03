@@ -25,6 +25,9 @@ export const API_ENDPOINTS = {
   classroom: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/classroom`,
   classroomDesignation: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/classroom-designation`,
   studentCategory: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/student-category`,
+  feeCategory: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/fee-category`,
+  paymentInstallment: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/payment-installment`,
+  schoolFee: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/school-fee`,
   guardian: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/guardian`,
   enrollment: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/enrollment`,
   enrollmentReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/enrollment-report`

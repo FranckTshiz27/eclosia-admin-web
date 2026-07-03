@@ -1,0 +1,311 @@
+<div class="fee-categories-page">
+  <div class="page-header">
+    <div>
+      <h2>Categories de frais</h2>
+      <p>Definissez et gerez les categories de frais scolaires de votre etablissement.</p>
+    </div>
+    <button class="btn-primary" type="button" (click)="openCreateModal()" [disabled]="!selectedSchoolId">
+      <i class="bi bi-plus-lg"></i>
+      Nouvelle categorie
+    </button>
+  </div>
+
+  <div class="context-cards single-filter">
+    <div class="context-card">
+      <span>Ecole</span>
+      <select
+        class="context-select"
+        [(ngModel)]="selectedSchoolId"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="onSchoolChange()"
+        [disabled]="isLoadingSchools || schools.length === 0"
+      >
+        <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Selectionner' }}</option>
+        <option *ngFor="let school of schools" [value]="school.id">{{ school.name }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <article class="stat-card" *ngFor="let stat of statsCards" [ngClass]="'tone-' + stat.tone">
+      <div class="stat-icon"><i class="bi" [ngClass]="stat.icon"></i></div>
+      <div class="stat-content">
+        <span>{{ stat.label }}</span>
+        <strong>{{ stat.value }}</strong>
+        <small *ngIf="stat.hint">{{ stat.hint }}</small>
+      </div>
+    </article>
+  </div>
+
+  <div class="table-card">
+    <div class="table-filters-bar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher par code ou libelle..."
+        />
+      </div>
+
+      <select class="dashboard-select" [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+        <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+      </select>
+
+      <button type="button" class="filters-btn" (click)="resetFilters()">
+        <i class="bi bi-funnel"></i>
+        Filtres
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="fee-categories-table">
+        <thead>
+          <tr>
+            <th class="icon-col"></th>
+            <th>Code</th>
+            <th>Libelle</th>
+            <th>Description</th>
+            <th>Tranches</th>
+            <th>Statut</th>
+            <th>Date de creation</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="!selectedSchoolId">
+            <td colspan="8" class="table-state">Selectionnez une ecole pour afficher les categories de frais.</td>
+          </tr>
+          <tr *ngIf="selectedSchoolId && isLoading">
+            <td colspan="8" class="table-state">Chargement des categories de frais...</td>
+          </tr>
+          <tr *ngIf="selectedSchoolId && !isLoading && loadError">
+            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="selectedSchoolId && !isLoading && !loadError && filteredCategories.length === 0">
+            <td colspan="8" class="table-state">
+              {{
+                categories.length === 0
+                  ? 'Aucune categorie de frais enregistree pour cette ecole.'
+                  : 'Aucune categorie trouvee pour cette recherche.'
+              }}
+            </td>
+          </tr>
+          <tr *ngFor="let item of paginatedCategories">
+            <td class="icon-col">
+              <span class="category-icon" [ngClass]="item.iconTone">
+                <i class="bi" [ngClass]="item.icon"></i>
+              </span>
+            </td>
+            <td class="code-col">{{ item.code }}</td>
+            <td class="name-col">{{ item.name }}</td>
+            <td class="description-col">{{ item.description }}</td>
+            <td>
+              <span
+                class="installment-chip"
+                [class.installment-yes]="item.allowInstallments"
+                [class.installment-no]="!item.allowInstallments"
+              >
+                <i class="bi" [ngClass]="item.allowInstallments ? 'bi-check2-circle' : 'bi-x-circle'"></i>
+                {{ item.allowInstallments ? 'Accepte' : 'Non' }}
+              </span>
+            </td>
+            <td>
+              <span class="status-chip" [class.status-active]="item.status === 'Actif'" [class.status-inactive]="item.status === 'Inactif'">
+                <span class="status-dot"></span>
+                {{ item.status }}
+              </span>
+            </td>
+            <td class="date-col">{{ item.createdAt }}</td>
+            <td class="actions-col">
+              <button type="button" class="action-btn" title="Modifier" (click)="openEditModal(item)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <div class="action-menu-wrap">
+                <button type="button" class="action-btn" title="Plus" (click)="toggleActionMenu(item.id, $event)">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <div class="action-menu" *ngIf="openActionMenuId === item.id">
+                  <button type="button" (click)="deleteCategory(item)">
+                    <i class="bi bi-trash"></i>
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredCategories.length }} categories</p>
+      <div class="pagination-wrap">
+        <div class="pagination">
+          <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button
+            *ngFor="let page of pageNumbers"
+            type="button"
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <select
+          class="page-size-select"
+          [(ngModel)]="pageSize"
+          [ngModelOptions]="{ standalone: true }"
+          (change)="onPageSizeChange()"
+        >
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} / page</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="fee-category-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier la categorie' : 'Nouvelle categorie de frais' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez a jour les informations de cette categorie de frais'
+              : 'Ajoutez une categorie de frais pour l ecole selectionnee'
+          }}
+        </p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #feeCategoryForm="ngForm" (ngSubmit)="saveCategory(feeCategoryForm)" novalidate>
+      <div class="modal-body">
+        <div class="form-columns">
+          <div class="form-column">
+            <div class="field-group">
+              <label>Code <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                maxlength="20"
+                pattern=".*\S.*"
+                placeholder="Ex: FACAD"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+              <small class="field-hint">Code court unique pour cette ecole (max. 20 caracteres).</small>
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">
+                Le code est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Libelle <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                maxlength="100"
+                pattern=".*\S.*"
+                placeholder="Ex: Frais academiques"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+              <small class="field-hint">Libelle visible dans l application (max. 100 caracteres).</small>
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">
+                Le libelle est obligatoire.
+              </small>
+            </div>
+          </div>
+
+          <div class="form-column">
+            <div class="field-group">
+              <label>Description</label>
+              <textarea
+                name="description"
+                [(ngModel)]="form.description"
+                maxlength="500"
+                rows="4"
+                placeholder="Description optionnelle..."
+              ></textarea>
+              <small class="field-hint">{{ descriptionLength }} / {{ descriptionMaxLength }} caracteres</small>
+            </div>
+
+            <div class="field-group">
+              <label>Commentaire interne</label>
+              <textarea
+                name="comment"
+                [(ngModel)]="form.comment"
+                maxlength="500"
+                rows="3"
+                placeholder="Commentaire optionnel..."
+              ></textarea>
+              <small class="field-hint">{{ commentLength }} / {{ commentMaxLength }} caracteres</small>
+            </div>
+
+            <div class="field-group">
+              <label>Tranches de paiement</label>
+              <div class="toggle-row">
+                <div>
+                  <strong>{{ form.allowInstallments ? 'Accepte les tranches' : 'Paiement unique' }}</strong>
+                  <p>
+                    {{
+                      form.allowInstallments
+                        ? 'Cette categorie peut etre reglee en plusieurs tranches.'
+                        : 'Cette categorie doit etre reglee en une seule fois.'
+                    }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="toggle-btn"
+                  [class.active]="form.allowInstallments"
+                  (click)="toggleAllowInstallments()"
+                >
+                  <span></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Statut</label>
+              <div class="toggle-row">
+                <div>
+                  <strong>{{ form.active ? 'Actif' : 'Inactif' }}</strong>
+                  <p>Les categories inactives ne sont plus proposees dans les selections courantes.</p>
+                </div>
+                <button type="button" class="toggle-btn" [class.active]="form.active" (click)="toggleActiveStatus()">
+                  <span></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || feeCategoryForm.invalid">
+          <i class="bi bi-save"></i>
+          {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

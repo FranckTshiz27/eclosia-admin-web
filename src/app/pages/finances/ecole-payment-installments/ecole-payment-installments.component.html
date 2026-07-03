@@ -1,0 +1,316 @@
+<div class="payment-installments-page">
+  <div class="page-header">
+    <div>
+      <h2>Gestion des tranches de paiement</h2>
+      <p>Creez et gerez les differentes tranches de paiement utilisees dans votre etablissement.</p>
+    </div>
+    <button class="btn-primary" type="button" (click)="openCreateModal()" [disabled]="!selectedSchoolId">
+      <i class="bi bi-plus-lg"></i>
+      Nouvelle tranche
+    </button>
+  </div>
+
+  <div class="context-cards single-filter">
+    <div class="context-card">
+      <span>Ecole</span>
+      <select
+        class="context-select"
+        [(ngModel)]="selectedSchoolId"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="onSchoolChange()"
+        [disabled]="isLoadingSchools || schools.length === 0"
+      >
+        <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Selectionner' }}</option>
+        <option *ngFor="let school of schools" [value]="school.id">{{ school.name }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats-grid four-cols">
+    <article class="stat-card" *ngFor="let stat of statsCards" [ngClass]="'tone-' + stat.tone">
+      <div class="stat-icon"><i class="bi" [ngClass]="stat.icon"></i></div>
+      <div class="stat-content">
+        <span>{{ stat.label }}</span>
+        <strong>{{ stat.value }}</strong>
+        <small *ngIf="stat.hint">{{ stat.hint }}</small>
+      </div>
+    </article>
+  </div>
+
+  <div class="table-card">
+    <div class="table-filters-bar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher par code ou libelle..."
+        />
+      </div>
+
+      <select class="dashboard-select" [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+        <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+      </select>
+
+      <button type="button" class="filters-btn" (click)="resetFilters()">
+        <i class="bi bi-funnel"></i>
+        Filtres
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="installments-table">
+        <thead>
+          <tr>
+            <th class="drag-col"></th>
+            <th>Ordre</th>
+            <th>Code</th>
+            <th>Libelle</th>
+            <th>Description</th>
+            <th>Statut</th>
+            <th>Date de creation</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="!selectedSchoolId">
+            <td colspan="8" class="table-state">Selectionnez une ecole pour afficher les tranches de paiement.</td>
+          </tr>
+          <tr *ngIf="selectedSchoolId && isLoading">
+            <td colspan="8" class="table-state">Chargement des tranches de paiement...</td>
+          </tr>
+          <tr *ngIf="selectedSchoolId && !isLoading && loadError">
+            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="selectedSchoolId && !isLoading && !loadError && filteredInstallments.length === 0">
+            <td colspan="8" class="table-state">
+              {{
+                installments.length === 0
+                  ? 'Aucune tranche de paiement enregistree pour cette ecole.'
+                  : 'Aucune tranche trouvee pour cette recherche.'
+              }}
+            </td>
+          </tr>
+          <tr *ngFor="let item of paginatedInstallments">
+            <td class="drag-col">
+              <span class="drag-handle" title="Ordre d affichage">
+                <i class="bi bi-grip-vertical"></i>
+              </span>
+            </td>
+            <td class="order-col">{{ item.displayOrder }}</td>
+            <td>
+              <span class="code-pill" [ngClass]="item.codeTone">{{ item.code }}</span>
+            </td>
+            <td class="name-col">{{ item.name }}</td>
+            <td class="description-col">{{ item.description }}</td>
+            <td>
+              <span
+                class="status-chip"
+                [class.status-active]="item.status === 'Actif'"
+                [class.status-inactive]="item.status === 'Inactif'"
+              >
+                <span class="status-dot"></span>
+                {{ item.status }}
+              </span>
+            </td>
+            <td class="date-col">{{ item.createdAt }}</td>
+            <td class="actions-col">
+              <button type="button" class="action-btn" title="Modifier" (click)="openEditModal(item)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <div class="action-menu-wrap">
+                <button type="button" class="action-btn" title="Plus" (click)="toggleActionMenu(item.id, $event)">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <div class="action-menu" *ngIf="openActionMenuId === item.id">
+                  <button type="button" (click)="deleteInstallment(item)">
+                    <i class="bi bi-trash"></i>
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredInstallments.length }} tranches</p>
+      <div class="pagination-wrap">
+        <div class="pagination">
+          <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button
+            *ngFor="let page of pageNumbers"
+            type="button"
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <select
+          class="page-size-select"
+          [(ngModel)]="pageSize"
+          [ngModelOptions]="{ standalone: true }"
+          (change)="onPageSizeChange()"
+        >
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} / page</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <aside class="info-panel">
+    <div class="info-content">
+      <h3><i class="bi bi-info-circle"></i> Information</h3>
+      <p>
+        Les tranches definies ici seront utilisees lors de la configuration des montants par classe et annee
+        scolaire. L ordre des tranches determine l ordre d affichage et de paiement.
+      </p>
+    </div>
+    <div class="info-illustration" aria-hidden="true">
+      <i class="bi bi-calendar3"></i>
+      <i class="bi bi-coin"></i>
+    </div>
+  </aside>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="installment-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier la tranche' : 'Nouvelle tranche de paiement' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez a jour les informations de cette tranche'
+              : 'Ajoutez une tranche de paiement pour l ecole selectionnee'
+          }}
+        </p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #installmentForm="ngForm" (ngSubmit)="saveInstallment(installmentForm)" novalidate>
+      <div class="modal-body">
+        <div class="form-columns">
+          <div class="form-column">
+            <div class="field-group">
+              <label>Code <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                maxlength="20"
+                pattern=".*\S.*"
+                placeholder="Ex: T1"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+              <small class="field-hint">Code court unique pour cette ecole (max. 20 caracteres).</small>
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">
+                Le code est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Libelle <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                maxlength="100"
+                pattern=".*\S.*"
+                placeholder="Ex: 1ere tranche"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+              <small class="field-hint">Libelle visible dans l application (max. 100 caracteres).</small>
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">
+                Le libelle est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Ordre d affichage <span>*</span></label>
+              <input
+                type="number"
+                name="displayOrder"
+                [(ngModel)]="form.displayOrder"
+                #orderCtrl="ngModel"
+                required
+                min="1"
+                placeholder="Ex: 1"
+                [class.input-invalid]="(orderCtrl.invalid && orderCtrl.touched) || (isSubmitted && orderCtrl.invalid)"
+              />
+              <small class="field-hint">Position de la tranche dans la liste (unique par ecole).</small>
+              <small class="field-error" *ngIf="(orderCtrl.touched || isSubmitted) && orderCtrl.invalid">
+                L ordre d affichage est obligatoire.
+              </small>
+            </div>
+          </div>
+
+          <div class="form-column">
+            <div class="field-group">
+              <label>Description</label>
+              <textarea
+                name="description"
+                [(ngModel)]="form.description"
+                maxlength="500"
+                rows="4"
+                placeholder="Description optionnelle..."
+              ></textarea>
+              <small class="field-hint">{{ descriptionLength }} / {{ descriptionMaxLength }} caracteres</small>
+            </div>
+
+            <div class="field-group">
+              <label>Commentaire interne</label>
+              <textarea
+                name="comment"
+                [(ngModel)]="form.comment"
+                maxlength="500"
+                rows="3"
+                placeholder="Commentaire optionnel..."
+              ></textarea>
+              <small class="field-hint">{{ commentLength }} / {{ commentMaxLength }} caracteres</small>
+            </div>
+
+            <div class="field-group">
+              <label>Statut</label>
+              <div class="toggle-row">
+                <div>
+                  <strong>{{ form.active ? 'Actif' : 'Inactif' }}</strong>
+                  <p>Les tranches inactives ne sont plus proposees dans les selections courantes.</p>
+                </div>
+                <button type="button" class="toggle-btn" [class.active]="form.active" (click)="toggleActiveStatus()">
+                  <span></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || installmentForm.invalid">
+          <i class="bi bi-save"></i>
+          {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<div class="page-container finances-page">
+  <app-ecole-fee-categories *ngIf="activeTab === 'categories-frais'"></app-ecole-fee-categories>
+  <app-ecole-payment-installments *ngIf="activeTab === 'tranches-paiement'"></app-ecole-payment-installments>
+  <app-ecole-school-fees *ngIf="activeTab === 'frais-scolaires'"></app-ecole-school-fees>
+
+  <section
+    class="placeholder-panel"
+    *ngIf="activeTab !== 'categories-frais' && activeTab !== 'tranches-paiement' && activeTab !== 'frais-scolaires'"
+  >
+    <div class="placeholder-card">
+      <i class="bi bi-tools"></i>
+      <h2>Fonctionnalite en cours de developpement</h2>
+      <p>Cette section sera disponible prochainement.</p>
+    </div>
+  </section>
+</div>

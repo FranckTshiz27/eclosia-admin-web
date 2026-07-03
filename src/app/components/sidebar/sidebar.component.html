@@ -60,6 +60,130 @@
                 </ul>
             </li>
 
+            <!-- FINANCES -->
+            <li class="has-submenu students-menu" [class.open]="isFinancesExpanded">
+                <a (click)="isFinancesExpanded = !isFinancesExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
+                    <i class="bi bi-wallet2"></i>
+                    <span>FINANCES</span>
+                    <span class="chevron-down"></span>
+                </a>
+                <ul class="submenu students-submenu finance-submenu">
+                    <li>
+                        <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <span>Tableau de bord</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'categories-frais' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Catégories de frais</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'tranches-paiement' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Tranches de paiement</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'frais-scolaires' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Frais scolaires</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'montants-classe' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Montants par classe</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'paiements' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Paiements</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'remises-bourses' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Remises & bourses</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'penalites' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Pénalités</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'recus' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Recus</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'rapports-financiers' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Rapports financiers</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             <!-- GESTION AGENTS -->
             <li *ngIf="canSee('VIEW_AGENTS')" class="has-submenu" [class.open]="isAgentsExpanded">
                 <a (click)="isAgentsExpanded = !isAgentsExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">

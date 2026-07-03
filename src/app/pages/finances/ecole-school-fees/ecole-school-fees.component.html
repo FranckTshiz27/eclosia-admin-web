@@ -1,0 +1,520 @@
+<div class="school-fees-page">
+  <div class="page-header">
+    <div>
+      <p class="breadcrumb">Finances &gt; Frais scolaires</p>
+      <h2>Frais scolaires</h2>
+      <p>
+        Gérez les frais scolaires par combinaison (cycle, niveau, section, option) pour une année scolaire.
+      </p>
+    </div>
+    <button
+      class="btn-primary"
+      type="button"
+      (click)="openCreateModal()"
+      [disabled]="!selectedSchoolId || !selectedYearId"
+    >
+      <i class="bi bi-plus-lg"></i>
+      Nouveau frais
+    </button>
+  </div>
+
+  <section class="filters-panel">
+    <div class="filters-grid">
+      <div class="filter-field">
+        <label>École <span class="required">*</span></label>
+        <div class="select-with-icon">
+          <i class="bi bi-building"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="selectedSchoolId"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onSchoolChange()"
+            [disabled]="isLoadingSchools || schools.length === 0"
+          >
+            <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Sélectionner' }}</option>
+            <option *ngFor="let school of schools" [value]="school.value">{{ school.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label>Année scolaire <span class="required">*</span></label>
+        <div class="select-with-icon">
+          <i class="bi bi-calendar3"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="selectedYearId"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onYearChange()"
+            [disabled]="isLoadingReferences || yearOptions.length === 0"
+          >
+            <option value="" disabled>{{ isLoadingReferences ? 'Chargement...' : 'Sélectionner' }}</option>
+            <option *ngFor="let year of yearOptions" [value]="year.value">{{ year.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label>Cycle <span class="required">*</span></label>
+        <div class="select-with-icon">
+          <i class="bi bi-people"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="cycleFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onCycleFilterChange()"
+          >
+            <option *ngFor="let option of cycleFilterOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label>Niveau <span class="required">*</span></label>
+        <div class="select-with-icon">
+          <i class="bi bi-layers"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="levelFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onLevelFilterChange()"
+          >
+            <option *ngFor="let option of levelFilterOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label>Section</label>
+        <div class="select-with-icon">
+          <i class="bi bi-collection"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="sectionFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onSectionFilterChange()"
+          >
+            <option *ngFor="let option of sectionFilterOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label>Option</label>
+        <div class="select-with-icon">
+          <i class="bi bi-diagram-3"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="optionFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onFiltersChange()"
+          >
+            <option *ngFor="let option of optionFilterOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label>Catégorie de frais</label>
+        <div class="select-with-icon">
+          <i class="bi bi-folder2"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="categoryFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onFiltersChange()"
+          >
+            <option *ngFor="let option of categoryFilterOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label>Tranche</label>
+        <div class="select-with-icon">
+          <i class="bi bi-list-ol"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="installmentFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onFiltersChange()"
+          >
+            <option *ngFor="let option of installmentFilterOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="table-card">
+    <div class="table-filters-bar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onFiltersChange()"
+          placeholder="Rechercher par code ou libellé..."
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Paiement par tranche</label>
+        <select
+          class="dashboard-select"
+          [(ngModel)]="installmentPaymentFilter"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onFiltersChange()"
+        >
+          <option *ngFor="let option of installmentPaymentOptions" [value]="option.value">{{ option.label }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Statut</label>
+        <select
+          class="dashboard-select"
+          [(ngModel)]="statusFilter"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onFiltersChange()"
+        >
+          <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+        </select>
+      </div>
+
+      <button type="button" class="filters-btn" (click)="resetFilters()">
+        <i class="bi bi-funnel"></i>
+        Filtres avancés
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="school-fees-table dashboard-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Libellé</th>
+            <th>Catégorie</th>
+            <th>Montant (USD)</th>
+            <th>Tranche</th>
+            <th>Paiement par tranche</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="!selectedSchoolId || !selectedYearId">
+            <td colspan="8" class="table-state">Sélectionnez une école et une année scolaire.</td>
+          </tr>
+          <tr *ngIf="selectedSchoolId && selectedYearId && isLoading">
+            <td colspan="8" class="table-state">Chargement des frais scolaires...</td>
+          </tr>
+          <tr *ngIf="selectedSchoolId && selectedYearId && !isLoading && loadError">
+            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="selectedSchoolId && selectedYearId && !isLoading && !loadError && filteredFees.length === 0">
+            <td colspan="8" class="table-state">
+              {{
+                fees.length === 0
+                  ? 'Aucun frais scolaire enregistré pour cette sélection.'
+                  : 'Aucun frais trouvé pour cette recherche.'
+              }}
+            </td>
+          </tr>
+          <tr *ngFor="let item of paginatedFees">
+            <td>
+              <span class="code-badge" [ngClass]="item.codeTone">{{ item.code }}</span>
+            </td>
+            <td class="name-col">{{ item.name }}</td>
+            <td>
+              <span class="category-pill" [ngClass]="item.categoryTone">
+                <i class="bi" [ngClass]="item.categoryIcon"></i>
+                {{ item.categoryName }}
+              </span>
+            </td>
+            <td class="amount-col">{{ item.amountLabel }}</td>
+            <td>
+              <span
+                class="installment-pill"
+                [ngClass]="item.installmentTone"
+                *ngIf="item.installmentId; else noInstallment"
+              >
+                {{ item.installmentLabel }}
+              </span>
+              <ng-template #noInstallment><span class="empty-cell">—</span></ng-template>
+            </td>
+            <td>
+              <span
+                class="installment-payment-chip"
+                [class.payment-yes]="item.allowInstallments"
+                [class.payment-no]="!item.allowInstallments"
+              >
+                {{ item.allowInstallments ? 'Oui' : 'Non' }}
+              </span>
+            </td>
+            <td>
+              <span
+                class="status-badge"
+                [class.status-active]="item.status === 'Actif'"
+                [class.status-inactive]="item.status === 'Inactif'"
+              >
+                <span class="status-dot"></span>
+                {{ item.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <div class="row-actions">
+                <button type="button" title="Modifier" (click)="openEditModal(item)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" title="Plus" (click)="toggleActionMenu(item.id, $event)">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <div class="action-menu" *ngIf="openActionMenuId === item.id">
+                  <button type="button" (click)="deleteFee(item)">
+                    <i class="bi bi-trash"></i>
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ rangeStart }} à {{ rangeEnd }} sur {{ filteredFees.length }} frais</p>
+      <div class="pagination-wrap">
+        <div class="pagination">
+          <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button
+            *ngFor="let page of pageNumbers"
+            type="button"
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <select
+          class="page-size-select"
+          [(ngModel)]="pageSize"
+          [ngModelOptions]="{ standalone: true }"
+          (change)="onPageSizeChange()"
+        >
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} / page</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <aside class="info-panel">
+    <div class="info-content">
+      <h3><i class="bi bi-info-circle"></i> Information</h3>
+      <p>
+        Les frais marqués avec une tranche seront exigibles selon l'échéance définie pour chaque tranche. Les frais
+        sans tranche doivent être payés en une seule fois.
+      </p>
+    </div>
+    <div class="info-illustration" aria-hidden="true">
+      <div class="wallet-scene">
+        <div class="wallet-body">
+          <i class="bi bi-wallet2"></i>
+        </div>
+        <span class="coin coin-1"></span>
+        <span class="coin coin-2"></span>
+        <span class="bill bill-1"></span>
+        <span class="bill bill-2"></span>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="school-fee-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier le frais' : 'Nouveau frais scolaire' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez à jour les informations de ce frais scolaire'
+              : 'Ajoutez un frais pour la combinaison académique sélectionnée'
+          }}
+        </p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #schoolFeeForm="ngForm" (ngSubmit)="saveFee(schoolFeeForm)" novalidate>
+      <div class="modal-body">
+        <div class="form-columns">
+          <div class="form-column">
+            <div class="field-group">
+              <label>Code <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                maxlength="20"
+                pattern=".*\S.*"
+                placeholder="Ex: INSCR"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+            </div>
+
+            <div class="field-group">
+              <label>Libellé <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                maxlength="100"
+                pattern=".*\S.*"
+                placeholder="Ex: Frais d'inscription"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+            </div>
+
+            <div class="field-group">
+              <label>Montant (USD) <span>*</span></label>
+              <input
+                type="number"
+                name="amount"
+                [(ngModel)]="form.amount"
+                #amountCtrl="ngModel"
+                required
+                min="0"
+                step="0.01"
+                placeholder="Ex: 50"
+                [class.input-invalid]="(amountCtrl.invalid && amountCtrl.touched) || (isSubmitted && amountCtrl.invalid)"
+              />
+            </div>
+
+            <div class="field-group">
+              <label>Catégorie de frais <span>*</span></label>
+              <select
+                name="feeCategoryId"
+                [(ngModel)]="form.feeCategoryId"
+                #categoryCtrl="ngModel"
+                required
+                (ngModelChange)="onFormCategoryChange()"
+                [class.input-invalid]="(categoryCtrl.invalid && categoryCtrl.touched) || (isSubmitted && categoryCtrl.invalid)"
+              >
+                <option value="" disabled>Sélectionner</option>
+                <option *ngFor="let option of categoryFormOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+            </div>
+
+            <div class="field-group" *ngIf="selectedCategoryAllowsInstallments">
+              <label>Tranche</label>
+              <select name="paymentInstallmentId" [(ngModel)]="form.paymentInstallmentId">
+                <option *ngFor="let option of installmentFormOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-column">
+            <div class="field-group">
+              <label>Cycle <span>*</span></label>
+              <select
+                name="academicCycleId"
+                [(ngModel)]="form.academicCycleId"
+                #cycleCtrl="ngModel"
+                required
+                (ngModelChange)="onFormCycleChange()"
+                [class.input-invalid]="(cycleCtrl.invalid && cycleCtrl.touched) || (isSubmitted && cycleCtrl.invalid)"
+              >
+                <option value="" disabled>Sélectionner</option>
+                <option *ngFor="let option of cycleFormOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Niveau <span>*</span></label>
+              <select
+                name="academicLevelId"
+                [(ngModel)]="form.academicLevelId"
+                #levelCtrl="ngModel"
+                required
+                (ngModelChange)="onFormLevelChange()"
+                [class.input-invalid]="(levelCtrl.invalid && levelCtrl.touched) || (isSubmitted && levelCtrl.invalid)"
+              >
+                <option value="" disabled>Sélectionner</option>
+                <option *ngFor="let option of levelFormOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Section</label>
+              <select
+                name="academicSectionId"
+                [(ngModel)]="form.academicSectionId"
+                (ngModelChange)="onFormSectionChange()"
+              >
+                <option value="">Aucune section</option>
+                <option *ngFor="let option of sectionFormOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Option</label>
+              <select name="academicOptionId" [(ngModel)]="form.academicOptionId">
+                <option value="">Aucune option</option>
+                <option *ngFor="let option of optionFormOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Description</label>
+              <textarea
+                name="description"
+                [(ngModel)]="form.description"
+                maxlength="500"
+                rows="3"
+                placeholder="Description optionnelle..."
+              ></textarea>
+              <small class="field-hint">{{ descriptionLength }} / {{ descriptionMaxLength }} caractères</small>
+            </div>
+
+            <div class="field-group">
+              <label>Statut</label>
+              <div class="toggle-row">
+                <div>
+                  <strong>{{ form.active ? 'Actif' : 'Inactif' }}</strong>
+                  <p>Les frais inactifs ne sont plus proposés dans les sélections courantes.</p>
+                </div>
+                <button type="button" class="toggle-btn" [class.active]="form.active" (click)="toggleActiveStatus()">
+                  <span></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || schoolFeeForm.invalid">
+          <i class="bi bi-save"></i>
+          {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,873 @@
+.school-fees-page {
+  animation: fade-in 0.15s ease-out;
+  display: grid;
+  gap: 16px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.breadcrumb {
+  margin: 0 0 6px;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.page-header h2 {
+  margin: 0 0 6px;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.page-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  max-width: 720px;
+}
+
+.btn-primary {
+  border: none;
+  border-radius: 10px;
+  height: 42px;
+  padding: 0 16px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  background: #0a53de;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(10, 83, 222, 0.18);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.filters-panel {
+  background: #ffffff;
+  border: 1px solid #e8edf5;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.filter-field {
+  display: grid;
+  gap: 6px;
+}
+
+.filter-field label,
+.filter-group label {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.filter-field .required,
+.field-group label span {
+  color: #ef4444;
+}
+
+.select-with-icon {
+  position: relative;
+}
+
+.select-with-icon > i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #0a53de;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.context-select,
+.dashboard-select,
+.page-size-select {
+  height: 42px;
+  border: 1px solid #dbe2f0;
+  border-radius: 10px;
+  background-color: #f1f4f8;
+  background-image:
+    linear-gradient(#e9eef5, #e9eef5),
+    var(--filter-select-chevron);
+  background-repeat: no-repeat;
+  background-position: right top, right 12px center;
+  background-size: 38px 100%, 14px 10px;
+  padding: 0 44px 0 38px;
+  appearance: none;
+  color: #0f172a;
+  font-size: 0.88rem;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.context-select:focus,
+.dashboard-select:focus,
+.page-size-select:focus {
+  background-color: #ffffff;
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.dashboard-select,
+.page-size-select {
+  padding-left: 12px;
+  background-color: #ffffff;
+  background-image: var(--filter-select-chevron);
+  background-position: right 12px center;
+  background-size: 14px 10px;
+}
+
+.table-card {
+  border: 1px solid #e8edf5;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.table-filters-bar {
+  display: grid;
+  grid-template-columns: 2fr 170px 130px auto;
+  gap: 12px;
+  align-items: end;
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf0f6;
+}
+
+.filter-group {
+  display: grid;
+  gap: 6px;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.search-box input {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #dbe2f0;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0 12px 0 38px;
+  outline: none;
+  color: #0f172a;
+  font-size: 0.88rem;
+}
+
+.filters-btn {
+  height: 42px;
+  border: 1px solid #dbe3f2;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1e293b;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.filters-btn:hover {
+  background: #f8fbff;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.school-fees-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1080px;
+}
+
+.school-fees-table th,
+.school-fees-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf0f6;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 0.88rem;
+  color: #334155;
+}
+
+.school-fees-table th {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.82rem;
+  background: #fff;
+}
+
+.school-fees-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.code-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.code-badge.tone-blue {
+  background: #eef4ff;
+  color: #0a53de;
+}
+
+.code-badge.tone-green {
+  background: #e8f8f0;
+  color: #059669;
+}
+
+.code-badge.tone-purple {
+  background: #f3efff;
+  color: #7c3aed;
+}
+
+.code-badge.tone-indigo {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.code-badge.tone-teal {
+  background: #e6fffa;
+  color: #0d9488;
+}
+
+.code-badge.tone-orange {
+  background: #fff4e8;
+  color: #d97706;
+}
+
+.name-col {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.amount-col {
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.empty-cell {
+  color: #94a3b8;
+}
+
+.category-pill,
+.installment-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.category-pill i,
+.installment-pill i {
+  font-size: 0.72rem;
+}
+
+.category-pill.tone-blue,
+.installment-pill.tone-blue {
+  background: #eef4ff;
+  color: #0a53de;
+}
+
+.category-pill.tone-green,
+.installment-pill.tone-green {
+  background: #e8f8f0;
+  color: #059669;
+}
+
+.category-pill.tone-pink {
+  background: #fdf2f8;
+  color: #db2777;
+}
+
+.category-pill.tone-indigo {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.category-pill.tone-orange {
+  background: #fff4e8;
+  color: #d97706;
+}
+
+.installment-pill.tone-purple {
+  background: #f3efff;
+  color: #7c3aed;
+}
+
+.installment-pill.tone-orange {
+  background: #fff4e8;
+  color: #d97706;
+}
+
+.installment-pill.tone-teal {
+  background: #e6fffa;
+  color: #0d9488;
+}
+
+.installment-payment-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.installment-payment-chip.payment-yes {
+  background: #e8f8f0;
+  color: #059669;
+}
+
+.installment-payment-chip.payment-no {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.status-badge.status-active {
+  background: #e8f8f0;
+  color: #059669;
+}
+
+.status-badge.status-inactive {
+  background: #fff4e8;
+  color: #d97706;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.actions-col {
+  white-space: nowrap;
+}
+
+.row-actions {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.row-actions button {
+  border: none;
+  background: transparent;
+  color: #0a53de;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row-actions button:hover {
+  background: #eef4ff;
+}
+
+.action-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 140px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.action-menu button {
+  width: 100%;
+  border: none;
+  background: #fff;
+  color: #b42318;
+  padding: 10px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.table-state {
+  text-align: center !important;
+  color: #64748b;
+  font-style: italic;
+}
+
+.table-state-error {
+  color: #dc2626 !important;
+  font-style: normal;
+}
+
+.table-footer {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #edf0f6;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.pagination-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pagination button {
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid #dbe2f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  background: #0a53de;
+  border-color: #0a53de;
+  color: #fff;
+}
+
+.pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.info-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f7fbff 0%, #eff6ff 100%);
+  padding: 16px 18px;
+}
+
+.info-panel h3 {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-panel p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  max-width: 760px;
+}
+
+.info-illustration {
+  flex-shrink: 0;
+}
+
+.wallet-scene {
+  position: relative;
+  width: 96px;
+  height: 72px;
+}
+
+.wallet-body {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 64px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+}
+
+.wallet-body i {
+  font-size: 1.6rem;
+  color: #ffffff;
+}
+
+.coin {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fde68a 0%, #f59e0b 55%, #d97706 100%);
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+}
+
+.coin-1 {
+  top: 6px;
+  right: 8px;
+}
+
+.coin-2 {
+  top: 24px;
+  right: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.bill {
+  position: absolute;
+  width: 28px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #86efac 0%, #22c55e 100%);
+  box-shadow: 0 3px 8px rgba(34, 197, 94, 0.25);
+}
+
+.bill-1 {
+  top: 10px;
+  left: 8px;
+  transform: rotate(-12deg);
+}
+
+.bill-2 {
+  top: 28px;
+  left: 18px;
+  transform: rotate(8deg);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1200;
+}
+
+.school-fee-modal {
+  width: min(100%, 920px);
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+}
+
+.modal-header,
+.modal-body,
+.modal-footer {
+  padding: 18px 20px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid #e9eef5;
+}
+
+.modal-header h3 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: #18213a;
+}
+
+.modal-header p {
+  margin: 0;
+  color: #5f6c82;
+  font-size: 13px;
+}
+
+.btn-close {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #5f6c82;
+}
+
+.form-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.field-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #344054;
+}
+
+.field-group input,
+.field-group textarea,
+.field-group select {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 12px;
+  color: #1f293f;
+  font-size: 13px;
+  outline: none;
+}
+
+.field-hint,
+.save-error {
+  font-size: 12px;
+}
+
+.field-hint {
+  color: #98a2b3;
+}
+
+.save-error {
+  color: #b42318;
+}
+
+.input-invalid {
+  border-color: #fda29b !important;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.toggle-row strong {
+  display: block;
+  color: #18213a;
+  margin-bottom: 4px;
+}
+
+.toggle-row p {
+  margin: 0;
+  color: #5f6c82;
+  font-size: 12px;
+}
+
+.toggle-btn {
+  width: 44px;
+  height: 24px;
+  border: none;
+  border-radius: 999px;
+  background: #d0d5dd;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggle-btn span {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease;
+}
+
+.toggle-btn.active {
+  background: #0a53de;
+}
+
+.toggle-btn.active span {
+  transform: translateX(20px);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #e9eef5;
+}
+
+.btn-cancel,
+.btn-save {
+  height: 40px;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-cancel {
+  border: 1px solid #dce4ee;
+  background: #fff;
+  color: #475467;
+}
+
+.btn-save {
+  border: none;
+  background: #0a53de;
+  color: #fff;
+}
+
+:host-context(body.dark-theme) .school-fees-page .page-header h2,
+:host-context(body.dark-theme) .school-fees-page .name-col,
+:host-context(body.dark-theme) .school-fees-page .amount-col {
+  color: #0f172a !important;
+}
+
+:host-context(body.dark-theme) .school-fees-page .filters-panel,
+:host-context(body.dark-theme) .school-fees-page .table-card,
+:host-context(body.dark-theme) .school-fees-page .table-filters-bar,
+:host-context(body.dark-theme) .school-fees-page .school-fees-table th,
+:host-context(body.dark-theme) .school-fees-page .school-fees-table td,
+:host-context(body.dark-theme) .school-fees-page .search-box input,
+:host-context(body.dark-theme) .school-fees-page .context-select,
+:host-context(body.dark-theme) .school-fees-page .dashboard-select,
+:host-context(body.dark-theme) .school-fees-page .filters-btn,
+:host-context(body.dark-theme) .school-fees-page .pagination button,
+:host-context(body.dark-theme) .school-fees-page .page-size-select,
+:host-context(body.dark-theme) .school-fees-page .action-menu,
+:host-context(body.dark-theme) .school-fee-modal,
+:host-context(body.dark-theme) .school-fee-modal .field-group input,
+:host-context(body.dark-theme) .school-fee-modal .field-group textarea,
+:host-context(body.dark-theme) .school-fee-modal .field-group select,
+:host-context(body.dark-theme) .school-fee-modal .btn-close,
+:host-context(body.dark-theme) .school-fee-modal .btn-cancel,
+:host-context(body.dark-theme) .school-fee-modal .toggle-row {
+  background: #ffffff !important;
+  color: #344054 !important;
+  border-color: #e2e8f0 !important;
+}
+
+:host-context(body.dark-theme) .school-fees-page .info-panel {
+  background: linear-gradient(180deg, #f7fbff 0%, #eff6ff 100%) !important;
+  border-color: #dbeafe !important;
+}
+
+@media (max-width: 1200px) {
+  .filters-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .table-filters-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .page-header,
+  .table-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filters-grid,
+  .form-columns,
+  .table-filters-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .info-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,354 @@
+<div class="exchange-rates-page">
+  <div class="page-top">
+    <div class="page-header">
+      <div>
+        <h2>Taux de change de l'ecole</h2>
+        <p>Gerez les taux de change entre les devises autorisees pour cette ecole.</p>
+      </div>
+      <button class="btn-primary" type="button" (click)="openCreateForm()" [disabled]="!selectedSchoolId">
+        <i class="bi bi-plus-lg"></i>
+        Nouveau taux
+      </button>
+    </div>
+
+    <div class="school-filter">
+      <label>Ecole</label>
+      <div class="select-with-icon">
+        <i class="bi bi-building"></i>
+        <select
+          class="context-select"
+          [(ngModel)]="selectedSchoolId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onSchoolChange()"
+          [disabled]="isLoadingSchools || schools.length === 0"
+        >
+          <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Selectionner' }}</option>
+          <option *ngFor="let school of schools" [value]="school.value">{{ school.label }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <article class="stat-card" *ngFor="let stat of summaryCards" [ngClass]="'tone-' + stat.tone">
+      <div class="stat-icon"><i class="bi" [ngClass]="stat.icon"></i></div>
+      <div class="stat-content">
+        <span>{{ stat.label }}</span>
+        <strong>{{ stat.value }}</strong>
+        <small *ngIf="stat.hint">{{ stat.hint }}</small>
+      </div>
+    </article>
+  </div>
+
+  <div class="workspace-layout">
+    <div class="main-column">
+      <div class="table-card">
+        <div class="table-filters-bar">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="Rechercher un taux..."
+            />
+          </div>
+
+          <select class="dashboard-select" [(ngModel)]="fromCurrencyFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of currencyFilterOptions" [value]="option.value">
+              {{ option.value === 'all' ? 'De la devise' : option.label }}
+            </option>
+          </select>
+
+          <select class="dashboard-select" [(ngModel)]="toCurrencyFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of currencyFilterOptions" [value]="option.value">
+              {{ option.value === 'all' ? 'Vers la devise' : option.label }}
+            </option>
+          </select>
+
+          <select class="dashboard-select" [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+
+          <button type="button" class="filters-btn" (click)="resetFilters()">
+            <i class="bi bi-funnel"></i>
+            Filtres
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="exchange-rates-table">
+            <thead>
+              <tr>
+                <th>De</th>
+                <th></th>
+                <th>Vers</th>
+                <th>Taux</th>
+                <th>Source</th>
+                <th>Date d'effet</th>
+                <th>Statut</th>
+                <th>Derniere mise a jour</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="!selectedSchoolId">
+                <td colspan="9" class="table-state">Selectionnez une ecole pour afficher les taux.</td>
+              </tr>
+              <tr *ngIf="selectedSchoolId && isLoading">
+                <td colspan="9" class="table-state">Chargement des taux de change...</td>
+              </tr>
+              <tr *ngIf="selectedSchoolId && !isLoading && loadError">
+                <td colspan="9" class="table-state table-state-error">{{ loadError }}</td>
+              </tr>
+              <tr *ngIf="selectedSchoolId && !isLoading && !loadError && filteredRates.length === 0">
+                <td colspan="9" class="table-state">
+                  {{
+                    rates.length === 0
+                      ? 'Aucun taux de change enregistre pour cette ecole.'
+                      : 'Aucun taux trouve pour cette recherche.'
+                  }}
+                </td>
+              </tr>
+              <tr *ngFor="let item of paginatedRates">
+                <td>
+                  <div class="currency-pair-cell">
+                    <span class="currency-icon" [ngClass]="item.fromTone">{{ item.fromSymbol }}</span>
+                    <div>
+                      <strong>{{ item.fromCode }}</strong>
+                      <small>{{ item.fromName }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td class="arrow-col"><i class="bi bi-arrow-right"></i></td>
+                <td>
+                  <div class="currency-pair-cell">
+                    <span class="currency-icon" [ngClass]="item.toTone">{{ item.toSymbol }}</span>
+                    <div>
+                      <strong>{{ item.toCode }}</strong>
+                      <small>{{ item.toName }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td class="rate-col">{{ item.rateLabel }}</td>
+                <td>
+                  <span class="source-chip source-manual">
+                    {{ item.sourceLabel }}
+                  </span>
+                </td>
+                <td>{{ item.effectiveDateLabel }}</td>
+                <td>
+                  <span class="status-chip" [class.status-active]="item.status === 'Actif'" [class.status-inactive]="item.status === 'Inactif'">
+                    <span class="status-dot"></span>
+                    {{ item.status }}
+                  </span>
+                </td>
+                <td class="updated-col">{{ item.updatedAtLabel }}</td>
+                <td class="actions-col">
+                  <button type="button" class="action-btn" title="Modifier" (click)="openEditForm(item)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <div class="action-menu-wrap">
+                    <button type="button" class="action-btn" title="Plus" (click)="toggleActionMenu(item.id, $event)">
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <div class="action-menu" *ngIf="openActionMenuId === item.id">
+                      <button type="button" (click)="deleteRate(item)">
+                        <i class="bi bi-trash"></i>
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredRates.length }} taux</p>
+          <div class="pagination-wrap">
+            <div class="pagination">
+              <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button
+                *ngFor="let page of pageNumbers"
+                type="button"
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+              <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+            <select
+              class="page-size-select"
+              [(ngModel)]="pageSize"
+              [ngModelOptions]="{ standalone: true }"
+              (change)="onPageSizeChange()"
+            >
+              <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} / page</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="analytics-row">
+        <section class="chart-card">
+          <div class="card-header">
+            <h3>{{ chartTitle }}</h3>
+            <span>30 derniers jours</span>
+          </div>
+          <div class="chart-body" *ngIf="hasChartData; else emptyChart">
+            <svg viewBox="0 0 100 70" preserveAspectRatio="none" class="rate-chart">
+              <polyline [attr.points]="chartPolyline" class="chart-line"></polyline>
+              <circle
+                *ngFor="let point of chartPoints"
+                [attr.cx]="point.x"
+                [attr.cy]="point.y"
+                r="1.8"
+                class="chart-point"
+              ></circle>
+            </svg>
+            <div class="chart-labels">
+              <span *ngFor="let point of chartPoints">{{ point.label }}</span>
+            </div>
+          </div>
+          <ng-template #emptyChart>
+            <p class="chart-empty">Aucune donnee pour cette paire de devises.</p>
+          </ng-template>
+        </section>
+
+        <section class="recent-card">
+          <div class="card-header">
+            <h3>Derniers taux mis a jour</h3>
+          </div>
+          <div class="recent-list">
+            <div class="recent-item" *ngFor="let item of recentRates">
+              <div class="recent-pair">
+                <span class="currency-icon small" [ngClass]="item.fromTone">{{ item.fromSymbol }}</span>
+                <i class="bi bi-arrow-right"></i>
+                <span class="currency-icon small" [ngClass]="item.toTone">{{ item.toSymbol }}</span>
+                <strong>{{ item.rateLabel }}</strong>
+              </div>
+              <div class="recent-meta">
+                <span class="status-chip mini" [class.status-active]="item.status === 'Actif'" [class.status-inactive]="item.status === 'Inactif'">
+                  <span class="status-dot"></span>
+                  {{ item.status }}
+                </span>
+                <span>{{ item.updatedAtLabel }}</span>
+                <span class="source-chip mini source-manual">
+                  {{ item.sourceLabel }}
+                </span>
+              </div>
+            </div>
+            <p class="recent-empty" *ngIf="recentRates.length === 0">Aucune mise a jour recente.</p>
+          </div>
+          <button type="button" class="link-btn">Voir tous les taux <i class="bi bi-arrow-right"></i></button>
+        </section>
+      </div>
+    </div>
+
+    <aside class="form-panel">
+      <div class="form-panel-header">
+        <h3>{{ isEditMode ? 'Modifier le taux' : 'Nouveau taux de change' }}</h3>
+      </div>
+
+      <form #exchangeRateForm="ngForm" (ngSubmit)="saveRate(exchangeRateForm)" novalidate>
+        <div class="field-group">
+          <label>De la devise <span>*</span></label>
+          <select
+            name="sourceCurrencyId"
+            [(ngModel)]="form.sourceCurrencyId"
+            #fromCtrl="ngModel"
+            required
+            [disabled]="schoolCurrencies.length === 0"
+          >
+            <option value="" disabled>Selectionner</option>
+            <option *ngFor="let currency of schoolCurrencies" [value]="currency.id">
+              {{ currency.code }} - {{ currency.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Vers la devise <span>*</span></label>
+          <select
+            name="targetCurrencyId"
+            [(ngModel)]="form.targetCurrencyId"
+            #toCtrl="ngModel"
+            required
+            [disabled]="schoolCurrencies.length === 0"
+          >
+            <option value="" disabled>Selectionner</option>
+            <option *ngFor="let currency of schoolCurrencies" [value]="currency.id">
+              {{ currency.code }} - {{ currency.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Taux <span>*</span></label>
+          <input
+            type="number"
+            name="rate"
+            [(ngModel)]="form.rate"
+            #rateCtrl="ngModel"
+            required
+            min="0.0001"
+            step="0.01"
+            placeholder="Ex: 3150"
+            [class.input-invalid]="(rateCtrl.invalid && rateCtrl.touched) || (isSubmitted && rateCtrl.invalid)"
+          />
+        </div>
+
+        <div class="field-group">
+          <label>Date d'effet <span>*</span></label>
+          <input
+            type="date"
+            name="effectiveDate"
+            [(ngModel)]="form.effectiveDate"
+            #dateCtrl="ngModel"
+            required
+            [class.input-invalid]="(dateCtrl.invalid && dateCtrl.touched) || (isSubmitted && dateCtrl.invalid)"
+          />
+        </div>
+
+        <div class="field-group">
+          <label>Source <span>*</span></label>
+          <select name="source" [(ngModel)]="form.source" required>
+            <option *ngFor="let option of sourceOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Commentaire</label>
+          <textarea
+            name="comment"
+            [(ngModel)]="form.comment"
+            rows="3"
+            placeholder="Commentaire optionnel..."
+          ></textarea>
+        </div>
+
+        <label class="checkbox-row">
+          <input type="checkbox" name="active" [(ngModel)]="form.active" />
+          <span>Activer ce taux</span>
+        </label>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="cancelForm()">Annuler</button>
+          <button type="submit" class="btn-save" [disabled]="isSaving || exchangeRateForm.invalid || !selectedSchoolId">
+            <i class="bi bi-check2"></i>
+            {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+          </button>
+        </div>
+      </form>
+    </aside>
+  </div>
+</div>

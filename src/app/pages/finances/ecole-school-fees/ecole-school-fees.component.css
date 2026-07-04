@@ -86,6 +86,15 @@
   color: #ef4444;
 }
 
+.filter-hint {
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.filter-hint.warning {
+  color: #b45309;
+}
+
 .select-with-icon {
   position: relative;
 }
@@ -99,6 +108,219 @@
   font-size: 0.95rem;
   pointer-events: none;
   z-index: 2;
+}
+
+.multi-select {
+  position: relative;
+}
+
+.multi-select-trigger {
+  position: relative;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #dbe2f0;
+  border-radius: 10px;
+  background-color: #f1f4f8;
+  padding: 6px 36px 6px 38px;
+  color: #0f172a;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.multi-select.has-selection .multi-select-trigger {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.multi-select-trigger .trigger-icon {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  color: #0a53de;
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.multi-select:not(.has-selection) .multi-select-trigger .trigger-icon,
+.multi-select:not(.has-selection) .multi-select-trigger .trigger-chevron {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.multi-select:not(.has-selection) .multi-select-trigger .trigger-icon {
+  transform: translateY(-50%);
+}
+
+.multi-select-trigger .trigger-chevron {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  color: #64748b;
+  font-size: 0.72rem;
+  pointer-events: none;
+}
+
+.multi-select-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.multi-select-placeholder {
+  color: #64748b;
+  line-height: 28px;
+}
+
+.multi-select-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  height: 28px;
+  padding: 0 4px 0 8px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #0a53de;
+  border: 1px solid #dbeafe;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.multi-select-chip .chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.chip-remove {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.chip-remove:hover {
+  background: rgba(10, 83, 222, 0.1);
+  color: #0a53de;
+}
+
+.multi-select.open .multi-select-trigger {
+  border-color: #86b7fe;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.multi-select-trigger.is-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.multi-select-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid #dbe2f0;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  padding: 8px;
+}
+
+.multi-select-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px 8px;
+  border-bottom: 1px solid #edf0f6;
+  margin-bottom: 4px;
+}
+
+.multi-select-actions button {
+  border: none;
+  background: transparent;
+  color: #0a53de;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.multi-select-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.84rem;
+  color: #334155;
+}
+
+.multi-select-option:hover {
+  background: #f8fafc;
+}
+
+.multi-select-option input[type='checkbox'] {
+  accent-color: #0a53de;
+  flex-shrink: 0;
+}
+
+.multi-select-empty {
+  margin: 8px 6px;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.single-select-option {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.84rem;
+  text-align: left;
+}
+
+.single-select-option:hover {
+  background: #f8fafc;
+}
+
+.single-select-option.active {
+  background: #eef4ff;
+  color: #0a53de;
+  font-weight: 600;
+}
+
+.single-select-option i {
+  font-size: 0.82rem;
+  width: 14px;
+  flex-shrink: 0;
 }
 
 .context-select,
@@ -608,20 +830,20 @@
   transform: rotate(8deg);
 }
 
-.modal-backdrop {
+.fee-form-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  z-index: 1200;
+  padding: 24px;
+  z-index: 2000;
 }
 
-.school-fee-modal {
-  width: min(100%, 920px);
-  max-height: calc(100vh - 40px);
+.fee-form-dialog {
+  width: min(100%, 1040px);
+  max-height: min(85vh, 900px);
   display: flex;
   flex-direction: column;
   border-radius: 16px;
@@ -630,46 +852,424 @@
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
 }
 
-.modal-header,
-.modal-body,
-.modal-footer {
-  padding: 18px 20px;
+.fee-form-dialog form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: min(85vh, 900px);
 }
 
-.modal-header {
+.fee-form-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 24px 24px;
+  min-height: 0;
+}
+
+.fee-form-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 20px;
+  flex-shrink: 0;
+  padding: 18px 24px;
+  margin-bottom: 0;
   border-bottom: 1px solid #e9eef5;
 }
 
-.modal-header h3 {
-  margin: 0 0 4px;
-  font-size: 20px;
+.fee-form-header-text h2 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 700;
   color: #18213a;
 }
 
-.modal-header p {
+.fee-form-header-text p {
   margin: 0;
   color: #5f6c82;
+  font-size: 14px;
+  max-width: 640px;
+}
+
+.fee-form-header-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.fee-form-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+.fee-form-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fee-form-section {
+  border: 1px solid #e9eef5;
+  border-radius: 14px;
+  padding: 18px 20px;
+  background: #fff;
+}
+
+.fee-form-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.fee-form-section-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #0a53de;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.fee-form-section-heading h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #18213a;
+}
+
+.fee-form-row {
+  display: grid;
+  gap: 14px;
+}
+
+.fee-form-row-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fee-form-dialog .field-group {
+  margin-bottom: 14px;
+}
+
+.fee-form-dialog .field-group:last-child {
+  margin-bottom: 0;
+}
+
+.fee-form-dialog .field-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.field-info-icon {
+  color: #98a2b3;
+  font-size: 13px;
+  cursor: help;
+}
+
+.radio-group {
+  display: inline-flex;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.radio-group.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.radio-option {
+  border: none;
+  background: #fff;
+  color: #475467;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.radio-option + .radio-option {
+  border-left: 1px solid #e2e8f0;
+}
+
+.radio-option.active {
+  background: #eff4ff;
+  color: #0a53de;
+}
+
+.input-with-suffix {
+  position: relative;
+}
+
+.input-with-suffix input {
+  width: 100%;
+  padding-right: 36px;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #98a2b3;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.fee-form-dialog .select-with-icon {
+  position: relative;
+}
+
+.fee-form-dialog .select-with-icon i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #98a2b3;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.fee-form-dialog .select-with-icon select {
+  width: 100%;
+  padding-left: 36px;
+}
+
+.fee-form-multi-select .multi-select-chip.chip-purple,
+.summary-pill-purple {
+  background: #f3e8ff;
+  color: #7c3aed;
+  border-color: #e9d5ff;
+}
+
+.installment-amounts-block {
+  margin-bottom: 14px;
+}
+
+.installment-amounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #e9eef5;
+  border-radius: 12px;
+  background: #fafbfd;
+}
+
+.installment-amount-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 170px;
+  gap: 12px;
+  align-items: center;
+}
+
+.installment-amount-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.installment-amount-checkbox input[type='checkbox'] {
+  accent-color: #0a53de;
+  flex-shrink: 0;
+}
+
+.installment-amount-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #344054;
+}
+
+.installment-amount-row .input-with-suffix.is-disabled input {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.installment-amount-total {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0a53de;
+}
+
+.summary-installment-amounts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.summary-installment-amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
   font-size: 13px;
 }
 
-.btn-close {
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  cursor: pointer;
-  color: #5f6c82;
+.info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  color: #1e40af;
 }
 
-.form-columns {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+.info-banner i {
+  font-size: 16px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.info-banner p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.fee-form-summary {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(180deg, #f7fbff 0%, #eff6ff 100%);
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 18px 16px;
+}
+
+.fee-form-summary h3 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0a53de;
+}
+
+.fee-form-summary h4 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0a53de;
+}
+
+.summary-block {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #dbeafe;
+}
+
+.summary-block:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.summary-row:last-child {
+  margin-bottom: 0;
+}
+
+.summary-label {
+  color: #5f6c82;
+  font-weight: 500;
+}
+
+.summary-value {
+  color: #18213a;
+  font-weight: 600;
+  text-align: right;
+}
+
+.summary-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.summary-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.summary-amount .summary-amount-value {
+  display: block;
+  margin-top: 4px;
+  font-size: 18px;
+  color: #18213a;
+}
+
+.summary-academic-block .summary-row {
+  margin-bottom: 6px;
+}
+
+.char-counter {
+  text-align: right;
+}
+
+.fee-form-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.fee-form-info i {
+  font-size: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.fee-form-info strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.fee-form-info ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.fee-form-info li + li {
+  margin-top: 4px;
 }
 
 .field-group {
@@ -695,6 +1295,12 @@
   color: #1f293f;
   font-size: 13px;
   outline: none;
+}
+
+.field-group select:disabled {
+  background: #f1f4f8;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 .field-hint,
@@ -810,18 +1416,23 @@
 :host-context(body.dark-theme) .school-fees-page .school-fees-table td,
 :host-context(body.dark-theme) .school-fees-page .search-box input,
 :host-context(body.dark-theme) .school-fees-page .context-select,
+:host-context(body.dark-theme) .school-fees-page .multi-select-trigger,
+:host-context(body.dark-theme) .school-fees-page .multi-select-panel,
 :host-context(body.dark-theme) .school-fees-page .dashboard-select,
 :host-context(body.dark-theme) .school-fees-page .filters-btn,
 :host-context(body.dark-theme) .school-fees-page .pagination button,
 :host-context(body.dark-theme) .school-fees-page .page-size-select,
 :host-context(body.dark-theme) .school-fees-page .action-menu,
-:host-context(body.dark-theme) .school-fee-modal,
-:host-context(body.dark-theme) .school-fee-modal .field-group input,
-:host-context(body.dark-theme) .school-fee-modal .field-group textarea,
-:host-context(body.dark-theme) .school-fee-modal .field-group select,
-:host-context(body.dark-theme) .school-fee-modal .btn-close,
-:host-context(body.dark-theme) .school-fee-modal .btn-cancel,
-:host-context(body.dark-theme) .school-fee-modal .toggle-row {
+:host-context(body.dark-theme) .fee-form-dialog,
+:host-context(body.dark-theme) .fee-form-section,
+:host-context(body.dark-theme) .fee-form-dialog .field-group input,
+:host-context(body.dark-theme) .fee-form-dialog .field-group textarea,
+:host-context(body.dark-theme) .fee-form-dialog .field-group select,
+:host-context(body.dark-theme) .fee-form-dialog .btn-cancel,
+:host-context(body.dark-theme) .fee-form-dialog .toggle-row,
+:host-context(body.dark-theme) .fee-form-dialog .multi-select-trigger,
+:host-context(body.dark-theme) .fee-form-dialog .multi-select-panel,
+:host-context(body.dark-theme) .fee-form-summary {
   background: #ffffff !important;
   color: #344054 !important;
   border-color: #e2e8f0 !important;
@@ -850,9 +1461,24 @@
   }
 
   .filters-grid,
-  .form-columns,
   .table-filters-bar {
     grid-template-columns: 1fr;
+  }
+
+  .fee-form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-form-row-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-form-header {
+    flex-direction: column;
+  }
+
+  .fee-form-summary {
+    position: static;
   }
 
   .info-panel {

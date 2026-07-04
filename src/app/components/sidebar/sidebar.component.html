@@ -76,6 +76,30 @@
                     <li>
                         <a
                             routerLink="/finances"
+                            [queryParams]="{ tab: 'devises' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Devises</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'taux' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Taux</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
                             [queryParams]="{ tab: 'categories-frais' }"
                             routerLinkActive="active"
                             [routerLinkActiveOptions]="{ exact: true }"

@@ -1,11 +1,13 @@
 <div class="page-container finances-page">
+  <app-ecole-currencies *ngIf="activeTab === 'devises'"></app-ecole-currencies>
+  <app-ecole-exchange-rates *ngIf="activeTab === 'taux'"></app-ecole-exchange-rates>
   <app-ecole-fee-categories *ngIf="activeTab === 'categories-frais'"></app-ecole-fee-categories>
   <app-ecole-payment-installments *ngIf="activeTab === 'tranches-paiement'"></app-ecole-payment-installments>
   <app-ecole-school-fees *ngIf="activeTab === 'frais-scolaires'"></app-ecole-school-fees>
 
   <section
     class="placeholder-panel"
-    *ngIf="activeTab !== 'categories-frais' && activeTab !== 'tranches-paiement' && activeTab !== 'frais-scolaires'"
+    *ngIf="activeTab !== 'devises' && activeTab !== 'taux' && activeTab !== 'categories-frais' && activeTab !== 'tranches-paiement' && activeTab !== 'frais-scolaires'"
   >
     <div class="placeholder-card">
       <i class="bi bi-tools"></i>

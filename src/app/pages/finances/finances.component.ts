@@ -1,11 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { EcoleCurrenciesComponent } from './ecole-currencies/ecole-currencies.component';
+import { EcoleExchangeRatesComponent } from './ecole-exchange-rates/ecole-exchange-rates.component';
 import { EcoleFeeCategoriesComponent } from './ecole-fee-categories/ecole-fee-categories.component';
 import { EcolePaymentInstallmentsComponent } from './ecole-payment-installments/ecole-payment-installments.component';
 import { EcoleSchoolFeesComponent } from './ecole-school-fees/ecole-school-fees.component';
 
 type FinancesTab =
+  | 'devises'
+  | 'taux'
   | 'categories-frais'
   | 'tranches-paiement'
   | 'frais-scolaires'
@@ -19,7 +23,7 @@ type FinancesTab =
 @Component({
   selector: 'app-finances',
   standalone: true,
-  imports: [CommonModule, EcoleFeeCategoriesComponent, EcolePaymentInstallmentsComponent, EcoleSchoolFeesComponent],
+  imports: [CommonModule, EcoleCurrenciesComponent, EcoleExchangeRatesComponent, EcoleFeeCategoriesComponent, EcolePaymentInstallmentsComponent, EcoleSchoolFeesComponent],
   templateUrl: './finances.component.html',
   styleUrl: './finances.component.css'
 })
@@ -44,6 +48,8 @@ export class FinancesComponent implements OnInit {
 
   private isValidTab(tab: string | null): tab is FinancesTab {
     return (
+      tab === 'devises' ||
+      tab === 'taux' ||
       tab === 'categories-frais' ||
       tab === 'tranches-paiement' ||
       tab === 'frais-scolaires' ||

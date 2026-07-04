@@ -139,6 +139,13 @@
     <app-ecole-academic-years [schoolId]="selectedSchoolId"></app-ecole-academic-years>
   </section>
 
+  <section *ngIf="activeTab === 'devises-annee-scolaire'" class="tab-panel">
+    <app-ecole-academic-year-currencies
+      [schoolId]="selectedSchoolId"
+      [schoolName]="selectedSchool?.name ?? ''"
+    ></app-ecole-academic-year-currencies>
+  </section>
+
   <section *ngIf="activeTab === 'classes'" class="tab-panel">
     <app-ecole-classes [schoolId]="selectedSchoolId"></app-ecole-classes>
   </section>
@@ -147,7 +154,7 @@
     <app-ecole-classroom-designations [schoolId]="selectedSchoolId"></app-ecole-classroom-designations>
   </section>
 
-  <section *ngIf="activeTab !== 'modeles-academiques' && activeTab !== 'annee-scolaire' && activeTab !== 'classes' && activeTab !== 'designations-salles'" class="tab-panel tab-placeholder">
+  <section *ngIf="activeTab !== 'modeles-academiques' && activeTab !== 'annee-scolaire' && activeTab !== 'devises-annee-scolaire' && activeTab !== 'classes' && activeTab !== 'designations-salles'" class="tab-panel tab-placeholder">
     <div class="placeholder-card">
       <i class="bi bi-tools"></i>
       <h2>{{ activeTabLabel }}</h2>

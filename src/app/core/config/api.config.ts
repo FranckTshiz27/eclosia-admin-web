@@ -28,6 +28,9 @@ export const API_ENDPOINTS = {
   feeCategory: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/fee-category`,
   paymentInstallment: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/payment-installment`,
   schoolFee: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/school-fee`,
+  currency: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/currency`,
+  schoolCurrency: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/school-currency`,
+  currencyRate: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/currency-rate`,
   guardian: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/guardian`,
   enrollment: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/enrollment`,
   enrollmentReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/enrollment-report`

@@ -56,61 +56,166 @@
 
       <div class="filter-field">
         <label>Cycle <span class="required">*</span></label>
-        <div class="select-with-icon">
-          <i class="bi bi-people"></i>
-          <select
-            class="context-select"
-            [(ngModel)]="cycleFilter"
-            [ngModelOptions]="{ standalone: true }"
-            (ngModelChange)="onCycleFilterChange()"
+        <div
+          class="multi-select single-select"
+          [class.open]="openMultiSelectField === 'cycle'"
+          [class.has-selection]="hasCycleSelection()"
+        >
+          <div
+            class="multi-select-trigger"
+            [class.is-disabled]="isCycleSelectDisabled()"
+            (click)="toggleMultiSelectPanel('cycle', $event)"
+            role="button"
+            tabindex="0"
           >
-            <option *ngFor="let option of cycleFilterOptions" [value]="option.value">{{ option.label }}</option>
-          </select>
+            <i class="bi bi-people trigger-icon"></i>
+            <div class="multi-select-values">
+              <span class="multi-select-placeholder" *ngIf="!hasCycleSelection()">
+                {{ isLoadingReferences ? 'Chargement...' : (getCycleOptionsExcludingAll().length === 0 ? 'Aucun cycle disponible' : 'Tous les cycles') }}
+              </span>
+              <span class="multi-select-chip" *ngIf="hasCycleSelection()" [title]="getCycleLabel(cycleFilter)">
+                <span class="chip-label">{{ getCycleLabel(cycleFilter) }}</span>
+                <button type="button" class="chip-remove" (click)="clearCycleFilter($event)" aria-label="Retirer">
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+            <i class="bi bi-chevron-down trigger-chevron"></i>
+          </div>
+          <div class="multi-select-panel" *ngIf="openMultiSelectField === 'cycle'" (click)="$event.stopPropagation()">
+            <p class="multi-select-empty" *ngIf="getCycleOptionsExcludingAll().length === 0">Aucun cycle disponible</p>
+            <button
+              type="button"
+              class="single-select-option"
+              *ngFor="let option of cycleFilterOptions"
+              [class.active]="cycleFilter === option.value"
+              (click)="selectCycleFilter(option.value, $event)"
+            >
+              <i class="bi bi-check2" *ngIf="cycleFilter === option.value"></i>
+              <span>{{ option.label }}</span>
+            </button>
+          </div>
         </div>
+        <small class="filter-hint warning" *ngIf="cyclesHint">{{ cyclesHint }}</small>
       </div>
 
       <div class="filter-field">
         <label>Niveau <span class="required">*</span></label>
-        <div class="select-with-icon">
-          <i class="bi bi-layers"></i>
-          <select
-            class="context-select"
-            [(ngModel)]="levelFilter"
-            [ngModelOptions]="{ standalone: true }"
-            (ngModelChange)="onLevelFilterChange()"
+        <div class="multi-select" [class.open]="openMultiSelectField === 'level'" [class.has-selection]="hasMultiSelection('level')">
+          <div
+            class="multi-select-trigger"
+            [class.is-disabled]="isMultiSelectDisabled('level')"
+            (click)="toggleMultiSelectPanel('level', $event)"
+            role="button"
+            tabindex="0"
           >
-            <option *ngFor="let option of levelFilterOptions" [value]="option.value">{{ option.label }}</option>
-          </select>
+            <i class="bi bi-layers trigger-icon"></i>
+            <div class="multi-select-values">
+              <span class="multi-select-placeholder" *ngIf="!hasMultiSelection('level')">Tous les niveaux</span>
+              <span class="multi-select-chip" *ngFor="let option of getSelectedOptions('level')" [title]="option.label">
+                <span class="chip-label">{{ option.label }}</span>
+                <button type="button" class="chip-remove" (click)="removeMultiValue('level', option.value, $event)" aria-label="Retirer">
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+            <i class="bi bi-chevron-down trigger-chevron"></i>
+          </div>
+          <div class="multi-select-panel" *ngIf="openMultiSelectField === 'level'" (click)="$event.stopPropagation()">
+            <div class="multi-select-actions">
+              <button type="button" (click)="selectAllMulti('level')">Tout sélectionner</button>
+              <button type="button" (click)="clearMulti('level')">Effacer</button>
+            </div>
+            <p class="multi-select-empty" *ngIf="levelFilterOptions.length === 0">Aucun niveau disponible</p>
+            <label class="multi-select-option" *ngFor="let option of levelFilterOptions">
+              <input
+                type="checkbox"
+                [checked]="isMultiSelected('level', option.value)"
+                (change)="toggleMultiValue('level', option.value)"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
         </div>
       </div>
 
       <div class="filter-field">
         <label>Section</label>
-        <div class="select-with-icon">
-          <i class="bi bi-collection"></i>
-          <select
-            class="context-select"
-            [(ngModel)]="sectionFilter"
-            [ngModelOptions]="{ standalone: true }"
-            (ngModelChange)="onSectionFilterChange()"
+        <div class="multi-select" [class.open]="openMultiSelectField === 'section'" [class.has-selection]="hasMultiSelection('section')">
+          <div
+            class="multi-select-trigger"
+            [class.is-disabled]="isMultiSelectDisabled('section')"
+            (click)="toggleMultiSelectPanel('section', $event)"
+            role="button"
+            tabindex="0"
           >
-            <option *ngFor="let option of sectionFilterOptions" [value]="option.value">{{ option.label }}</option>
-          </select>
+            <i class="bi bi-collection trigger-icon"></i>
+            <div class="multi-select-values">
+              <span class="multi-select-placeholder" *ngIf="!hasMultiSelection('section')">Toutes les sections</span>
+              <span class="multi-select-chip" *ngFor="let option of getSelectedOptions('section')" [title]="option.label">
+                <span class="chip-label">{{ option.label }}</span>
+                <button type="button" class="chip-remove" (click)="removeMultiValue('section', option.value, $event)" aria-label="Retirer">
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+            <i class="bi bi-chevron-down trigger-chevron"></i>
+          </div>
+          <div class="multi-select-panel" *ngIf="openMultiSelectField === 'section'" (click)="$event.stopPropagation()">
+            <div class="multi-select-actions">
+              <button type="button" (click)="selectAllMulti('section')">Tout sélectionner</button>
+              <button type="button" (click)="clearMulti('section')">Effacer</button>
+            </div>
+            <p class="multi-select-empty" *ngIf="sectionFilterOptions.length === 0">Aucune section disponible</p>
+            <label class="multi-select-option" *ngFor="let option of sectionFilterOptions">
+              <input
+                type="checkbox"
+                [checked]="isMultiSelected('section', option.value)"
+                (change)="toggleMultiValue('section', option.value)"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
         </div>
       </div>
 
       <div class="filter-field">
         <label>Option</label>
-        <div class="select-with-icon">
-          <i class="bi bi-diagram-3"></i>
-          <select
-            class="context-select"
-            [(ngModel)]="optionFilter"
-            [ngModelOptions]="{ standalone: true }"
-            (ngModelChange)="onFiltersChange()"
+        <div class="multi-select" [class.open]="openMultiSelectField === 'option'" [class.has-selection]="hasMultiSelection('option')">
+          <div
+            class="multi-select-trigger"
+            [class.is-disabled]="isMultiSelectDisabled('option')"
+            (click)="toggleMultiSelectPanel('option', $event)"
+            role="button"
+            tabindex="0"
           >
-            <option *ngFor="let option of optionFilterOptions" [value]="option.value">{{ option.label }}</option>
-          </select>
+            <i class="bi bi-diagram-3 trigger-icon"></i>
+            <div class="multi-select-values">
+              <span class="multi-select-placeholder" *ngIf="!hasMultiSelection('option')">Toutes les options</span>
+              <span class="multi-select-chip" *ngFor="let option of getSelectedOptions('option')" [title]="option.label">
+                <span class="chip-label">{{ option.label }}</span>
+                <button type="button" class="chip-remove" (click)="removeMultiValue('option', option.value, $event)" aria-label="Retirer">
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+            <i class="bi bi-chevron-down trigger-chevron"></i>
+          </div>
+          <div class="multi-select-panel" *ngIf="openMultiSelectField === 'option'" (click)="$event.stopPropagation()">
+            <div class="multi-select-actions">
+              <button type="button" (click)="selectAllMulti('option')">Tout sélectionner</button>
+              <button type="button" (click)="clearMulti('option')">Effacer</button>
+            </div>
+            <p class="multi-select-empty" *ngIf="optionFilterOptions.length === 0">Aucune option disponible</p>
+            <label class="multi-select-option" *ngFor="let option of optionFilterOptions">
+              <input
+                type="checkbox"
+                [checked]="isMultiSelected('option', option.value)"
+                (change)="toggleMultiValue('option', option.value)"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -122,7 +227,7 @@
             class="context-select"
             [(ngModel)]="categoryFilter"
             [ngModelOptions]="{ standalone: true }"
-            (ngModelChange)="onFiltersChange()"
+            (ngModelChange)="onCategoryFilterChange()"
           >
             <option *ngFor="let option of categoryFilterOptions" [value]="option.value">{{ option.label }}</option>
           </select>
@@ -130,17 +235,59 @@
       </div>
 
       <div class="filter-field">
-        <label>Tranche</label>
+        <label>Catégorie d'élèves</label>
         <div class="select-with-icon">
-          <i class="bi bi-list-ol"></i>
+          <i class="bi bi-people"></i>
           <select
             class="context-select"
-            [(ngModel)]="installmentFilter"
+            [(ngModel)]="studentCategoryFilter"
             [ngModelOptions]="{ standalone: true }"
             (ngModelChange)="onFiltersChange()"
           >
-            <option *ngFor="let option of installmentFilterOptions" [value]="option.value">{{ option.label }}</option>
+            <option *ngFor="let option of studentCategoryFilterOptions" [value]="option.value">{{ option.label }}</option>
           </select>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label>Tranche</label>
+        <div class="multi-select" [class.open]="openMultiSelectField === 'installment'" [class.has-selection]="hasMultiSelection('installment')">
+          <div
+            class="multi-select-trigger"
+            [class.is-disabled]="isMultiSelectDisabled('installment')"
+            (click)="toggleMultiSelectPanel('installment', $event)"
+            role="button"
+            tabindex="0"
+          >
+            <i class="bi bi-list-ol trigger-icon"></i>
+            <div class="multi-select-values">
+              <span class="multi-select-placeholder" *ngIf="!hasMultiSelection('installment')">
+                {{ isInstallmentFilterDisabled() ? 'Non applicable pour cette catégorie' : 'Toutes les tranches' }}
+              </span>
+              <span class="multi-select-chip" *ngFor="let option of getSelectedOptions('installment')" [title]="option.label">
+                <span class="chip-label">{{ option.label }}</span>
+                <button type="button" class="chip-remove" (click)="removeMultiValue('installment', option.value, $event)" aria-label="Retirer">
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+            <i class="bi bi-chevron-down trigger-chevron"></i>
+          </div>
+          <div class="multi-select-panel" *ngIf="openMultiSelectField === 'installment'" (click)="$event.stopPropagation()">
+            <div class="multi-select-actions">
+              <button type="button" (click)="selectAllMulti('installment')">Tout sélectionner</button>
+              <button type="button" (click)="clearMulti('installment')">Effacer</button>
+            </div>
+            <p class="multi-select-empty" *ngIf="installmentFilterOptions.length === 0">Aucune tranche disponible</p>
+            <label class="multi-select-option" *ngFor="let option of installmentFilterOptions">
+              <input
+                type="checkbox"
+                [checked]="isMultiSelected('installment', option.value)"
+                (change)="toggleMultiValue('installment', option.value)"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -196,6 +343,7 @@
             <th>Code</th>
             <th>Libellé</th>
             <th>Catégorie</th>
+            <th>Catégorie d'élèves</th>
             <th>Montant (USD)</th>
             <th>Tranche</th>
             <th>Paiement par tranche</th>
@@ -205,16 +353,16 @@
         </thead>
         <tbody>
           <tr *ngIf="!selectedSchoolId || !selectedYearId">
-            <td colspan="8" class="table-state">Sélectionnez une école et une année scolaire.</td>
+            <td colspan="9" class="table-state">Sélectionnez une école et une année scolaire.</td>
           </tr>
           <tr *ngIf="selectedSchoolId && selectedYearId && isLoading">
-            <td colspan="8" class="table-state">Chargement des frais scolaires...</td>
+            <td colspan="9" class="table-state">Chargement des frais scolaires...</td>
           </tr>
           <tr *ngIf="selectedSchoolId && selectedYearId && !isLoading && loadError">
-            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
+            <td colspan="9" class="table-state table-state-error">{{ loadError }}</td>
           </tr>
           <tr *ngIf="selectedSchoolId && selectedYearId && !isLoading && !loadError && filteredFees.length === 0">
-            <td colspan="8" class="table-state">
+            <td colspan="9" class="table-state">
               {{
                 fees.length === 0
                   ? 'Aucun frais scolaire enregistré pour cette sélection.'
@@ -232,6 +380,10 @@
                 <i class="bi" [ngClass]="item.categoryIcon"></i>
                 {{ item.categoryName }}
               </span>
+            </td>
+            <td>
+              <span *ngIf="item.studentCategoryId; else noStudentCategory">{{ item.studentCategoryName }}</span>
+              <ng-template #noStudentCategory><span class="empty-cell">—</span></ng-template>
             </td>
             <td class="amount-col">{{ item.amountLabel }}</td>
             <td>
@@ -337,183 +489,640 @@
   </aside>
 </div>
 
-<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
-  <div class="school-fee-modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <div>
-        <h3>{{ isEditMode ? 'Modifier le frais' : 'Nouveau frais scolaire' }}</h3>
-        <p>
-          {{
-            isEditMode
-              ? 'Mettez à jour les informations de ce frais scolaire'
-              : 'Ajoutez un frais pour la combinaison académique sélectionnée'
-          }}
-        </p>
-      </div>
-      <button class="btn-close" type="button" (click)="closeModal()">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-
+<div #feeFormBackdrop class="modal-backdrop fee-form-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="fee-form-dialog" (click)="$event.stopPropagation()">
     <form #schoolFeeForm="ngForm" (ngSubmit)="saveFee(schoolFeeForm)" novalidate>
-      <div class="modal-body">
-        <div class="form-columns">
-          <div class="form-column">
-            <div class="field-group">
-              <label>Code <span>*</span></label>
-              <input
-                type="text"
-                name="code"
-                [(ngModel)]="form.code"
-                #codeCtrl="ngModel"
-                required
-                maxlength="20"
-                pattern=".*\S.*"
-                placeholder="Ex: INSCR"
-                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
-              />
+      <header class="fee-form-header">
+        <div class="fee-form-header-text">
+          <h2>{{ isEditMode ? 'Modifier le frais scolaire' : 'Nouveau frais scolaire' }}</h2>
+          <p>
+            {{
+              isEditMode
+                ? 'Mettez à jour les informations de ce frais scolaire.'
+                : 'Enregistrez un nouveau frais pour une combinaison (cycle, niveau, section, option) et une année scolaire.'
+            }}
+          </p>
+        </div>
+        <div class="fee-form-header-actions">
+          <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+          <button class="btn-save" type="submit" [disabled]="isSaving">
+            <i class="bi bi-save"></i>
+            {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+          </button>
+        </div>
+      </header>
+
+      <div class="fee-form-body">
+      <div class="fee-form-layout">
+        <div class="fee-form-main">
+          <section class="fee-form-section">
+            <div class="fee-form-section-heading">
+              <span class="fee-form-section-badge">1</span>
+              <h3>Informations générales</h3>
             </div>
 
-            <div class="field-group">
-              <label>Libellé <span>*</span></label>
-              <input
-                type="text"
-                name="name"
-                [(ngModel)]="form.name"
-                #nameCtrl="ngModel"
-                required
-                maxlength="100"
-                pattern=".*\S.*"
-                placeholder="Ex: Frais d'inscription"
-                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
-              />
+            <div class="fee-form-row fee-form-row-2" *ngIf="isEditMode">
+              <div class="field-group">
+                <label>Code <span class="required">*</span></label>
+                <input
+                  type="text"
+                  name="code"
+                  [(ngModel)]="form.code"
+                  #codeCtrl="ngModel"
+                  required
+                  maxlength="20"
+                  pattern=".*\S.*"
+                  placeholder="Ex: MINERVAL"
+                  [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+                />
+                <small class="field-hint">Code unique du frais</small>
+              </div>
+
+              <div class="field-group">
+                <label>Libellé <span class="required">*</span></label>
+                <input
+                  type="text"
+                  name="name"
+                  [(ngModel)]="form.name"
+                  #nameCtrl="ngModel"
+                  required
+                  maxlength="100"
+                  pattern=".*\S.*"
+                  placeholder="Ex: Minerval"
+                  [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+                />
+                <small class="field-hint">Nom du frais</small>
+              </div>
             </div>
 
-            <div class="field-group">
-              <label>Montant (USD) <span>*</span></label>
-              <input
-                type="number"
-                name="amount"
-                [(ngModel)]="form.amount"
-                #amountCtrl="ngModel"
-                required
-                min="0"
-                step="0.01"
-                placeholder="Ex: 50"
-                [class.input-invalid]="(amountCtrl.invalid && amountCtrl.touched) || (isSubmitted && amountCtrl.invalid)"
-              />
+            <div class="fee-form-row fee-form-row-2">
+              <div class="field-group">
+                <label>Catégorie de frais <span class="required">*</span></label>
+                <select
+                  name="feeCategoryId"
+                  [(ngModel)]="form.feeCategoryId"
+                  #categoryCtrl="ngModel"
+                  required
+                  (ngModelChange)="onFormCategoryChange()"
+                  [class.input-invalid]="(categoryCtrl.invalid && categoryCtrl.touched) || (isSubmitted && categoryCtrl.invalid)"
+                >
+                  <option value="" disabled>Sélectionner</option>
+                  <option *ngFor="let option of categoryFormOptions" [value]="option.value">{{ option.label }}</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <label>
+                  Paiement par tranche
+                  <i class="bi bi-info-circle field-info-icon" title="Indique si le frais est réparti sur plusieurs tranches"></i>
+                </label>
+                <div class="radio-group" [class.is-disabled]="!selectedCategoryAllowsInstallments">
+                  <button
+                    type="button"
+                    class="radio-option"
+                    [class.active]="form.paymentByInstallment"
+                    disabled
+                  >
+                    Oui
+                  </button>
+                  <button
+                    type="button"
+                    class="radio-option"
+                    [class.active]="!form.paymentByInstallment"
+                    disabled
+                  >
+                    Non
+                  </button>
+                </div>
+                <small class="field-hint" *ngIf="selectedCategoryAllowsInstallments">
+                  Le paiement par tranche est obligatoire pour cette catégorie.
+                </small>
+                <small class="field-hint" *ngIf="!selectedCategoryAllowsInstallments">
+                  Cette catégorie n'admet pas de tranches de paiement.
+                </small>
+              </div>
             </div>
 
-            <div class="field-group">
-              <label>Catégorie de frais <span>*</span></label>
-              <select
-                name="feeCategoryId"
-                [(ngModel)]="form.feeCategoryId"
-                #categoryCtrl="ngModel"
-                required
-                (ngModelChange)="onFormCategoryChange()"
-                [class.input-invalid]="(categoryCtrl.invalid && categoryCtrl.touched) || (isSubmitted && categoryCtrl.invalid)"
-              >
-                <option value="" disabled>Sélectionner</option>
-                <option *ngFor="let option of categoryFormOptions" [value]="option.value">{{ option.label }}</option>
-              </select>
+            <div class="field-group installment-amounts-block" *ngIf="formInstallmentsEnabled">
+              <label>Tranches concernees <span class="required">*</span></label>
+              <small class="field-hint">
+                Cochez les tranches concernees par ce frais, puis saisissez le montant pour chacune.
+              </small>
+              <div class="installment-amounts-list">
+                <div class="installment-amount-row" *ngFor="let option of formInstallmentOptions">
+                  <label class="installment-amount-checkbox">
+                    <input
+                      type="checkbox"
+                      [checked]="isFormInstallmentSelected(option.value)"
+                      (change)="toggleFormInstallmentSelection(option.value)"
+                    />
+                    <span class="installment-amount-label">{{ option.label }}</span>
+                  </label>
+                  <div
+                    class="input-with-suffix"
+                    [class.is-disabled]="!isFormInstallmentSelected(option.value)"
+                  >
+                    <input
+                      type="number"
+                      [name]="'installmentAmount_' + option.value"
+                      [ngModel]="getInstallmentAmount(option.value)"
+                      (ngModelChange)="setInstallmentAmount(option.value, $event)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="!isFormInstallmentSelected(option.value)"
+                      min="0"
+                      step="0.01"
+                      placeholder="0,00"
+                    />
+                    <span class="input-suffix">$</span>
+                  </div>
+                </div>
+                <p class="multi-select-empty" *ngIf="formInstallmentOptions.length === 0">Aucune tranche disponible</p>
+              </div>
+              <p class="installment-amount-total" *ngIf="getInstallmentAmountTotal() > 0">
+                Total : {{ summaryAmountLabel }}
+              </p>
             </div>
 
-            <div class="field-group" *ngIf="selectedCategoryAllowsInstallments">
-              <label>Tranche</label>
-              <select name="paymentInstallmentId" [(ngModel)]="form.paymentInstallmentId">
-                <option *ngFor="let option of installmentFormOptions" [value]="option.value">{{ option.label }}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-column">
-            <div class="field-group">
-              <label>Cycle <span>*</span></label>
-              <select
-                name="academicCycleId"
-                [(ngModel)]="form.academicCycleId"
-                #cycleCtrl="ngModel"
-                required
-                (ngModelChange)="onFormCycleChange()"
-                [class.input-invalid]="(cycleCtrl.invalid && cycleCtrl.touched) || (isSubmitted && cycleCtrl.invalid)"
-              >
-                <option value="" disabled>Sélectionner</option>
-                <option *ngFor="let option of cycleFormOptions" [value]="option.value">{{ option.label }}</option>
-              </select>
+            <div class="field-group" *ngIf="!formInstallmentsEnabled">
+              <label>Montant (USD) <span class="required">*</span></label>
+              <div class="input-with-suffix">
+                <input
+                  type="number"
+                  name="amount"
+                  [(ngModel)]="form.amount"
+                  #amountCtrl="ngModel"
+                  required
+                  min="0"
+                  step="0.01"
+                  placeholder="Ex: 150"
+                  [class.input-invalid]="(amountCtrl.invalid && amountCtrl.touched) || (isSubmitted && amountCtrl.invalid)"
+                />
+                <span class="input-suffix">$</span>
+              </div>
+              <small class="field-hint">Montant total du frais</small>
             </div>
 
-            <div class="field-group">
-              <label>Niveau <span>*</span></label>
-              <select
-                name="academicLevelId"
-                [(ngModel)]="form.academicLevelId"
-                #levelCtrl="ngModel"
-                required
-                (ngModelChange)="onFormLevelChange()"
-                [class.input-invalid]="(levelCtrl.invalid && levelCtrl.touched) || (isSubmitted && levelCtrl.invalid)"
-              >
-                <option value="" disabled>Sélectionner</option>
-                <option *ngFor="let option of levelFormOptions" [value]="option.value">{{ option.label }}</option>
-              </select>
-            </div>
-
-            <div class="field-group">
-              <label>Section</label>
-              <select
-                name="academicSectionId"
-                [(ngModel)]="form.academicSectionId"
-                (ngModelChange)="onFormSectionChange()"
-              >
-                <option value="">Aucune section</option>
-                <option *ngFor="let option of sectionFormOptions" [value]="option.value">{{ option.label }}</option>
-              </select>
-            </div>
-
-            <div class="field-group">
-              <label>Option</label>
-              <select name="academicOptionId" [(ngModel)]="form.academicOptionId">
-                <option value="">Aucune option</option>
-                <option *ngFor="let option of optionFormOptions" [value]="option.value">{{ option.label }}</option>
-              </select>
-            </div>
-
-            <div class="field-group">
+            <div class="field-group" *ngIf="isEditMode">
               <label>Description</label>
               <textarea
                 name="description"
                 [(ngModel)]="form.description"
-                maxlength="500"
+                maxlength="255"
                 rows="3"
                 placeholder="Description optionnelle..."
               ></textarea>
-              <small class="field-hint">{{ descriptionLength }} / {{ descriptionMaxLength }} caractères</small>
+              <small class="field-hint char-counter">{{ descriptionLength }} / {{ formDescriptionMaxLength }}</small>
+            </div>
+          </section>
+
+          <section class="fee-form-section">
+            <div class="fee-form-section-heading">
+              <span class="fee-form-section-badge">2</span>
+              <h3>Combinaison académique</h3>
             </div>
 
             <div class="field-group">
-              <label>Statut</label>
-              <div class="toggle-row">
-                <div>
-                  <strong>{{ form.active ? 'Actif' : 'Inactif' }}</strong>
-                  <p>Les frais inactifs ne sont plus proposés dans les sélections courantes.</p>
+              <label>Année scolaire <span class="required">*</span></label>
+              <div class="select-with-icon">
+                <i class="bi bi-calendar3"></i>
+                <select
+                  name="formYearId"
+                  [(ngModel)]="form.formYearId"
+                  #yearCtrl="ngModel"
+                  required
+                  [class.input-invalid]="(yearCtrl.invalid && yearCtrl.touched) || (isSubmitted && yearCtrl.invalid)"
+                >
+                  <option value="" disabled>Sélectionner</option>
+                  <option *ngFor="let year of yearOptions" [value]="year.value">{{ year.label }}</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Cycle <span class="required">*</span></label>
+              <div
+                class="multi-select single-select fee-form-multi-select"
+                [class.open]="openFormCycleSelect"
+                [class.has-selection]="hasFormCycleSelection()"
+              >
+                <div
+                  class="multi-select-trigger"
+                  [class.is-disabled]="cycleFormOptions.length === 0"
+                  (click)="toggleFormCycleSelectPanel($event)"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div class="multi-select-values">
+                    <span class="multi-select-placeholder" *ngIf="!hasFormCycleSelection()">
+                      {{ cycleFormOptions.length === 0 ? 'Aucun cycle disponible' : 'Sélectionner...' }}
+                    </span>
+                    <span class="multi-select-chip" *ngIf="hasFormCycleSelection()" [title]="getFormCycleLabel()">
+                      <span class="chip-label">{{ getFormCycleLabel() }}</span>
+                      <button
+                        type="button"
+                        class="chip-remove"
+                        (click)="clearFormCycle($event)"
+                        aria-label="Retirer"
+                      >
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </span>
+                  </div>
+                  <i class="bi bi-chevron-down trigger-chevron"></i>
                 </div>
-                <button type="button" class="toggle-btn" [class.active]="form.active" (click)="toggleActiveStatus()">
-                  <span></span>
-                </button>
+                <div
+                  class="multi-select-panel"
+                  *ngIf="openFormCycleSelect"
+                  (click)="$event.stopPropagation()"
+                >
+                  <p class="multi-select-empty" *ngIf="cycleFormOptions.length === 0">Aucun cycle disponible</p>
+                  <button
+                    type="button"
+                    class="single-select-option"
+                    *ngFor="let option of cycleFormOptions"
+                    [class.active]="form.formCycleId === option.value"
+                    (click)="selectFormCycle(option.value, $event)"
+                  >
+                    <i class="bi bi-check2" *ngIf="form.formCycleId === option.value"></i>
+                    <span>{{ option.label }}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Niveau(x) (sélection multiple) <span class="required">*</span></label>
+              <div
+                class="multi-select fee-form-multi-select"
+                [class.open]="openFormMultiSelectField === 'form-level'"
+                [class.has-selection]="hasFormMultiSelection('form-level')"
+              >
+                <div
+                  class="multi-select-trigger"
+                  [class.is-disabled]="isFormMultiSelectDisabled('form-level')"
+                  (click)="toggleFormMultiSelectPanel('form-level', $event)"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div class="multi-select-values">
+                    <span class="multi-select-placeholder" *ngIf="!hasFormMultiSelection('form-level')">
+                      {{ getFormPlaceholder('form-level', 'Sélectionner...') }}
+                    </span>
+                    <span
+                      class="multi-select-chip"
+                      *ngFor="let option of getFormSelectedOptions('form-level')"
+                      [title]="option.label"
+                    >
+                      <span class="chip-label">{{ option.label }}</span>
+                      <button
+                        type="button"
+                        class="chip-remove"
+                        (click)="removeFormMultiValue('form-level', option.value, $event)"
+                        aria-label="Retirer"
+                      >
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </span>
+                  </div>
+                  <i class="bi bi-chevron-down trigger-chevron"></i>
+                </div>
+                <div
+                  class="multi-select-panel"
+                  *ngIf="openFormMultiSelectField === 'form-level'"
+                  (click)="$event.stopPropagation()"
+                >
+                  <div class="multi-select-actions">
+                    <button type="button" (click)="selectAllFormMulti('form-level')">Tout sélectionner</button>
+                    <button type="button" (click)="clearFormMulti('form-level')">Effacer</button>
+                  </div>
+                  <p class="multi-select-empty" *ngIf="formLevelOptions.length === 0">Aucun niveau disponible</p>
+                  <label class="multi-select-option" *ngFor="let option of formLevelOptions">
+                    <input
+                      type="checkbox"
+                      [checked]="isFormMultiSelected('form-level', option.value)"
+                      (change)="toggleFormMultiValue('form-level', option.value)"
+                    />
+                    <span>{{ option.label }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Section(s) (sélection multiple)</label>
+              <div
+                class="multi-select fee-form-multi-select"
+                [class.open]="openFormMultiSelectField === 'form-section'"
+                [class.has-selection]="hasFormMultiSelection('form-section')"
+              >
+                <div
+                  class="multi-select-trigger"
+                  [class.is-disabled]="isFormMultiSelectDisabled('form-section')"
+                  (click)="toggleFormMultiSelectPanel('form-section', $event)"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div class="multi-select-values">
+                    <span class="multi-select-placeholder" *ngIf="!hasFormMultiSelection('form-section')">
+                      {{ getFormPlaceholder('form-section', 'Sélectionner...') }}
+                    </span>
+                    <span
+                      class="multi-select-chip"
+                      *ngFor="let option of getFormSelectedOptions('form-section')"
+                      [title]="option.label"
+                    >
+                      <span class="chip-label">{{ option.label }}</span>
+                      <button
+                        type="button"
+                        class="chip-remove"
+                        (click)="removeFormMultiValue('form-section', option.value, $event)"
+                        aria-label="Retirer"
+                      >
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </span>
+                  </div>
+                  <i class="bi bi-chevron-down trigger-chevron"></i>
+                </div>
+                <div
+                  class="multi-select-panel"
+                  *ngIf="openFormMultiSelectField === 'form-section'"
+                  (click)="$event.stopPropagation()"
+                >
+                  <div class="multi-select-actions">
+                    <button type="button" (click)="selectAllFormMulti('form-section')">Tout sélectionner</button>
+                    <button type="button" (click)="clearFormMulti('form-section')">Effacer</button>
+                  </div>
+                  <p class="multi-select-empty" *ngIf="formSectionOptions.length === 0">Aucune section disponible</p>
+                  <label class="multi-select-option" *ngFor="let option of formSectionOptions">
+                    <input
+                      type="checkbox"
+                      [checked]="isFormMultiSelected('form-section', option.value)"
+                      (change)="toggleFormMultiValue('form-section', option.value)"
+                    />
+                    <span>{{ option.label }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Option(s) (sélection multiple)</label>
+              <div
+                class="multi-select fee-form-multi-select"
+                [class.open]="openFormMultiSelectField === 'form-option'"
+                [class.has-selection]="hasFormMultiSelection('form-option')"
+              >
+                <div
+                  class="multi-select-trigger"
+                  [class.is-disabled]="isFormMultiSelectDisabled('form-option')"
+                  (click)="toggleFormMultiSelectPanel('form-option', $event)"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div class="multi-select-values">
+                    <span class="multi-select-placeholder" *ngIf="!hasFormMultiSelection('form-option')">
+                      {{ getFormPlaceholder('form-option', 'Sélectionner...') }}
+                    </span>
+                    <span
+                      class="multi-select-chip"
+                      *ngFor="let option of getFormSelectedOptions('form-option')"
+                      [title]="option.label"
+                    >
+                      <span class="chip-label">{{ option.label }}</span>
+                      <button
+                        type="button"
+                        class="chip-remove"
+                        (click)="removeFormMultiValue('form-option', option.value, $event)"
+                        aria-label="Retirer"
+                      >
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </span>
+                  </div>
+                  <i class="bi bi-chevron-down trigger-chevron"></i>
+                </div>
+                <div
+                  class="multi-select-panel"
+                  *ngIf="openFormMultiSelectField === 'form-option'"
+                  (click)="$event.stopPropagation()"
+                >
+                  <div class="multi-select-actions">
+                    <button type="button" (click)="selectAllFormMulti('form-option')">Tout sélectionner</button>
+                    <button type="button" (click)="clearFormMulti('form-option')">Effacer</button>
+                  </div>
+                  <p class="multi-select-empty" *ngIf="formOptionOptions.length === 0">Aucune option disponible</p>
+                  <label class="multi-select-option" *ngFor="let option of formOptionOptions">
+                    <input
+                      type="checkbox"
+                      [checked]="isFormMultiSelected('form-option', option.value)"
+                      (change)="toggleFormMultiValue('form-option', option.value)"
+                    />
+                    <span>{{ option.label }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Catégorie(s) d'élèves (sélection multiple)</label>
+              <div
+                class="multi-select fee-form-multi-select"
+                [class.open]="openFormMultiSelectField === 'form-student-category'"
+                [class.has-selection]="hasFormMultiSelection('form-student-category')"
+              >
+                <div
+                  class="multi-select-trigger"
+                  [class.is-disabled]="isFormMultiSelectDisabled('form-student-category')"
+                  (click)="toggleFormMultiSelectPanel('form-student-category', $event)"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div class="multi-select-values">
+                    <span class="multi-select-placeholder" *ngIf="!hasFormMultiSelection('form-student-category')">
+                      {{ getFormPlaceholder('form-student-category', 'Sélectionner...') }}
+                    </span>
+                    <span
+                      class="multi-select-chip"
+                      *ngFor="let option of getFormSelectedOptions('form-student-category')"
+                      [title]="option.label"
+                    >
+                      <span class="chip-label">{{ option.label }}</span>
+                      <button
+                        type="button"
+                        class="chip-remove"
+                        (click)="removeFormMultiValue('form-student-category', option.value, $event)"
+                        aria-label="Retirer"
+                      >
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </span>
+                  </div>
+                  <i class="bi bi-chevron-down trigger-chevron"></i>
+                </div>
+                <div
+                  class="multi-select-panel"
+                  *ngIf="openFormMultiSelectField === 'form-student-category'"
+                  (click)="$event.stopPropagation()"
+                >
+                  <div class="multi-select-actions">
+                    <button type="button" (click)="selectAllFormMulti('form-student-category')">Tout sélectionner</button>
+                    <button type="button" (click)="clearFormMulti('form-student-category')">Effacer</button>
+                  </div>
+                  <p class="multi-select-empty" *ngIf="formStudentCategoryOptions.length === 0">
+                    Aucune catégorie d'élèves disponible
+                  </p>
+                  <label class="multi-select-option" *ngFor="let option of formStudentCategoryOptions">
+                    <input
+                      type="checkbox"
+                      [checked]="isFormMultiSelected('form-student-category', option.value)"
+                      (change)="toggleFormMultiValue('form-student-category', option.value)"
+                    />
+                    <span>{{ option.label }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-banner">
+              <i class="bi bi-info-circle"></i>
+              <p>Laissez un champ vide si le frais ne concerne pas ce critère.</p>
+            </div>
+          </section>
+
+          <section class="fee-form-section" *ngIf="isEditMode">
+            <div class="fee-form-section-heading">
+              <span class="fee-form-section-badge">3</span>
+              <h3>Paramètres</h3>
+            </div>
+
+            <div class="fee-form-row fee-form-row-2">
+              <div class="field-group">
+                <label>Statut <span class="required">*</span></label>
+                <div class="toggle-row">
+                  <div>
+                    <strong>{{ form.active ? 'Actif' : 'Inactif' }}</strong>
+                    <p>Désactivez si ce frais n'est plus applicable.</p>
+                  </div>
+                  <button type="button" class="toggle-btn" [class.active]="form.active" (click)="toggleActiveStatus()">
+                    <span></span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label>Ordre d'affichage</label>
+                <input
+                  type="number"
+                  name="displayOrder"
+                  [(ngModel)]="form.displayOrder"
+                  min="1"
+                  step="1"
+                  placeholder="Ex: 1"
+                />
+                <small class="field-hint">Ordre d'affichage dans la liste</small>
+              </div>
+            </div>
+          </section>
+
+          <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+        </div>
+
+        <aside class="fee-form-summary">
+          <h3>Récapitulatif du frais</h3>
+
+          <div class="summary-block">
+            <div class="summary-row" *ngIf="isEditMode">
+              <span class="summary-label">Code :</span>
+              <span class="summary-value">{{ form.code.trim() || '—' }}</span>
+            </div>
+            <div class="summary-row" *ngIf="isEditMode">
+              <span class="summary-label">Libellé :</span>
+              <span class="summary-value">{{ form.name.trim() || '—' }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Catégorie :</span>
+              <span class="summary-value">{{ summaryCategoryName }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Paiement par tranche :</span>
+              <span
+                class="installment-payment-chip"
+                [class.payment-yes]="form.paymentByInstallment && selectedCategoryAllowsInstallments"
+                [class.payment-no]="!form.paymentByInstallment || !selectedCategoryAllowsInstallments"
+              >
+                {{ form.paymentByInstallment && selectedCategoryAllowsInstallments ? 'Oui' : 'Non' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="summary-block" *ngIf="formInstallmentsEnabled && summaryInstallmentAmounts.length">
+            <span class="summary-label">Montants par tranche :</span>
+            <div class="summary-installment-amounts">
+              <div class="summary-installment-amount-row" *ngFor="let row of summaryInstallmentAmounts">
+                <span class="summary-pill summary-pill-purple">{{ row.code }}</span>
+                <span class="summary-value">{{ row.amountLabel }}</span>
               </div>
             </div>
           </div>
-        </div>
 
-        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+          <div class="summary-block summary-amount">
+            <span class="summary-label">Montant total :</span>
+            <strong class="summary-amount-value">{{ summaryAmountLabel }}</strong>
+          </div>
+
+          <div class="summary-block summary-academic-block">
+            <h4>Combinaison académique</h4>
+            <div class="summary-row">
+              <span class="summary-label">Année scolaire :</span>
+              <span class="summary-value">{{ summaryYearLabel }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Cycle :</span>
+              <span class="summary-value">{{ summaryCycleLabel }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Niveaux :</span>
+              <span class="summary-value">{{ formatSummaryCount(summarySelectionCount.levels) }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Sections :</span>
+              <span class="summary-value">{{ formatSummaryCount(summarySelectionCount.sections) }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Options :</span>
+              <span class="summary-value">{{ formatSummaryCount(summarySelectionCount.options) }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Catégories d'élèves :</span>
+              <span class="summary-value">{{ formatSummaryCount(summarySelectionCount.studentCategories) }}</span>
+            </div>
+          </div>
+
+          <div class="summary-block" *ngIf="isEditMode">
+            <span class="summary-label">Statut :</span>
+            <span
+              class="status-badge"
+              [class.status-active]="form.active"
+              [class.status-inactive]="!form.active"
+            >
+              <span class="status-dot"></span>
+              {{ form.active ? 'Actif' : 'Inactif' }}
+            </span>
+          </div>
+        </aside>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
-        <button class="btn-save" type="submit" [disabled]="isSaving || schoolFeeForm.invalid">
-          <i class="bi bi-save"></i>
-          {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
-        </button>
+      <div class="fee-form-info">
+        <i class="bi bi-info-circle"></i>
+        <div>
+          <strong>Information</strong>
+          <ul>
+            <li>Les frais marqués avec une tranche seront exigibles selon l'échéance définie pour chaque tranche.</li>
+            <li>Les frais sans tranche doivent être payés en une seule fois.</li>
+          </ul>
+        </div>
+      </div>
       </div>
     </form>
   </div>

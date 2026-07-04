@@ -137,6 +137,41 @@ body,
     font-weight: 800;
 }
 
+/* Modale frais scolaires — portail sur body pour overlay plein écran */
+body.school-fee-modal-open {
+    overflow: hidden;
+}
+
+body > .fee-form-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(15, 23, 42, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+body.dark-theme > .fee-form-backdrop {
+    background: rgba(15, 23, 42, 0.65) !important;
+}
+
+body.dark-theme > .fee-form-backdrop .fee-form-dialog,
+body.dark-theme > .fee-form-backdrop .fee-form-section,
+body.dark-theme > .fee-form-backdrop .field-group input,
+body.dark-theme > .fee-form-backdrop .field-group textarea,
+body.dark-theme > .fee-form-backdrop .field-group select,
+body.dark-theme > .fee-form-backdrop .btn-cancel,
+body.dark-theme > .fee-form-backdrop .toggle-row,
+body.dark-theme > .fee-form-backdrop .multi-select-trigger,
+body.dark-theme > .fee-form-backdrop .multi-select-panel,
+body.dark-theme > .fee-form-backdrop .fee-form-summary {
+    background: #ffffff !important;
+    color: #344054 !important;
+    border-color: #e2e8f0 !important;
+}
+
 /* Filtres de liste (toolbar) */
 body .table-toolbar.filters-toolbar .filter-group > label {
     color: #6b7890;

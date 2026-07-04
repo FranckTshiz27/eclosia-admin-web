@@ -1,32 +1,16 @@
-<div class="payment-installments-page">
+<div class="currencies-page">
   <div class="page-header">
     <div>
-      <h2>Gestion des tranches de paiement</h2>
-      <p>Creez et gerez les differentes tranches de paiement utilisees dans votre etablissement.</p>
+      <h2>Devises</h2>
+      <p>Configurez les devises utilisees pour la facturation et les paiements scolaires.</p>
     </div>
-    <button class="btn-primary" type="button" (click)="openCreateModal()" [disabled]="!selectedSchoolId">
+    <button class="btn-primary" type="button" (click)="openCreateModal()">
       <i class="bi bi-plus-lg"></i>
-      Nouvelle tranche
+      Nouvelle devise
     </button>
   </div>
 
-  <div class="context-cards single-filter">
-    <div class="context-card">
-      <span>Ecole</span>
-      <select
-        class="context-select"
-        [(ngModel)]="selectedSchoolId"
-        [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="onSchoolChange()"
-        [disabled]="isLoadingSchools || schools.length === 0"
-      >
-        <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Selectionner' }}</option>
-        <option *ngFor="let school of schools" [value]="school.id">{{ school.name }}</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="stats-grid four-cols">
+  <div class="stats-grid">
     <article class="stat-card" *ngFor="let stat of statsCards" [ngClass]="'tone-' + stat.tone">
       <div class="stat-icon"><i class="bi" [ngClass]="stat.icon"></i></div>
       <div class="stat-content">
@@ -45,7 +29,7 @@
           type="text"
           [(ngModel)]="searchTerm"
           [ngModelOptions]="{ standalone: true }"
-          placeholder="Rechercher par code ou libelle..."
+          placeholder="Rechercher par code, libelle ou symbole..."
         />
       </div>
 
@@ -60,50 +44,47 @@
     </div>
 
     <div class="table-wrap">
-      <table class="installments-table">
+      <table class="currencies-table">
         <thead>
           <tr>
-            <th class="drag-col"></th>
-            <th>Ordre</th>
             <th>Code</th>
             <th>Libelle</th>
-            <th>Description</th>
+            <th>Symbole</th>
+            <th>Position</th>
+            <th>Decimales</th>
+            <th>Code numerique</th>
+            <th>Apercu</th>
             <th>Statut</th>
             <th>Date de creation</th>
             <th class="actions-col">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngIf="!selectedSchoolId">
-            <td colspan="8" class="table-state">Selectionnez une ecole pour afficher les tranches de paiement.</td>
+          <tr *ngIf="isLoading">
+            <td colspan="10" class="table-state">Chargement des devises...</td>
           </tr>
-          <tr *ngIf="selectedSchoolId && isLoading">
-            <td colspan="8" class="table-state">Chargement des tranches de paiement...</td>
+          <tr *ngIf="!isLoading && loadError">
+            <td colspan="10" class="table-state table-state-error">{{ loadError }}</td>
           </tr>
-          <tr *ngIf="selectedSchoolId && !isLoading && loadError">
-            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
-          </tr>
-          <tr *ngIf="selectedSchoolId && !isLoading && !loadError && filteredInstallments.length === 0">
-            <td colspan="8" class="table-state">
+          <tr *ngIf="!isLoading && !loadError && filteredCurrencies.length === 0">
+            <td colspan="10" class="table-state">
               {{
-                installments.length === 0
-                  ? 'Aucune tranche de paiement enregistree pour cette ecole.'
-                  : 'Aucune tranche trouvee pour cette recherche.'
+                currencies.length === 0
+                  ? 'Aucune devise enregistree.'
+                  : 'Aucune devise trouvee pour cette recherche.'
               }}
             </td>
           </tr>
-          <tr *ngFor="let item of paginatedInstallments">
-            <td class="drag-col">
-              <span class="drag-handle" title="Ordre d affichage">
-                <i class="bi bi-grip-vertical"></i>
-              </span>
-            </td>
-            <td class="order-col">{{ item.displayOrder }}</td>
-            <td>
-              <span class="code-pill" [ngClass]="item.codeTone">{{ item.code }}</span>
+          <tr *ngFor="let item of paginatedCurrencies">
+            <td class="code-col">
+              <span class="code-badge">{{ item.code }}</span>
             </td>
             <td class="name-col">{{ item.name }}</td>
-            <td class="description-col">{{ item.description }}</td>
+            <td class="symbol-col">{{ item.symbol }}</td>
+            <td>{{ item.symbolPositionLabel }}</td>
+            <td class="decimals-col">{{ item.decimalPlaces }}</td>
+            <td>{{ item.numericCode }}</td>
+            <td class="preview-col">{{ item.formatPreview }}</td>
             <td>
               <span
                 class="status-chip"
@@ -121,10 +102,10 @@
               </button>
               <div class="action-menu-wrap">
                 <button type="button" class="action-btn" title="Plus" (click)="toggleActionMenu(item.id, $event)">
-                  <i class="bi bi-three-dots"></i>
+                  <i class="bi bi-three-dots-vertical"></i>
                 </button>
                 <div class="action-menu" *ngIf="openActionMenuId === item.id">
-                  <button type="button" (click)="deleteInstallment(item)">
+                  <button type="button" (click)="deleteCurrency(item)">
                     <i class="bi bi-trash"></i>
                     Supprimer
                   </button>
@@ -137,7 +118,7 @@
     </div>
 
     <div class="table-footer">
-      <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredInstallments.length }} tranches</p>
+      <p>Affichage de {{ rangeStart }} a {{ rangeEnd }} sur {{ filteredCurrencies.length }} devises</p>
       <div class="pagination-wrap">
         <div class="pagination">
           <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
@@ -166,32 +147,18 @@
       </div>
     </div>
   </div>
-
-  <aside class="info-panel">
-    <div class="info-content">
-      <h3><i class="bi bi-info-circle"></i> Information</h3>
-      <p>
-        Les tranches definies ici seront utilisees lors de la configuration des montants par classe et annee
-        scolaire. L ordre des tranches determine l ordre d affichage et de paiement.
-      </p>
-    </div>
-    <div class="info-illustration" aria-hidden="true">
-      <i class="bi bi-calendar3"></i>
-      <i class="bi bi-coin"></i>
-    </div>
-  </aside>
 </div>
 
 <div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
-  <div class="installment-modal" (click)="$event.stopPropagation()">
+  <div class="currency-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div>
-        <h3>{{ isEditMode ? 'Modifier la tranche' : 'Nouvelle tranche de paiement' }}</h3>
+        <h3>{{ isEditMode ? 'Modifier la devise' : 'Nouvelle devise' }}</h3>
         <p>
           {{
             isEditMode
-              ? 'Mettez a jour les informations de cette tranche'
-              : 'Ajoutez une tranche de paiement pour l ecole selectionnee'
+              ? 'Mettez a jour les parametres de cette devise'
+              : 'Ajoutez une devise pour la gestion financiere'
           }}
         </p>
       </div>
@@ -200,26 +167,28 @@
       </button>
     </div>
 
-    <form #installmentForm="ngForm" (ngSubmit)="saveInstallment(installmentForm)" novalidate>
+    <form #currencyForm="ngForm" (ngSubmit)="saveCurrency(currencyForm)" novalidate>
       <div class="modal-body">
         <div class="form-columns">
           <div class="form-column">
             <div class="field-group">
-              <label>Code <span>*</span></label>
+              <label>Code ISO <span>*</span></label>
               <input
                 type="text"
                 name="code"
                 [(ngModel)]="form.code"
                 #codeCtrl="ngModel"
                 required
-                maxlength="20"
-                pattern=".*\S.*"
-                placeholder="Ex: T1"
+                minlength="3"
+                maxlength="3"
+                pattern="[A-Za-z]{3}"
+                placeholder="Ex: USD"
+                style="text-transform: uppercase"
                 [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
               />
-              <small class="field-hint">Code court unique pour cette ecole (max. 20 caracteres).</small>
+              <small class="field-hint">Code ISO 4217 sur 3 lettres (ex: USD, EUR, CDF).</small>
               <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">
-                Le code est obligatoire.
+                Le code doit contenir exactement 3 lettres.
               </small>
             </div>
 
@@ -233,45 +202,74 @@
                 required
                 maxlength="100"
                 pattern=".*\S.*"
-                placeholder="Ex: 1ere tranche"
+                placeholder="Ex: Dollar americain"
                 [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
               />
-              <small class="field-hint">Libelle visible dans l application (max. 100 caracteres).</small>
               <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">
                 Le libelle est obligatoire.
               </small>
             </div>
 
             <div class="field-group">
-              <label>Ordre d affichage <span>*</span></label>
+              <label>Symbole <span>*</span></label>
               <input
-                type="number"
-                name="displayOrder"
-                [(ngModel)]="form.displayOrder"
-                #orderCtrl="ngModel"
+                type="text"
+                name="symbol"
+                [(ngModel)]="form.symbol"
+                #symbolCtrl="ngModel"
                 required
-                min="1"
-                placeholder="Ex: 1"
-                [class.input-invalid]="(orderCtrl.invalid && orderCtrl.touched) || (isSubmitted && orderCtrl.invalid)"
+                maxlength="10"
+                pattern=".*\S.*"
+                placeholder="Ex: $"
+                [class.input-invalid]="(symbolCtrl.invalid && symbolCtrl.touched) || (isSubmitted && symbolCtrl.invalid)"
               />
-              <small class="field-hint">Position de la tranche dans la liste (unique par ecole).</small>
-              <small class="field-error" *ngIf="(orderCtrl.touched || isSubmitted) && orderCtrl.invalid">
-                L ordre d affichage est obligatoire.
+              <small class="field-error" *ngIf="(symbolCtrl.touched || isSubmitted) && symbolCtrl.invalid">
+                Le symbole est obligatoire.
               </small>
+            </div>
+
+            <div class="field-group">
+              <label>Code numerique</label>
+              <input
+                type="text"
+                name="numericCode"
+                [(ngModel)]="form.numericCode"
+                maxlength="3"
+                placeholder="Ex: 840"
+              />
+              <small class="field-hint">Code numerique ISO optionnel (max. 3 caracteres).</small>
             </div>
           </div>
 
           <div class="form-column">
             <div class="field-group">
-              <label>Description</label>
-              <textarea
-                name="description"
-                [(ngModel)]="form.description"
-                maxlength="500"
-                rows="4"
-                placeholder="Description optionnelle..."
-              ></textarea>
-              <small class="field-hint">{{ descriptionLength }} / {{ descriptionMaxLength }} caracteres</small>
+              <label>Nombre de decimales <span>*</span></label>
+              <input
+                type="number"
+                name="decimalPlaces"
+                [(ngModel)]="form.decimalPlaces"
+                #decimalCtrl="ngModel"
+                required
+                min="0"
+                max="4"
+                step="1"
+                [class.input-invalid]="(decimalCtrl.invalid && decimalCtrl.touched) || (isSubmitted && decimalCtrl.invalid)"
+              />
+              <small class="field-hint">Nombre de chiffres apres la virgule (0 a 4).</small>
+            </div>
+
+            <div class="field-group">
+              <label>Position du symbole <span>*</span></label>
+              <select name="symbolPosition" [(ngModel)]="form.symbolPosition" required>
+                <option *ngFor="let option of symbolPositionOptions" [value]="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="preview-box">
+              <span class="preview-label">Apercu du format</span>
+              <strong>{{ formatPreview }}</strong>
             </div>
 
             <div class="field-group">
@@ -290,8 +288,8 @@
               <label>Statut</label>
               <div class="toggle-row">
                 <div>
-                  <strong>{{ form.active ? 'Actif' : 'Inactif' }}</strong>
-                  <p>Les tranches inactives ne sont plus proposees dans les selections courantes.</p>
+                  <strong>{{ form.active ? 'Active' : 'Inactive' }}</strong>
+                  <p>Desactivez si cette devise ne doit plus etre utilisee.</p>
                 </div>
                 <button type="button" class="toggle-btn" [class.active]="form.active" (click)="toggleActiveStatus()">
                   <span></span>
@@ -306,9 +304,9 @@
 
       <div class="modal-footer">
         <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
-        <button class="btn-save" type="submit" [disabled]="isSaving || installmentForm.invalid">
-          <i class="bi bi-save"></i>
-          {{ saveButtonLabel }}
+        <button class="btn-save" type="submit" [disabled]="isSaving || currencyForm.invalid">
+          <i class="bi bi-check2"></i>
+          {{ isEditMode ? 'Mettre a jour' : 'Enregistrer' }}
         </button>
       </div>
     </form>

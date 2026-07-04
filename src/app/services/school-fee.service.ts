@@ -15,6 +15,7 @@ export interface CreateSchoolFeeDto {
   academicLevelId: string;
   academicSectionId?: string | null;
   academicOptionId?: string | null;
+  studentCategoryId?: string | null;
   description?: string;
   active?: boolean;
   comment?: string;
@@ -38,6 +39,18 @@ export interface SchoolFeeInstallmentRef {
   display_order?: number;
 }
 
+export interface SchoolFeeCycleRef {
+  id?: string;
+  code?: string;
+  name?: string;
+}
+
+export interface SchoolFeeStudentCategoryRef {
+  id?: string;
+  code?: string;
+  name?: string;
+}
+
 export interface SchoolFeeApiResponse {
   id?: string;
   code?: string;
@@ -52,12 +65,16 @@ export interface SchoolFeeApiResponse {
   academic_year_id?: string;
   academicCycleId?: string;
   academic_cycle_id?: string;
+  academicCycle?: SchoolFeeCycleRef | null;
   academicLevelId?: string;
   academic_level_id?: string;
   academicSectionId?: string | null;
   academic_section_id?: string | null;
   academicOptionId?: string | null;
   academic_option_id?: string | null;
+  studentCategoryId?: string | null;
+  student_category_id?: string | null;
+  studentCategory?: SchoolFeeStudentCategoryRef | null;
   feeCategoryId?: string;
   fee_category_id?: string;
   paymentInstallmentId?: string | null;

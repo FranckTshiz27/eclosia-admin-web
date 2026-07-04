@@ -1,0 +1,255 @@
+<div class="year-currencies-page">
+  <div class="page-intro">
+    <h2>Devises par annee scolaire</h2>
+    <p>Selectionnez les devises que votre ecole utilisera pour une annee scolaire et definissez la devise principale.</p>
+  </div>
+
+  <div class="context-bar">
+    <div class="context-item">
+      <span class="context-label">Ecole</span>
+      <div class="context-value">
+        <i class="bi bi-building"></i>
+        <strong>{{ schoolName || 'Ecole non selectionnee' }}</strong>
+      </div>
+    </div>
+
+    <div class="context-item year-context">
+      <span class="context-label">Annee scolaire</span>
+      <div class="year-select-wrap">
+        <i class="bi bi-calendar3"></i>
+        <select
+          [(ngModel)]="selectedYearId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onYearChange()"
+          [disabled]="!schoolId || isLoading || yearOptions.length === 0"
+        >
+          <option value="" disabled>
+            {{ isLoading ? 'Chargement...' : (yearOptions.length === 0 ? 'Aucune annee disponible' : 'Selectionner') }}
+          </option>
+          <option *ngFor="let year of yearOptions" [value]="year.id">{{ year.label }}</option>
+        </select>
+        <span
+          class="year-status-badge"
+          *ngIf="selectedYear"
+          [ngClass]="getYearStatusClass(selectedYear.status)"
+        >
+          {{ selectedYear.statusLabel }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="inner-tabs" aria-label="Sections devises par annee">
+    <button
+      type="button"
+      class="inner-tab"
+      [class.active]="innerTab === 'configuration'"
+      (click)="setInnerTab('configuration')"
+    >
+      Configuration des devises
+    </button>
+    <button
+      type="button"
+      class="inner-tab"
+      [class.active]="innerTab === 'historique'"
+      (click)="setInnerTab('historique')"
+    >
+      Historique des annees
+    </button>
+  </nav>
+
+  <p class="load-error" *ngIf="loadError">{{ loadError }}</p>
+
+  <div class="configuration-layout" *ngIf="innerTab === 'configuration'">
+    <div class="main-columns">
+      <section class="step-card">
+        <div class="step-heading">
+          <span class="step-badge">1</span>
+          <h3>Devises disponibles sur la plateforme</h3>
+        </div>
+
+        <div class="table-wrap">
+          <table class="platform-currencies-table">
+            <thead>
+              <tr>
+                <th>Devise</th>
+                <th>Code</th>
+                <th>Symbole</th>
+                <th>Decimales</th>
+                <th>Statut</th>
+                <th class="select-col">Selection</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="!schoolId">
+                <td colspan="6" class="table-state">Selectionnez une ecole pour configurer les devises.</td>
+              </tr>
+              <tr *ngIf="schoolId && isLoading">
+                <td colspan="6" class="table-state">Chargement des devises...</td>
+              </tr>
+              <tr *ngIf="schoolId && !isLoading && platformCurrencies.length === 0">
+                <td colspan="6" class="table-state">Aucune devise disponible sur la plateforme.</td>
+              </tr>
+              <tr *ngFor="let item of platformCurrencies">
+                <td>
+                  <div class="currency-name-cell">
+                    <span class="currency-icon" [ngClass]="item.iconTone">{{ item.symbol }}</span>
+                    <span>{{ item.name }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="currency-code-chip" [ngClass]="item.codeTone">{{ item.code }}</span>
+                </td>
+                <td>{{ item.symbol }}</td>
+                <td>{{ item.decimalPlaces }}</td>
+                <td>
+                  <span class="status-chip" [class.status-active]="item.active" [class.status-inactive]="!item.active">
+                    <span class="status-dot"></span>
+                    {{ item.active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="select-col">
+                  <input
+                    type="checkbox"
+                    [checked]="isCurrencySelected(item.id)"
+                    [disabled]="!schoolId || !selectedYearId || !item.active"
+                    (change)="toggleCurrencySelection(item.id, $any($event.target).checked)"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="info-banner info-blue">
+          <i class="bi bi-info-circle"></i>
+          <p>Cochez les devises que votre ecole souhaite utiliser pour cette annee scolaire.</p>
+        </div>
+      </section>
+
+      <section class="step-card">
+        <div class="step-heading">
+          <span class="step-badge">2</span>
+          <h3>Devise principale de l'annee</h3>
+        </div>
+
+        <div class="info-banner info-blue compact">
+          <i class="bi bi-info-circle"></i>
+          <p>La devise principale sera utilisee par defaut pour les frais et les paiements de cette annee scolaire.</p>
+        </div>
+
+        <div class="primary-selection-block">
+          <label>Devise principale <span class="required">*</span></label>
+
+          <p class="empty-primary-hint" *ngIf="selectedCurrencyOptions.length === 0">
+            Selectionnez au moins une devise pour definir la devise principale.
+          </p>
+
+          <label class="primary-option" *ngFor="let item of selectedCurrencyOptions">
+            <input
+              type="radio"
+              name="primaryCurrency"
+              [value]="item.id"
+              [checked]="primaryCurrencyId === item.id"
+              (change)="selectPrimaryCurrency(item.id)"
+            />
+            <span class="primary-option-symbol" [ngClass]="item.iconTone">{{ item.symbol }}</span>
+            <span class="primary-option-label">{{ item.code }} - {{ item.name }}</span>
+          </label>
+        </div>
+
+        <div class="info-banner info-green">
+          <i class="bi bi-star-fill"></i>
+          <div>
+            <strong>A propos de la devise principale</strong>
+            <p>
+              Cette devise sera utilisee par defaut dans tous les modules financiers (frais, paiements,
+              rapports, etc.) pour cette annee scolaire.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="reminder-panel">
+      <h4><i class="bi bi-exclamation-circle"></i> Rappel important</h4>
+      <p>Cet exercice doit etre effectue pour chaque nouvelle annee scolaire.</p>
+      <ul>
+        <li>Vous pouvez selectionner plusieurs devises.</li>
+        <li>Une seule devise peut etre principale.</li>
+        <li>Les devises non selectionnees ne seront pas disponibles pour les operations financieres de cette annee.</li>
+        <li>Vous pouvez modifier cette configuration a tout moment.</li>
+      </ul>
+    </aside>
+  </div>
+
+  <section class="history-card" *ngIf="innerTab === 'historique'">
+    <div class="step-heading">
+      <span class="step-badge"><i class="bi bi-clock-history"></i></span>
+      <h3>Historique des devises configurees</h3>
+    </div>
+
+    <div class="table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Devise</th>
+            <th>Principale</th>
+            <th>Statut</th>
+            <th>Date d'ajout</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="!schoolId">
+            <td colspan="5" class="table-state">Selectionnez une ecole pour afficher l historique.</td>
+          </tr>
+          <tr *ngIf="schoolId && historyRows.length === 0">
+            <td colspan="5" class="table-state">Aucune devise configuree pour cette ecole.</td>
+          </tr>
+          <tr *ngFor="let row of historyRows">
+            <td>
+              <span class="currency-code-chip code-slate">{{ row.code }}</span>
+            </td>
+            <td class="name-col">{{ row.name }}</td>
+            <td>{{ row.isDefault ? 'Oui' : 'Non' }}</td>
+            <td>
+              <span class="status-chip" [class.status-active]="row.active" [class.status-inactive]="!row.active">
+                <span class="status-dot"></span>
+                {{ row.active ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="date-col">{{ row.createdAt }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="summary-action-bar" *ngIf="innerTab === 'configuration'">
+    <div class="summary-block">
+      <span class="summary-title">Resume de la configuration</span>
+      <div class="summary-values">
+        <span class="summary-pill">
+          <i class="bi bi-building"></i>
+          {{ selectedCurrencyCount }} devise(s) selectionnee(s)
+        </span>
+        <span class="summary-pill summary-pill-primary">
+          Devise principale : {{ primaryCurrencyLabel }}
+        </span>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button type="button" class="btn-cancel" (click)="cancelChanges()" [disabled]="!hasUnsavedChanges || isSaving">
+        Annuler
+      </button>
+      <button type="button" class="btn-save" (click)="saveConfiguration()" [disabled]="!canSave">
+        <i class="bi bi-save"></i>
+        {{ isSaving ? 'Enregistrement...' : 'Enregistrer la configuration' }}
+      </button>
+    </div>
+  </div>
+
+  <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+</div>

@@ -235,6 +235,7 @@ export class EcolePaymentInstallmentsComponent implements OnInit, OnDestroy {
     this.isEditMode = false;
     this.editingInstallmentId = null;
     this.isSubmitted = false;
+    this.isSaving = false;
     this.saveError = '';
     this.form = {
       ...this.buildEmptyForm(),
@@ -248,6 +249,7 @@ export class EcolePaymentInstallmentsComponent implements OnInit, OnDestroy {
     this.isEditMode = true;
     this.editingInstallmentId = item.id;
     this.isSubmitted = false;
+    this.isSaving = false;
     this.saveError = '';
     this.form = this.toFormFields(item);
   }
@@ -257,6 +259,7 @@ export class EcolePaymentInstallmentsComponent implements OnInit, OnDestroy {
     this.isEditMode = false;
     this.editingInstallmentId = null;
     this.isSubmitted = false;
+    this.isSaving = false;
     this.saveError = '';
     this.form = this.buildEmptyForm();
   }
@@ -282,6 +285,13 @@ export class EcolePaymentInstallmentsComponent implements OnInit, OnDestroy {
         this.loadError = 'Echec de suppression de la tranche.';
       }
     });
+  }
+
+  get saveButtonLabel(): string {
+    if (this.isSaving) {
+      return this.isEditMode ? 'Mise a jour...' : 'Enregistrement...';
+    }
+    return this.isEditMode ? 'Mettre a jour' : 'Enregistrer';
   }
 
   saveInstallment(formRef: NgForm): void {

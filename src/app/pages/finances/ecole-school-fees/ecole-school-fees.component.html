@@ -302,7 +302,7 @@
           [(ngModel)]="searchTerm"
           [ngModelOptions]="{ standalone: true }"
           (ngModelChange)="onFiltersChange()"
-          placeholder="Rechercher par code ou libellé..."
+          placeholder="Rechercher par classe, catégorie..."
         />
       </div>
 
@@ -340,11 +340,10 @@
       <table class="school-fees-table dashboard-table">
         <thead>
           <tr>
-            <th>Code</th>
-            <th>Libellé</th>
+            <th>Classe</th>
             <th>Catégorie</th>
             <th>Catégorie d'élèves</th>
-            <th>Montant (USD)</th>
+            <th>{{ amountColumnLabel }}</th>
             <th>Tranche</th>
             <th>Paiement par tranche</th>
             <th>Statut</th>
@@ -353,16 +352,16 @@
         </thead>
         <tbody>
           <tr *ngIf="!selectedSchoolId || !selectedYearId">
-            <td colspan="9" class="table-state">Sélectionnez une école et une année scolaire.</td>
+            <td colspan="8" class="table-state">Sélectionnez une école et une année scolaire.</td>
           </tr>
           <tr *ngIf="selectedSchoolId && selectedYearId && isLoading">
-            <td colspan="9" class="table-state">Chargement des frais scolaires...</td>
+            <td colspan="8" class="table-state">Chargement des frais scolaires...</td>
           </tr>
           <tr *ngIf="selectedSchoolId && selectedYearId && !isLoading && loadError">
-            <td colspan="9" class="table-state table-state-error">{{ loadError }}</td>
+            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
           </tr>
           <tr *ngIf="selectedSchoolId && selectedYearId && !isLoading && !loadError && filteredFees.length === 0">
-            <td colspan="9" class="table-state">
+            <td colspan="8" class="table-state">
               {{
                 fees.length === 0
                   ? 'Aucun frais scolaire enregistré pour cette sélection.'
@@ -371,20 +370,14 @@
             </td>
           </tr>
           <tr *ngFor="let item of paginatedFees">
-            <td>
-              <span class="code-badge" [ngClass]="item.codeTone">{{ item.code }}</span>
-            </td>
-            <td class="name-col">{{ item.name }}</td>
+            <td class="class-col">{{ item.classLabel }}</td>
             <td>
               <span class="category-pill" [ngClass]="item.categoryTone">
                 <i class="bi" [ngClass]="item.categoryIcon"></i>
                 {{ item.categoryName }}
               </span>
             </td>
-            <td>
-              <span *ngIf="item.studentCategoryId; else noStudentCategory">{{ item.studentCategoryName }}</span>
-              <ng-template #noStudentCategory><span class="empty-cell">—</span></ng-template>
-            </td>
+            <td>{{ item.studentCategoryName }}</td>
             <td class="amount-col">{{ item.amountLabel }}</td>
             <td>
               <span
@@ -399,10 +392,10 @@
             <td>
               <span
                 class="installment-payment-chip"
-                [class.payment-yes]="item.allowInstallments"
-                [class.payment-no]="!item.allowInstallments"
+                [class.payment-yes]="item.payableByInstallment"
+                [class.payment-no]="!item.payableByInstallment"
               >
-                {{ item.allowInstallments ? 'Oui' : 'Non' }}
+                {{ item.payableByInstallment ? 'Oui' : 'Non' }}
               </span>
             </td>
             <td>
@@ -521,40 +514,6 @@
               <h3>Informations générales</h3>
             </div>
 
-            <div class="fee-form-row fee-form-row-2" *ngIf="isEditMode">
-              <div class="field-group">
-                <label>Code <span class="required">*</span></label>
-                <input
-                  type="text"
-                  name="code"
-                  [(ngModel)]="form.code"
-                  #codeCtrl="ngModel"
-                  required
-                  maxlength="20"
-                  pattern=".*\S.*"
-                  placeholder="Ex: MINERVAL"
-                  [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
-                />
-                <small class="field-hint">Code unique du frais</small>
-              </div>
-
-              <div class="field-group">
-                <label>Libellé <span class="required">*</span></label>
-                <input
-                  type="text"
-                  name="name"
-                  [(ngModel)]="form.name"
-                  #nameCtrl="ngModel"
-                  required
-                  maxlength="100"
-                  pattern=".*\S.*"
-                  placeholder="Ex: Minerval"
-                  [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
-                />
-                <small class="field-hint">Nom du frais</small>
-              </div>
-            </div>
-
             <div class="fee-form-row fee-form-row-2">
               <div class="field-group">
                 <label>Catégorie de frais <span class="required">*</span></label>
@@ -633,7 +592,7 @@
                       step="0.01"
                       placeholder="0,00"
                     />
-                    <span class="input-suffix">$</span>
+                    <span class="input-suffix">{{ primaryCurrencySuffix }}</span>
                   </div>
                 </div>
                 <p class="multi-select-empty" *ngIf="formInstallmentOptions.length === 0">Aucune tranche disponible</p>
@@ -644,7 +603,7 @@
             </div>
 
             <div class="field-group" *ngIf="!formInstallmentsEnabled">
-              <label>Montant (USD) <span class="required">*</span></label>
+              <label>{{ amountColumnLabel }} <span class="required">*</span></label>
               <div class="input-with-suffix">
                 <input
                   type="number"
@@ -652,27 +611,19 @@
                   [(ngModel)]="form.amount"
                   #amountCtrl="ngModel"
                   required
-                  min="0"
+                  min="0.01"
                   step="0.01"
                   placeholder="Ex: 150"
                   [class.input-invalid]="(amountCtrl.invalid && amountCtrl.touched) || (isSubmitted && amountCtrl.invalid)"
                 />
-                <span class="input-suffix">$</span>
+                <span class="input-suffix">{{ primaryCurrencySuffix }}</span>
               </div>
-              <small class="field-hint">Montant total du frais</small>
+              <small class="field-hint">
+                Montant total du frais
+                <ng-container *ngIf="primaryCurrency"> (devise principale : {{ primaryCurrency.code }})</ng-container>
+              </small>
             </div>
 
-            <div class="field-group" *ngIf="isEditMode">
-              <label>Description</label>
-              <textarea
-                name="description"
-                [(ngModel)]="form.description"
-                maxlength="255"
-                rows="3"
-                placeholder="Description optionnelle..."
-              ></textarea>
-              <small class="field-hint char-counter">{{ descriptionLength }} / {{ formDescriptionMaxLength }}</small>
-            </div>
           </section>
 
           <section class="fee-form-section">
@@ -925,7 +876,7 @@
             </div>
 
             <div class="field-group">
-              <label>Catégorie(s) d'élèves (sélection multiple)</label>
+              <label>Catégorie(s) d'élèves (sélection multiple) <span class="required">*</span></label>
               <div
                 class="multi-select fee-form-multi-select"
                 [class.open]="openFormMultiSelectField === 'form-student-category'"
@@ -1032,16 +983,12 @@
           <h3>Récapitulatif du frais</h3>
 
           <div class="summary-block">
-            <div class="summary-row" *ngIf="isEditMode">
+            <div class="summary-row">
               <span class="summary-label">Code :</span>
-              <span class="summary-value">{{ form.code.trim() || '—' }}</span>
-            </div>
-            <div class="summary-row" *ngIf="isEditMode">
-              <span class="summary-label">Libellé :</span>
-              <span class="summary-value">{{ form.name.trim() || '—' }}</span>
+              <span class="summary-value">{{ summaryCategoryCode }}</span>
             </div>
             <div class="summary-row">
-              <span class="summary-label">Catégorie :</span>
+              <span class="summary-label">Libellé :</span>
               <span class="summary-value">{{ summaryCategoryName }}</span>
             </div>
             <div class="summary-row">

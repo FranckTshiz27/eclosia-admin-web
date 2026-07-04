@@ -2,7 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { AcademicYearApiResponse, AcademicYearService } from '../../../../services/academic-year.service';
 import { CityOption, CityService } from '../../../../services/city.service';
 import { ClassroomApiResponse, ClassroomService } from '../../../../services/classroom.service';
@@ -1272,7 +1273,9 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
     forkJoin({
       guardians: this.guardianService.getAll(),
       classrooms: this.classroomService.getAll(this.selectedSchoolId),
-      studentCategories: this.studentCategoryService.getAll(this.selectedSchoolId),
+      studentCategories: this.studentCategoryService
+        .getAll(this.selectedSchoolId)
+        .pipe(catchError(() => of([]))),
       countries: this.countryService.getAll(),
       cities: this.cityService.getAll(),
       communes: this.communeService.getAll()
@@ -1301,9 +1304,10 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
           .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
         this.studentCategoryOptions = studentCategories
+          .filter((row) => row.active !== false)
           .map((row) => ({
             id: String(row.id ?? '').trim(),
-            label: String(row.name ?? '').trim()
+            label: String(row.name ?? '').trim() || String(row.code ?? '').trim()
           }))
           .filter((item) => !!item.id && !!item.label)
           .sort((a, b) => a.label.localeCompare(b.label, 'fr'));

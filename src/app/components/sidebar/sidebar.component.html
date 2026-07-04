@@ -136,18 +136,6 @@
                     <li>
                         <a
                             routerLink="/finances"
-                            [queryParams]="{ tab: 'montants-classe' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Montants par classe</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
                             [queryParams]="{ tab: 'paiements' }"
                             routerLinkActive="active"
                             [routerLinkActiveOptions]="{ exact: true }"
@@ -155,54 +143,6 @@
                             (click)="onLinkClick()"
                         >
                             <span>Paiements</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'remises-bourses' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Remises & bourses</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'penalites' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Pénalités</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'recus' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Recus</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'rapports-financiers' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Rapports financiers</span>
                         </a>
                     </li>
                 </ul>

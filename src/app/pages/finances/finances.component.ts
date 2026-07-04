@@ -6,6 +6,7 @@ import { EcoleExchangeRatesComponent } from './ecole-exchange-rates/ecole-exchan
 import { EcoleFeeCategoriesComponent } from './ecole-fee-categories/ecole-fee-categories.component';
 import { EcolePaymentInstallmentsComponent } from './ecole-payment-installments/ecole-payment-installments.component';
 import { EcoleSchoolFeesComponent } from './ecole-school-fees/ecole-school-fees.component';
+import { EcolePaymentsComponent } from './ecole-payments/ecole-payments.component';
 
 type FinancesTab =
   | 'devises'
@@ -23,7 +24,15 @@ type FinancesTab =
 @Component({
   selector: 'app-finances',
   standalone: true,
-  imports: [CommonModule, EcoleCurrenciesComponent, EcoleExchangeRatesComponent, EcoleFeeCategoriesComponent, EcolePaymentInstallmentsComponent, EcoleSchoolFeesComponent],
+  imports: [
+    CommonModule,
+    EcoleCurrenciesComponent,
+    EcoleExchangeRatesComponent,
+    EcoleFeeCategoriesComponent,
+    EcolePaymentInstallmentsComponent,
+    EcoleSchoolFeesComponent,
+    EcolePaymentsComponent
+  ],
   templateUrl: './finances.component.html',
   styleUrl: './finances.component.css'
 })

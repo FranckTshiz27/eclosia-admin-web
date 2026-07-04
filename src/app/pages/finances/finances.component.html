@@ -4,10 +4,11 @@
   <app-ecole-fee-categories *ngIf="activeTab === 'categories-frais'"></app-ecole-fee-categories>
   <app-ecole-payment-installments *ngIf="activeTab === 'tranches-paiement'"></app-ecole-payment-installments>
   <app-ecole-school-fees *ngIf="activeTab === 'frais-scolaires'"></app-ecole-school-fees>
+  <app-ecole-payments *ngIf="activeTab === 'paiements'"></app-ecole-payments>
 
   <section
     class="placeholder-panel"
-    *ngIf="activeTab !== 'devises' && activeTab !== 'taux' && activeTab !== 'categories-frais' && activeTab !== 'tranches-paiement' && activeTab !== 'frais-scolaires'"
+    *ngIf="activeTab !== 'devises' && activeTab !== 'taux' && activeTab !== 'categories-frais' && activeTab !== 'tranches-paiement' && activeTab !== 'frais-scolaires' && activeTab !== 'paiements'"
   >
     <div class="placeholder-card">
       <i class="bi bi-tools"></i>

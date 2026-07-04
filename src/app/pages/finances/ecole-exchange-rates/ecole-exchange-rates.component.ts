@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -89,7 +89,7 @@ interface SummaryCard {
   templateUrl: './ecole-exchange-rates.component.html',
   styleUrl: './ecole-exchange-rates.component.css'
 })
-export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
+export class EcoleExchangeRatesComponent implements OnInit {
   selectedSchoolId = '';
   fromCurrencyFilter = 'all';
   toCurrencyFilter = 'all';
@@ -102,12 +102,10 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
   isLoading = false;
   loadError = '';
 
-  isEditMode = false;
-  editingRateId: string | null = null;
+  isModalOpen = false;
   isSubmitted = false;
   isSaving = false;
   saveError = '';
-  openActionMenuId: string | null = null;
 
   schools: SelectOption[] = [];
   schoolCurrencies: SchoolCurrencyOption[] = [];
@@ -135,16 +133,7 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadSchools();
-    document.addEventListener('click', this.closeActionMenu);
   }
-
-  ngOnDestroy(): void {
-    document.removeEventListener('click', this.closeActionMenu);
-  }
-
-  private closeActionMenu = (): void => {
-    this.openActionMenuId = null;
-  };
 
   get currencyFilterOptions(): SelectOption[] {
     return [
@@ -154,6 +143,15 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
         label: `${item.code} - ${item.name}`
       }))
     ];
+  }
+
+  get principalCurrency(): SchoolCurrencyOption | undefined {
+    return this.schoolCurrencies.find((item) => item.isDefault);
+  }
+
+  get sourceCurrencyOptions(): SchoolCurrencyOption[] {
+    const principalId = this.principalCurrency?.id;
+    return this.schoolCurrencies.filter((item) => item.id !== principalId);
   }
 
   get summaryCards(): SummaryCard[] {
@@ -297,7 +295,7 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
 
   onSchoolChange(): void {
     this.currentPage = 1;
-    this.resetForm();
+    this.closeModal();
     this.bootstrapSchoolData(true);
   }
 
@@ -332,41 +330,21 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
   }
 
   openCreateForm(): void {
-    this.isEditMode = false;
-    this.editingRateId = null;
+    this.isModalOpen = true;
+    this.isSubmitted = false;
+    this.saveError = '';
+    this.form = this.buildEmptyForm();
+    this.syncPrincipalTarget();
+  }
+
+  closeModal(): void {
+    this.isModalOpen = false;
     this.isSubmitted = false;
     this.saveError = '';
     this.form = this.buildEmptyForm();
   }
 
-  openEditForm(item: ExchangeRateItem): void {
-    this.openActionMenuId = null;
-    this.isEditMode = true;
-    this.editingRateId = item.id;
-    this.isSubmitted = false;
-    this.saveError = '';
-    this.form = {
-      sourceCurrencyId: item.sourceCurrencyId,
-      targetCurrencyId: item.targetCurrencyId,
-      rate: String(item.rate),
-      effectiveDate: item.effectiveDate,
-      source: item.source,
-      comment: item.comment,
-      active: item.status === 'Actif'
-    };
-  }
-
-  cancelForm(): void {
-    this.resetForm();
-  }
-
-  toggleActionMenu(itemId: string, event: MouseEvent): void {
-    event.stopPropagation();
-    this.openActionMenuId = this.openActionMenuId === itemId ? null : itemId;
-  }
-
   deleteRate(item: ExchangeRateItem): void {
-    this.openActionMenuId = null;
     if (!confirm(`Supprimer le taux ${item.fromCode} -> ${item.toCode} ?`)) {
       return;
     }
@@ -398,7 +376,7 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
     const dto: CreateCurrencyRateDto = {
       schoolId: this.selectedSchoolId,
       sourceCurrencyId: this.form.sourceCurrencyId,
-      targetCurrencyId: this.form.targetCurrencyId,
+      targetCurrencyId: this.principalCurrency?.id ?? this.form.targetCurrencyId,
       rate: Number(this.form.rate),
       effectiveDate: this.form.effectiveDate,
       source: this.form.source,
@@ -406,14 +384,10 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
       active: this.form.active
     };
 
-    const request$ = this.isEditMode && this.editingRateId
-      ? this.currencyRateService.update(this.editingRateId, dto)
-      : this.currencyRateService.create(dto);
-
-    request$.subscribe({
+    this.currencyRateService.create(dto).subscribe({
       next: () => {
         this.isSaving = false;
-        this.resetForm();
+        this.closeModal();
         this.loadRates(false);
       },
       error: () => {
@@ -510,9 +484,8 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
           .filter((item) => item.id);
 
         this.isLoading = false;
-        if (!this.isEditMode) {
-          this.form = this.buildEmptyForm();
-        }
+        this.form = this.buildEmptyForm();
+        this.syncPrincipalTarget();
       },
       error: () => {
         this.isLoading = false;
@@ -582,6 +555,9 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
   }
 
   private validateForm(): string {
+    if (!this.principalCurrency) {
+      return 'Aucune devise principale definie pour cette ecole.';
+    }
     if (!this.form.sourceCurrencyId) {
       return 'Selectionnez la devise source.';
     }
@@ -601,17 +577,20 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  private syncPrincipalTarget(): void {
+    if (this.principalCurrency) {
+      this.form.targetCurrencyId = this.principalCurrency.id;
+    }
+  }
+
   private buildEmptyForm(): ExchangeRateForm {
-    const defaultFrom =
-      this.schoolCurrencies.find((item) => item.isDefault)?.id ?? this.schoolCurrencies[0]?.id ?? '';
-    const defaultTo =
-      this.schoolCurrencies.find((item) => item.id !== defaultFrom)?.id ??
-      this.schoolCurrencies[1]?.id ??
-      '';
+    const principal = this.principalCurrency;
+    const defaultTarget = principal?.id ?? '';
+    const defaultSource = this.sourceCurrencyOptions[0]?.id ?? '';
 
     return {
-      sourceCurrencyId: defaultFrom,
-      targetCurrencyId: defaultTo,
+      sourceCurrencyId: defaultSource,
+      targetCurrencyId: defaultTarget,
       rate: '',
       effectiveDate: this.todayInputDate(),
       source: 'MANUAL',
@@ -621,11 +600,7 @@ export class EcoleExchangeRatesComponent implements OnInit, OnDestroy {
   }
 
   private resetForm(): void {
-    this.isEditMode = false;
-    this.editingRateId = null;
-    this.isSubmitted = false;
-    this.saveError = '';
-    this.form = this.buildEmptyForm();
+    this.closeModal();
   }
 
   private normalizeSource(value: unknown): RateSource {

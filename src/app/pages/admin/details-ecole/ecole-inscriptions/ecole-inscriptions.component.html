@@ -582,6 +582,63 @@
                 </div>
               </div>
 
+              <div class="inline-grid two">
+                <div class="field-group">
+                  <label>Classe <span>*</span></label>
+                  <div class="searchable-select">
+                    <input
+                      type="text"
+                      name="classroomSearch"
+                      [(ngModel)]="classroomSearchTerm"
+                      #enrollmentClassroomCtrl="ngModel"
+                      required
+                      autocomplete="off"
+                      [disabled]="isLoadingEnrollmentReferences || classroomOptions.length === 0"
+                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des classes...' : 'Rechercher ou selectionner une classe'"
+                      [class.input-invalid]="(enrollmentClassroomCtrl.invalid && enrollmentClassroomCtrl.touched) || (isEnrollmentFormSubmitted && !enrollmentForm.classroomId)"
+                      (focus)="openClassroomDropdown()"
+                      (input)="openClassroomDropdown()"
+                      (blur)="closeClassroomDropdown()"
+                    />
+                    <i class="bi bi-chevron-down select-chevron"></i>
+                    <div class="select-dropdown" *ngIf="isClassroomDropdownOpen">
+                      <button type="button" class="select-option" *ngFor="let classroom of filteredClassroomOptions" (mousedown)="selectClassroom(classroom)">
+                        {{ classroom.label }}
+                      </button>
+                      <div class="select-empty" *ngIf="filteredClassroomOptions.length === 0">Aucune classe trouvee.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label>Categorie de l eleve <span>*</span></label>
+                  <div class="searchable-select">
+                    <input
+                      type="text"
+                      name="studentCategorySearch"
+                      [(ngModel)]="studentCategorySearchTerm"
+                      autocomplete="off"
+                      [disabled]="isLoadingEnrollmentReferences || studentCategoryOptions.length === 0"
+                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des categories...' : 'Rechercher ou selectionner une categorie'"
+                      [class.input-invalid]="isEnrollmentFormSubmitted && !enrollmentForm.studentCategoryId"
+                      (focus)="openStudentCategoryDropdown()"
+                      (input)="onStudentCategorySearchInput(); openStudentCategoryDropdown()"
+                      (blur)="closeStudentCategoryDropdown()"
+                    />
+                    <i class="bi bi-chevron-down select-chevron"></i>
+                    <div class="select-dropdown" *ngIf="isStudentCategoryDropdownOpen">
+                      <button type="button" class="select-option" *ngFor="let category of filteredStudentCategoryOptions" (mousedown)="selectStudentCategory(category)">
+                        {{ category.label }}
+                      </button>
+                      <div class="select-empty" *ngIf="filteredStudentCategoryOptions.length === 0">Aucune categorie trouvee.</div>
+                    </div>
+                  </div>
+                  <small class="field-hint warning" *ngIf="!isLoadingEnrollmentReferences && studentCategoryOptions.length === 0">
+                    Aucune categorie disponible. Creez-en dans l onglet Categories d eleves.
+                  </small>
+                </div>
+              </div>
+
               <div class="photo-box">
                 <p class="photo-title"><i class="bi bi-camera"></i> Photo de l eleve (obligatoire)</p>
                 <div class="photo-content">
@@ -647,59 +704,6 @@
                         <i class="bi bi-x-circle"></i>
                         Fermer
                       </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="inline-grid two">
-                <div class="field-group">
-                  <label>Classe <span>*</span></label>
-                  <div class="searchable-select">
-                    <input
-                      type="text"
-                      name="classroomSearch"
-                      [(ngModel)]="classroomSearchTerm"
-                      #enrollmentClassroomCtrl="ngModel"
-                      required
-                      autocomplete="off"
-                      [disabled]="isLoadingEnrollmentReferences || classroomOptions.length === 0"
-                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des classes...' : 'Rechercher ou selectionner une classe'"
-                      [class.input-invalid]="(enrollmentClassroomCtrl.invalid && enrollmentClassroomCtrl.touched) || (isEnrollmentFormSubmitted && !enrollmentForm.classroomId)"
-                      (focus)="openClassroomDropdown()"
-                      (input)="openClassroomDropdown()"
-                      (blur)="closeClassroomDropdown()"
-                    />
-                    <i class="bi bi-chevron-down select-chevron"></i>
-                    <div class="select-dropdown" *ngIf="isClassroomDropdownOpen">
-                      <button type="button" class="select-option" *ngFor="let classroom of filteredClassroomOptions" (mousedown)="selectClassroom(classroom)">
-                        {{ classroom.label }}
-                      </button>
-                      <div class="select-empty" *ngIf="filteredClassroomOptions.length === 0">Aucune classe trouvee.</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="field-group">
-                  <label>Categorie de l eleve</label>
-                  <div class="searchable-select">
-                    <input
-                      type="text"
-                      name="studentCategorySearch"
-                      [(ngModel)]="studentCategorySearchTerm"
-                      autocomplete="off"
-                      [disabled]="isLoadingEnrollmentReferences || studentCategoryOptions.length === 0"
-                      [placeholder]="isLoadingEnrollmentReferences ? 'Chargement des categories...' : 'Rechercher ou selectionner une categorie'"
-                      (focus)="openStudentCategoryDropdown()"
-                      (input)="onStudentCategorySearchInput(); openStudentCategoryDropdown()"
-                      (blur)="closeStudentCategoryDropdown()"
-                    />
-                    <i class="bi bi-chevron-down select-chevron"></i>
-                    <div class="select-dropdown" *ngIf="isStudentCategoryDropdownOpen">
-                      <button type="button" class="select-option" *ngFor="let category of filteredStudentCategoryOptions" (mousedown)="selectStudentCategory(category)">
-                        {{ category.label }}
-                      </button>
-                      <div class="select-empty" *ngIf="filteredStudentCategoryOptions.length === 0">Aucune categorie trouvee.</div>
                     </div>
                   </div>
                 </div>

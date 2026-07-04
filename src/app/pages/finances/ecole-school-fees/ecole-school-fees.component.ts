@@ -33,10 +33,10 @@ import {
 } from '../../../services/payment-installment.service';
 import { SchoolApiResponse, SchoolService } from '../../../services/school.service';
 import {
-  CreateSchoolFeeDto,
-  SchoolFeeApiResponse,
-  SchoolFeeService
-} from '../../../services/school-fee.service';
+  AcademicFeeApiResponse,
+  AcademicFeeService,
+  CreateAcademicFeeDto
+} from '../../../services/academic-fee.service';
 import {
   AcademicModelApiResponse,
   AcademicModelService
@@ -49,6 +49,11 @@ import {
   StudentCategoryApiResponse,
   StudentCategoryService
 } from '../../../services/student-category.service';
+import { CurrencyApiResponse, CurrencyService } from '../../../services/currency.service';
+import {
+  SchoolCurrencyApiResponse,
+  SchoolCurrencyService
+} from '../../../services/school-currency.service';
 
 type FeeStatus = 'Actif' | 'Inactif';
 type MultiSelectField = 'cycle' | 'level' | 'section' | 'option' | 'installment';
@@ -59,11 +64,20 @@ interface SelectOption {
   label: string;
 }
 
+interface SchoolPrimaryCurrency {
+  id: string;
+  code: string;
+  name: string;
+  symbol: string;
+  decimalPlaces: number;
+}
+
 interface SchoolFeeItem {
   id: string;
   code: string;
   codeTone: string;
   name: string;
+  classLabel: string;
   amount: number;
   amountLabel: string;
   categoryId: string;
@@ -74,6 +88,7 @@ interface SchoolFeeItem {
   installmentLabel: string;
   installmentTone: string;
   allowInstallments: boolean;
+  payableByInstallment: boolean;
   status: FeeStatus;
   schoolId: string;
   academicYearId: string;
@@ -88,12 +103,9 @@ interface SchoolFeeItem {
 }
 
 interface SchoolFeeForm {
-  code: string;
-  name: string;
   amount: string;
   feeCategoryId: string;
   paymentByInstallment: boolean;
-  description: string;
   active: boolean;
   displayOrder: string;
   formYearId: string;
@@ -150,6 +162,8 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
   openFormMultiSelectField: FormMultiSelectField | null = null;
   openFormCycleSelect = false;
 
+  primaryCurrency: SchoolPrimaryCurrency | null = null;
+
   schools: SelectOption[] = [];
   yearOptions: SelectOption[] = [];
   cycleFilterOptions: SelectOption[] = [{ value: 'all', label: 'Tous les cycles' }];
@@ -181,8 +195,6 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
   private activeAcademicModelIds: string[] = [];
   private schoolCycleIds = new Set<string>();
 
-  readonly descriptionMaxLength = 255;
-  readonly formDescriptionMaxLength = 255;
   readonly installmentPaymentOptions = [
     { value: 'all', label: 'Tous' },
     { value: 'yes', label: 'Oui' },
@@ -207,7 +219,9 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
     private readonly feeCategoryService: FeeCategoryService,
     private readonly paymentInstallmentService: PaymentInstallmentService,
     private readonly studentCategoryService: StudentCategoryService,
-    private readonly schoolFeeService: SchoolFeeService
+    private readonly currencyService: CurrencyService,
+    private readonly schoolCurrencyService: SchoolCurrencyService,
+    private readonly academicFeeService: AcademicFeeService
   ) {}
 
   ngOnInit(): void {
@@ -227,14 +241,6 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
     this.openFormCycleSelect = false;
   };
 
-  get descriptionLength(): number {
-    return this.form.description.length;
-  }
-
-  get commentLength(): number {
-    return 0;
-  }
-
   get selectedCategoryAllowsInstallments(): boolean {
     return this.categoryAllowsInstallments(this.form.feeCategoryId);
   }
@@ -251,20 +257,31 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
     return this.categoryFormOptions.find((option) => option.value === this.form.feeCategoryId)?.label ?? '—';
   }
 
+  get summaryCategoryCode(): string {
+    const row = this.categoryRows.find((item) => String(item.id ?? '') === this.form.feeCategoryId);
+    return (row?.code ?? '').trim().toUpperCase() || '—';
+  }
+
   get summaryYearLabel(): string {
     return this.yearOptions.find((option) => option.value === this.form.formYearId)?.label ?? '—';
   }
 
+  get amountColumnLabel(): string {
+    return this.primaryCurrency?.code ? `Montant (${this.primaryCurrency.code})` : 'Montant';
+  }
+
+  get primaryCurrencySuffix(): string {
+    if (!this.primaryCurrency) {
+      return '—';
+    }
+    return this.primaryCurrency.symbol || this.primaryCurrency.code;
+  }
+
   get summaryAmountLabel(): string {
     if (this.formInstallmentsEnabled) {
-      const total = this.getInstallmentAmountTotal();
-      return `${this.formatAmount(total)} USD`;
+      return this.formatAmountLabel(this.getInstallmentAmountTotal());
     }
-    const amount = Number(this.form.amount);
-    if (!Number.isFinite(amount)) {
-      return '0,00 USD';
-    }
-    return `${this.formatAmount(amount)} USD`;
+    return this.formatAmountLabel(this.form.amount);
   }
 
   get summaryInstallmentAmounts(): { code: string; amountLabel: string }[] {
@@ -273,7 +290,7 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
       const match = option?.label.match(/\(([^)]+)\)/);
       return {
         code: match?.[1] ?? option?.label ?? entry.id,
-        amountLabel: `${this.formatAmount(entry.amount)} USD`
+        amountLabel: this.formatAmountLabel(entry.amount)
       };
     });
   }
@@ -315,9 +332,9 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
       .filter((item) => {
         const matchesSearch =
           !term ||
-          this.normalize(item.name).includes(term) ||
-          this.normalize(item.code).includes(term) ||
-          this.normalize(item.categoryName).includes(term);
+          this.normalize(item.classLabel).includes(term) ||
+          this.normalize(item.categoryName).includes(term) ||
+          this.normalize(item.studentCategoryName).includes(term);
 
         const matchesCycle = this.cycleFilter === 'all' || item.academicCycleId === this.cycleFilter;
         const matchesLevel = this.matchesMultiFilter(this.selectedLevelIds, item.academicLevelId);
@@ -330,8 +347,8 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
         const matchesInstallment = this.matchesMultiFilter(this.selectedInstallmentIds, item.installmentId);
         const matchesInstallmentPayment =
           this.installmentPaymentFilter === 'all' ||
-          (this.installmentPaymentFilter === 'yes' && item.allowInstallments) ||
-          (this.installmentPaymentFilter === 'no' && !item.allowInstallments);
+          (this.installmentPaymentFilter === 'yes' && item.payableByInstallment) ||
+          (this.installmentPaymentFilter === 'no' && !item.payableByInstallment);
         const matchesStatus = this.statusFilter === 'all' || item.status === this.statusFilter;
 
         return (
@@ -971,11 +988,11 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
 
   deleteFee(item: SchoolFeeItem): void {
     this.openActionMenuId = null;
-    if (!confirm(`Supprimer le frais "${item.name}" ?`)) {
+    if (!confirm(`Supprimer ce frais (${item.categoryName} — ${item.classLabel}) ?`)) {
       return;
     }
 
-    this.schoolFeeService.delete(item.id).subscribe({
+    this.academicFeeService.delete(item.id).subscribe({
       next: () => this.loadFees(false),
       error: () => {
         this.loadError = 'Echec de suppression du frais scolaire.';
@@ -1006,7 +1023,7 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.schoolFeeService.update(this.editingFeeId, this.buildSingleDto()).subscribe({
+      this.academicFeeService.update(this.editingFeeId, this.buildSingleDto()).subscribe({
         next: () => {
           this.isSaving = false;
           this.closeModal();
@@ -1027,7 +1044,7 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    forkJoin(payloads.map((dto) => this.schoolFeeService.create(dto))).subscribe({
+    this.academicFeeService.createAll(payloads).subscribe({
       next: () => {
         this.isSaving = false;
         this.closeModal();
@@ -1041,14 +1058,13 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
   }
 
   private validateForm(): string {
-    if (this.isEditMode) {
-      if (!this.form.code.trim()) return 'Le code est obligatoire.';
-      if (!this.form.name.trim()) return 'Le libelle est obligatoire.';
-    }
     if (!this.form.feeCategoryId) return 'La categorie de frais est obligatoire.';
     if (!this.form.formYearId) return "L'annee scolaire est obligatoire.";
     if (!this.form.formCycleId) return 'Selectionnez un cycle.';
     if (!this.form.selectedLevelIds.length) return 'Selectionnez au moins un niveau.';
+    if (!this.form.selectedStudentCategoryIds.length) {
+      return 'Selectionnez au moins une categorie d eleve.';
+    }
     if (this.formInstallmentsEnabled) {
       if (!this.form.selectedInstallmentIds.length) {
         return 'Selectionnez au moins une tranche.';
@@ -1060,20 +1076,23 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
     }
     if (!this.form.amount.trim()) return 'Le montant est obligatoire.';
     const amount = Number(this.form.amount);
-    if (!Number.isFinite(amount) || amount < 0) {
-      return 'Le montant doit etre un nombre positif.';
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return 'Le montant doit etre un nombre strictement positif.';
     }
     return '';
   }
 
-  private buildSingleDto(): CreateSchoolFeeDto {
+  private buildSingleDto(): CreateAcademicFeeDto {
     const installmentEntry = this.resolveSingleInstallmentEntry();
     const amount = installmentEntry?.amount ?? Number(this.form.amount);
+    const payableByInstallment = this.formInstallmentsEnabled;
+    const { code, name } = this.resolveFeeIdentifiers();
 
     return {
-      code: this.form.code.trim().toUpperCase(),
-      name: this.form.name.trim(),
+      code,
+      name,
       amount,
+      payableByInstallment,
       feeCategoryId: this.form.feeCategoryId,
       paymentInstallmentId: installmentEntry?.id ?? null,
       schoolId: this.selectedSchoolId,
@@ -1082,8 +1101,7 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
       academicLevelId: this.form.selectedLevelIds[0] ?? '',
       academicSectionId: this.form.selectedSectionIds[0] || null,
       academicOptionId: this.form.selectedOptionIds[0] || null,
-      studentCategoryId: this.form.selectedStudentCategoryIds[0] || null,
-      description: this.form.description.trim() || undefined,
+      studentCategoryId: this.form.selectedStudentCategoryIds[0] ?? '',
       active: this.form.active
     };
   }
@@ -1102,39 +1120,27 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
     return filled[0];
   }
 
-  private resolveCreateFeeCode(): string {
-    const row = this.categoryRows.find((item) => String(item.id ?? '') === this.form.feeCategoryId);
-    return (row?.code ?? '').trim().toUpperCase() || 'FRAIS';
-  }
-
-  private resolveCreateFeeName(): string {
-    const row = this.categoryRows.find((item) => String(item.id ?? '') === this.form.feeCategoryId);
-    return (row?.name ?? '').trim() || this.summaryCategoryName || 'Frais scolaire';
-  }
-
-  private buildCreatePayloads(): CreateSchoolFeeDto[] {
+  private buildCreatePayloads(): CreateAcademicFeeDto[] {
     const sections = this.form.selectedSectionIds.length ? this.form.selectedSectionIds : [null];
     const options = this.form.selectedOptionIds.length ? this.form.selectedOptionIds : [null];
-    const studentCategories = this.form.selectedStudentCategoryIds.length
-      ? this.form.selectedStudentCategoryIds
-      : [null];
     const installmentEntries = this.formInstallmentsEnabled
       ? this.getFilledInstallmentAmounts()
       : [{ id: null as string | null, amount: Number(this.form.amount) }];
     const cycleId = this.form.formCycleId;
-    const code = this.resolveCreateFeeCode();
-    const name = this.resolveCreateFeeName();
-    const payloads: CreateSchoolFeeDto[] = [];
+    const payableByInstallment = this.formInstallmentsEnabled;
+    const { code, name } = this.resolveFeeIdentifiers();
+    const payloads: CreateAcademicFeeDto[] = [];
 
     for (const levelId of this.form.selectedLevelIds) {
       for (const sectionId of sections) {
         for (const optionId of options) {
-          for (const studentCategoryId of studentCategories) {
+          for (const studentCategoryId of this.form.selectedStudentCategoryIds) {
             for (const installment of installmentEntries) {
               payloads.push({
                 code,
                 name,
                 amount: installment.amount,
+                payableByInstallment,
                 feeCategoryId: this.form.feeCategoryId,
                 paymentInstallmentId: installment.id,
                 schoolId: this.selectedSchoolId,
@@ -1200,10 +1206,29 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
       sections: this.academicSectionService.getAll().pipe(catchError(() => of([]))),
       options: this.academicOptionService.getAll().pipe(catchError(() => of([]))),
       categories: this.feeCategoryService.getAll(this.selectedSchoolId).pipe(catchError(() => of([]))),
-      studentCategories: this.studentCategoryService.getAll(this.selectedSchoolId).pipe(catchError(() => of([]))),
-      installments: this.paymentInstallmentService.getAll(this.selectedSchoolId).pipe(catchError(() => of([])))
+      installments: this.paymentInstallmentService.getAll(this.selectedSchoolId).pipe(catchError(() => of([]))),
+      studentCategories: this.studentCategoryService
+        .getAll(this.selectedSchoolId)
+        .pipe(catchError(() => of([]))),
+      currencies: this.currencyService.getAll().pipe(catchError(() => of([]))),
+      schoolCurrencies: this.schoolCurrencyService
+        .getAll(this.selectedSchoolId)
+        .pipe(catchError(() => of([])))
     }).subscribe({
-      next: ({ years, associations, models, cycles, levels, sections, options, categories, studentCategories, installments }) => {
+      next: ({
+        years,
+        associations,
+        models,
+        cycles,
+        levels,
+        sections,
+        options,
+        categories,
+        installments,
+        studentCategories,
+        currencies,
+        schoolCurrencies
+      }) => {
         this.yearOptions = (years as AcademicYearApiResponse[])
           .map((row) => {
             const id = String(row.id ?? '');
@@ -1214,6 +1239,11 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
           .sort((a, b) => b.label.localeCompare(a.label, 'fr'));
 
         this.selectedYearId = this.yearOptions[0]?.value ?? '';
+
+        this.primaryCurrency = this.resolvePrimaryCurrency(
+          currencies as CurrencyApiResponse[],
+          schoolCurrencies as SchoolCurrencyApiResponse[]
+        );
 
         this.activeAcademicModelIds = this.resolveActiveSchoolModelIds(
           associations as SchoolAcademicModelApiResponse[],
@@ -1236,29 +1266,17 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
         });
         this.optionRows = (options as AcademicOptionApiResponse[]).filter((row) => this.isRowActive(row));
         this.categoryRows = categories as FeeCategoryApiResponse[];
-        this.studentCategoryRows = (studentCategories as StudentCategoryApiResponse[]).filter((row) =>
-          this.isRowActive(row)
-        );
         this.installmentRows = installments as PaymentInstallmentApiResponse[];
-
-        this.categoryFormOptions = this.categoryRows
-          .map((row) => ({
-            value: String(row.id ?? ''),
-            label: (row.name ?? '').trim() || (row.code ?? '').trim()
-          }))
-          .filter((item) => item.value);
-
-        this.categoryFilterOptions = [
-          { value: 'all', label: 'Toutes les categories' },
-          ...this.categoryFormOptions
-        ];
+        this.studentCategoryRows = (studentCategories as StudentCategoryApiResponse[]).filter(
+          (row) => row.active !== false
+        );
 
         this.formStudentCategoryOptions = this.studentCategoryRows
           .map((row) => ({
             value: String(row.id ?? ''),
             label: (row.name ?? '').trim() || (row.code ?? '').trim()
           }))
-          .filter((item) => item.value)
+          .filter((item) => item.value && item.label)
           .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
         this.studentCategoryFilterOptions = [
@@ -1272,6 +1290,18 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
         ) {
           this.studentCategoryFilter = 'all';
         }
+
+        this.categoryFormOptions = this.categoryRows
+          .map((row) => ({
+            value: String(row.id ?? ''),
+            label: (row.name ?? '').trim() || (row.code ?? '').trim()
+          }))
+          .filter((item) => item.value);
+
+        this.categoryFilterOptions = [
+          { value: 'all', label: 'Toutes les categories' },
+          ...this.categoryFormOptions
+        ];
 
         this.formInstallmentOptions = this.installmentRows
           .map((row) => ({
@@ -1308,10 +1338,10 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
     }
     this.loadError = '';
 
-    this.schoolFeeService
+    this.academicFeeService
       .getAll({ schoolId: this.selectedSchoolId, academicYearId: this.selectedYearId })
       .subscribe({
-        next: (rows: SchoolFeeApiResponse[]) => {
+        next: (rows: AcademicFeeApiResponse[]) => {
           this.fees = rows
             .map((row) => this.mapApiToItem(row))
             .filter((item) => item.id);
@@ -1325,57 +1355,55 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
       });
   }
 
-  private mapApiToItem(row: SchoolFeeApiResponse): SchoolFeeItem {
-    const category = row.feeCategory;
-    const installment = row.paymentInstallment;
-    const studentCategory = row.studentCategory;
-    const categoryId = String(row.feeCategoryId ?? row.fee_category_id ?? category?.id ?? '');
-    const categoryName = (category?.name ?? '').trim() || this.findCategoryName(categoryId);
-    const studentCategoryId = String(
-      row.studentCategoryId ?? row.student_category_id ?? studentCategory?.id ?? ''
-    );
-    const studentCategoryName =
-      (studentCategory?.name ?? '').trim() || this.findStudentCategoryName(studentCategoryId);
-    const installmentId = String(
-      row.paymentInstallmentId ?? row.payment_installment_id ?? installment?.id ?? ''
-    );
+  private mapApiToItem(row: AcademicFeeApiResponse): SchoolFeeItem {
+    const categoryId = String(row.feeCategoryId ?? row.fee_category_id ?? '');
+    const categoryName = this.findCategoryName(categoryId);
+    const feeCode = (row.code ?? '').trim().toUpperCase() || this.findCategoryCode(categoryId);
+    const feeName = (row.name ?? '').trim() || categoryName;
+    const studentCategoryId = String(row.studentCategoryId ?? row.student_category_id ?? '');
+    const studentCategoryName = this.findStudentCategoryName(studentCategoryId);
+    const installmentId = String(row.paymentInstallmentId ?? row.payment_installment_id ?? '');
+    const installment = installmentId ? this.findInstallment(installmentId) : undefined;
     const displayOrder = Number(installment?.displayOrder ?? installment?.display_order ?? 0);
-    const allowInstallments = this.resolveBoolean(
-      category?.allowInstallments ?? category?.allow_installments ?? this.findCategoryAllowsInstallments(categoryId)
+    const allowInstallments = this.findCategoryAllowsInstallments(categoryId);
+    const payableByInstallment = this.resolveBoolean(
+      row.payableByInstallment ?? row.payable_by_installment ?? !!installmentId
     );
-
-    const code = (row.code ?? '').trim();
+    const academicCycleId = String(row.academicCycleId ?? row.academic_cycle_id ?? '');
+    const academicLevelId = String(row.academicLevelId ?? row.academic_level_id ?? '');
+    const academicSectionId = String(row.academicSectionId ?? row.academic_section_id ?? '');
+    const academicOptionId = String(row.academicOptionId ?? row.academic_option_id ?? '');
 
     return {
       id: String(row.id ?? ''),
-      code,
-      codeTone: this.resolveCodeTone(code),
-      name: (row.name ?? '').trim(),
+      code: feeCode,
+      codeTone: this.resolveCodeTone(feeCode),
+      name: feeName,
+      classLabel: this.buildClassLabel(academicLevelId, academicSectionId, academicOptionId),
       amount: Number(row.amount ?? 0),
-      amountLabel: this.formatAmount(row.amount),
+      amountLabel: this.formatAmountLabel(row.amount),
       categoryId,
       categoryName,
       categoryTone: this.resolveCategoryTone(categoryName),
       categoryIcon: this.resolveCategoryIcon(categoryName),
       installmentId,
       installmentLabel: installmentId
-        ? this.buildInstallmentLabel(installment ?? this.findInstallment(installmentId))
+        ? this.buildInstallmentLabel(installment)
         : '—',
       installmentTone: installmentId ? this.resolveInstallmentTone(displayOrder) : '',
       allowInstallments,
+      payableByInstallment,
       status: this.resolveStatus(row.active),
       schoolId: String(row.schoolId ?? row.school_id ?? this.selectedSchoolId),
       academicYearId: String(row.academicYearId ?? row.academic_year_id ?? this.selectedYearId),
-      academicCycleId: String(
-        row.academicCycleId ?? row.academic_cycle_id ?? row.academicCycle?.id ?? ''
-      ),
-      academicLevelId: String(row.academicLevelId ?? row.academic_level_id ?? ''),
-      academicSectionId: String(row.academicSectionId ?? row.academic_section_id ?? ''),
-      academicOptionId: String(row.academicOptionId ?? row.academic_option_id ?? ''),
+      academicCycleId,
+      academicLevelId,
+      academicSectionId,
+      academicOptionId,
       studentCategoryId,
       studentCategoryName,
-      description: (row.description ?? '').trim(),
-      comment: (row.comment ?? '').trim()
+      description: '',
+      comment: ''
     };
   }
 
@@ -1517,17 +1545,91 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
     };
   }
 
-  private findCategoryName(categoryId: string): string {
-    return this.categoryRows.find((row) => String(row.id ?? '') === categoryId)?.name?.trim() ?? '—';
-  }
-
   private findStudentCategoryName(studentCategoryId: string): string {
     if (!studentCategoryId) {
       return '—';
     }
-    return (
-      this.studentCategoryRows.find((row) => String(row.id ?? '') === studentCategoryId)?.name?.trim() ?? '—'
+    const row = this.studentCategoryRows.find((item) => String(item.id ?? '') === studentCategoryId);
+    return (row?.name ?? '').trim() || (row?.code ?? '').trim() || '—';
+  }
+
+  private findLevel(levelId: string): AcademicLevelApiResponse | undefined {
+    return this.levelRows.find((row) => String(row.id ?? '') === levelId);
+  }
+
+  private findLevelName(levelId: string): string {
+    const row = this.findLevel(levelId);
+    if (!row) {
+      return '';
+    }
+    return (row.name ?? '').trim() || (row.code ?? '').trim();
+  }
+
+  private findSectionName(sectionId: string): string {
+    if (!sectionId) {
+      return '';
+    }
+    const row = this.sectionRows.find((item) => String(item.id ?? '') === sectionId);
+    return (row?.name ?? '').trim() || (row?.code ?? '').trim() || '';
+  }
+
+  private findOptionName(optionId: string): string {
+    if (!optionId) {
+      return '';
+    }
+    const row = this.optionRows.find((item) => String(item.id ?? '') === optionId);
+    return (row?.name ?? '').trim() || (row?.code ?? '').trim() || '';
+  }
+
+  private readRequiresSection(row: AcademicLevelApiResponse): boolean {
+    return this.resolveBoolean(
+      row.requiresSection ??
+        row.requires_section ??
+        row.sectionRequired ??
+        row.section_required
     );
+  }
+
+  private readRequiresOption(row: AcademicLevelApiResponse): boolean {
+    return this.resolveBoolean(
+      row.requiresOption ?? row.requires_option ?? row.optionRequired ?? row.option_required
+    );
+  }
+
+  private buildClassLabel(levelId: string, sectionId: string, optionId: string): string {
+    const level = this.findLevel(levelId);
+    const levelName = this.findLevelName(levelId);
+
+    if (!levelName) {
+      return '—';
+    }
+
+    if (level && this.readRequiresOption(level)) {
+      const optionName = this.findOptionName(optionId);
+      return optionName ? `${levelName} ${optionName}` : levelName;
+    }
+
+    if (level && this.readRequiresSection(level)) {
+      const sectionName = this.findSectionName(sectionId);
+      return sectionName ? `${levelName} ${sectionName}` : levelName;
+    }
+
+    return levelName;
+  }
+
+  private findCategoryName(categoryId: string): string {
+    return this.categoryRows.find((row) => String(row.id ?? '') === categoryId)?.name?.trim() ?? '—';
+  }
+
+  private resolveFeeIdentifiers(): { code: string; name: string } {
+    const row = this.categoryRows.find((item) => String(item.id ?? '') === this.form.feeCategoryId);
+    const code = (row?.code ?? '').trim().toUpperCase().slice(0, 20) || 'FRAIS';
+    const name = (row?.name ?? '').trim().slice(0, 150) || 'Frais scolaire';
+    return { code, name };
+  }
+
+  private findCategoryCode(categoryId: string): string {
+    return this.categoryRows.find((row) => String(row.id ?? '') === categoryId)?.code?.trim().toUpperCase() ?? '—';
   }
 
   private findCategoryAllowsInstallments(categoryId: string): boolean {
@@ -1539,7 +1641,7 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
     return this.installmentRows.find((row) => String(row.id ?? '') === installmentId);
   }
 
-  private buildInstallmentLabel(row: PaymentInstallmentApiResponse | SchoolFeeApiResponse['paymentInstallment']): string {
+  private buildInstallmentLabel(row: PaymentInstallmentApiResponse | AcademicFeeApiResponse['paymentInstallment']): string {
     if (!row) {
       return '—';
     }
@@ -1629,12 +1731,9 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
     const categoryId = this.categoryFormOptions[0]?.value ?? '';
     const allowsInstallments = this.categoryAllowsInstallments(categoryId);
     return {
-      code: '',
-      name: '',
       amount: '',
       feeCategoryId: categoryId,
       paymentByInstallment: allowsInstallments,
-      description: '',
       active: true,
       displayOrder: '1',
       formYearId: this.selectedYearId || this.yearOptions[0]?.value || '',
@@ -1651,18 +1750,15 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
   private toFormFields(item: SchoolFeeItem): SchoolFeeForm {
     const installmentAmounts: Record<string, string> = {};
     const selectedInstallmentIds: string[] = [];
-    if (item.allowInstallments && item.installmentId) {
+    if (item.payableByInstallment && item.installmentId) {
       installmentAmounts[item.installmentId] = String(item.amount);
       selectedInstallmentIds.push(item.installmentId);
     }
 
     return {
-      code: item.code,
-      name: item.name,
       amount: String(item.amount),
       feeCategoryId: item.categoryId,
-      paymentByInstallment: this.categoryAllowsInstallments(item.categoryId),
-      description: item.description,
+      paymentByInstallment: item.payableByInstallment,
       active: item.status === 'Actif',
       displayOrder: '1',
       formYearId: item.academicYearId || this.selectedYearId,
@@ -1687,16 +1783,17 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
     this.categoryRows = [];
     this.studentCategoryRows = [];
     this.installmentRows = [];
+    this.formStudentCategoryOptions = [];
+    this.studentCategoryFilterOptions = [{ value: 'all', label: 'Toutes les categories' }];
+    this.studentCategoryFilter = 'all';
+    this.primaryCurrency = null;
     this.activeAcademicModelIds = [];
     this.schoolCycleIds = new Set<string>();
     this.cyclesHint = '';
     this.selectedLevelIds = [];
     this.selectedSectionIds = [];
     this.selectedOptionIds = [];
-    this.studentCategoryFilter = 'all';
     this.selectedInstallmentIds = [];
-    this.formStudentCategoryOptions = [];
-    this.studentCategoryFilterOptions = [{ value: 'all', label: 'Toutes les categories' }];
     this.rebuildDependentFilterOptions();
   }
 
@@ -1832,13 +1929,62 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
 
   private formatAmount(value: unknown): string {
     const amount = Number(value ?? 0);
+    const decimalPlaces = this.primaryCurrency?.decimalPlaces ?? 2;
     if (!Number.isFinite(amount)) {
-      return '0,00';
+      return new Intl.NumberFormat('fr-FR', {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces
+      }).format(0);
     }
     return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits: decimalPlaces,
+      maximumFractionDigits: decimalPlaces
     }).format(amount);
+  }
+
+  private formatAmountLabel(value: unknown): string {
+    const formatted = this.formatAmount(value);
+    const code = this.primaryCurrency?.code;
+    return code ? `${formatted} ${code}` : formatted;
+  }
+
+  private resolvePrimaryCurrency(
+    currencies: CurrencyApiResponse[],
+    schoolCurrencies: SchoolCurrencyApiResponse[]
+  ): SchoolPrimaryCurrency | null {
+    const currencyMeta = new Map(
+      currencies.map((row) => [
+        String(row.id ?? ''),
+        {
+          code: (row.code ?? '').trim().toUpperCase(),
+          name: (row.name ?? '').trim(),
+          symbol: (row.symbol ?? '').trim(),
+          decimalPlaces: Number(row.decimalPlaces ?? row.decimal_places ?? 2)
+        }
+      ])
+    );
+
+    const defaultLink = schoolCurrencies.find(
+      (row) => (row.isDefault === true || row.is_default === true) && row.active !== false
+    );
+    if (!defaultLink) {
+      return null;
+    }
+
+    const currencyId = String(defaultLink.currencyId ?? defaultLink.currency_id ?? '');
+    const meta = currencyMeta.get(currencyId);
+    if (!currencyId || !meta?.code) {
+      return null;
+    }
+
+    const decimalPlaces = Number.isFinite(meta.decimalPlaces) ? meta.decimalPlaces : 2;
+    return {
+      id: currencyId,
+      code: meta.code,
+      name: meta.name,
+      symbol: meta.symbol,
+      decimalPlaces
+    };
   }
 
   private buildYearLabel(row: AcademicYearApiResponse): string {

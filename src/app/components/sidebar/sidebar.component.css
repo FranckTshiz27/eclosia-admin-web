@@ -181,8 +181,8 @@ body.dark-theme .sidebar {
     max-height: 260px;
 }
 
-.has-submenu.open .finance-submenu {
-    max-height: 480px;
+.students-menu.has-submenu.open .finance-submenu {
+    max-height: 360px;
 }
 
 .students-submenu {

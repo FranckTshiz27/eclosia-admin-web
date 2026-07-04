@@ -3,27 +3,26 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { API_ENDPOINTS } from '../core/config/api.config';
 
-export interface CreateSchoolFeeDto {
+export interface CreateAcademicFeeDto {
   code: string;
   name: string;
   amount: number;
-  feeCategoryId: string;
-  paymentInstallmentId?: string | null;
+  payableByInstallment?: boolean;
+  active?: boolean;
   schoolId: string;
   academicYearId: string;
+  feeCategoryId: string;
   academicCycleId: string;
   academicLevelId: string;
   academicSectionId?: string | null;
   academicOptionId?: string | null;
-  studentCategoryId?: string | null;
-  description?: string;
-  active?: boolean;
-  comment?: string;
+  paymentInstallmentId?: string | null;
+  studentCategoryId: string;
 }
 
-export type UpdateSchoolFeeDto = CreateSchoolFeeDto;
+export type UpdateAcademicFeeDto = CreateAcademicFeeDto;
 
-export interface SchoolFeeCategoryRef {
+export interface AcademicFeeCategoryRef {
   id?: string;
   code?: string;
   name?: string;
@@ -31,7 +30,7 @@ export interface SchoolFeeCategoryRef {
   allow_installments?: boolean;
 }
 
-export interface SchoolFeeInstallmentRef {
+export interface AcademicFeeInstallmentRef {
   id?: string;
   code?: string;
   name?: string;
@@ -39,65 +38,65 @@ export interface SchoolFeeInstallmentRef {
   display_order?: number;
 }
 
-export interface SchoolFeeCycleRef {
+export interface AcademicFeeCycleRef {
   id?: string;
   code?: string;
   name?: string;
 }
 
-export interface SchoolFeeStudentCategoryRef {
+export interface AcademicFeeStudentCategoryRef {
   id?: string;
   code?: string;
   name?: string;
 }
 
-export interface SchoolFeeApiResponse {
+export interface AcademicFeeApiResponse {
   id?: string;
   code?: string;
   name?: string;
   amount?: number;
+  payableByInstallment?: boolean;
+  payable_by_installment?: boolean;
   active?: boolean;
-  description?: string | null;
-  comment?: string | null;
   schoolId?: string;
   school_id?: string;
   academicYearId?: string;
   academic_year_id?: string;
   academicCycleId?: string;
   academic_cycle_id?: string;
-  academicCycle?: SchoolFeeCycleRef | null;
+  academicCycle?: AcademicFeeCycleRef | null;
   academicLevelId?: string;
   academic_level_id?: string;
   academicSectionId?: string | null;
   academic_section_id?: string | null;
   academicOptionId?: string | null;
   academic_option_id?: string | null;
-  studentCategoryId?: string | null;
-  student_category_id?: string | null;
-  studentCategory?: SchoolFeeStudentCategoryRef | null;
   feeCategoryId?: string;
   fee_category_id?: string;
   paymentInstallmentId?: string | null;
   payment_installment_id?: string | null;
-  feeCategory?: SchoolFeeCategoryRef | null;
-  paymentInstallment?: SchoolFeeInstallmentRef | null;
+  feeCategory?: AcademicFeeCategoryRef | null;
+  paymentInstallment?: AcademicFeeInstallmentRef | null;
+  studentCategoryId?: string | null;
+  student_category_id?: string | null;
+  studentCategory?: AcademicFeeStudentCategoryRef | null;
   createdAt?: string;
   created_at?: string;
   updatedAt?: string;
   updated_at?: string;
 }
 
-type SchoolFeeListPayload =
-  | SchoolFeeApiResponse[]
+type AcademicFeeListPayload =
+  | AcademicFeeApiResponse[]
   | {
-      value?: SchoolFeeApiResponse[];
-      data?: SchoolFeeApiResponse[];
-      content?: SchoolFeeApiResponse[];
-      items?: SchoolFeeApiResponse[];
-      results?: SchoolFeeApiResponse[];
+      value?: AcademicFeeApiResponse[];
+      data?: AcademicFeeApiResponse[];
+      content?: AcademicFeeApiResponse[];
+      items?: AcademicFeeApiResponse[];
+      results?: AcademicFeeApiResponse[];
     };
 
-export interface SchoolFeeQuery {
+export interface AcademicFeeQuery {
   schoolId?: string;
   academicYearId?: string;
 }
@@ -105,28 +104,28 @@ export interface SchoolFeeQuery {
 @Injectable({
   providedIn: 'root'
 })
-export class SchoolFeeService {
-  private readonly endpoint = API_ENDPOINTS.schoolFee;
+export class AcademicFeeService {
+  private readonly endpoint = API_ENDPOINTS.academicFee;
 
   constructor(private readonly http: HttpClient) {}
 
-  create(dto: CreateSchoolFeeDto): Observable<SchoolFeeApiResponse> {
-    return this.http.post<SchoolFeeApiResponse>(this.endpoint, dto);
+  createAll(dtos: CreateAcademicFeeDto[]): Observable<AcademicFeeApiResponse[]> {
+    return this.http.post<AcademicFeeApiResponse[]>(this.endpoint, dtos);
   }
 
-  update(id: string, dto: UpdateSchoolFeeDto): Observable<SchoolFeeApiResponse> {
-    return this.http.put<SchoolFeeApiResponse>(`${this.endpoint}/${id}`, dto);
+  update(id: string, dto: UpdateAcademicFeeDto): Observable<AcademicFeeApiResponse> {
+    return this.http.put<AcademicFeeApiResponse>(`${this.endpoint}/${id}`, dto);
   }
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.endpoint}/${id}`);
   }
 
-  getById(id: string): Observable<SchoolFeeApiResponse> {
-    return this.http.get<SchoolFeeApiResponse>(`${this.endpoint}/${id}`);
+  getById(id: string): Observable<AcademicFeeApiResponse> {
+    return this.http.get<AcademicFeeApiResponse>(`${this.endpoint}/${id}`);
   }
 
-  getAll(query: SchoolFeeQuery = {}): Observable<SchoolFeeApiResponse[]> {
+  getAll(query: AcademicFeeQuery = {}): Observable<AcademicFeeApiResponse[]> {
     let params = new HttpParams();
     if (query.schoolId) {
       params = params.set('schoolId', query.schoolId);
@@ -135,7 +134,7 @@ export class SchoolFeeService {
       params = params.set('academicYearId', query.academicYearId);
     }
 
-    return this.http.get<SchoolFeeListPayload>(this.endpoint, { params }).pipe(
+    return this.http.get<AcademicFeeListPayload>(this.endpoint, { params }).pipe(
       map((response) => {
         if (Array.isArray(response)) {
           return response;

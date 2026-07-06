@@ -1,0 +1,236 @@
+/* Selects — style identique à Frais scolaires (ecole-school-fees) */
+
+body .context-card select.context-select {
+    padding: 0 44px 0 12px;
+}
+
+body .select-with-icon {
+    position: relative;
+}
+
+body .select-with-icon > i,
+body .select-with-icon > .bi {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #0a53de;
+    font-size: 0.95rem;
+    pointer-events: none;
+    z-index: 2;
+}
+
+body select.context-select,
+body .context-select,
+body .filter-group select,
+body .filter-select,
+body .select-with-icon select.context-select,
+body .select-with-icon select {
+    width: 100%;
+    height: 42px;
+    border: 1px solid #dbe2f0 !important;
+    border-radius: 10px;
+    background-color: #f1f4f8 !important;
+    background-image:
+        linear-gradient(#e9eef5, #e9eef5),
+        var(--filter-select-chevron) !important;
+    background-repeat: no-repeat;
+    background-position: right top, right 12px center;
+    background-size: 38px 100%, 14px 10px;
+    padding: 0 44px 0 38px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    color: #0f172a;
+    font-size: 0.88rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+body select.context-select:focus,
+body .context-select:focus,
+body .filter-group select:focus,
+body .filter-select:focus,
+body .select-with-icon select.context-select:focus,
+body .select-with-icon select:focus {
+    background-color: #ffffff !important;
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+body select.dashboard-select,
+body .dashboard-select,
+body select.page-size-select,
+body .page-size-select,
+body .chart-filter,
+body .form-select,
+body .fp-select,
+body .fp-paginator-select {
+    width: 100%;
+    height: 42px;
+    border: 1px solid #dbe2f0 !important;
+    border-radius: 10px;
+    background-color: #ffffff !important;
+    background-image: var(--filter-select-chevron) !important;
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px 10px;
+    padding: 0 36px 0 12px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    color: #0f172a;
+    font-size: 0.88rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+body select.page-size-select,
+body .page-size-select,
+body .fp-paginator-select {
+    width: auto;
+    min-width: 72px;
+    height: 36px;
+    padding: 0 32px 0 10px;
+    font-size: 12px;
+}
+
+body select.dashboard-select:focus,
+body .dashboard-select:focus,
+body select.page-size-select:focus,
+body .page-size-select:focus,
+body .chart-filter:focus,
+body .form-select:focus,
+body .fp-select:focus,
+body .fp-paginator-select:focus {
+    background-color: #ffffff !important;
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+body .field-group select,
+body .filter-field select {
+    width: 100%;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px;
+    background-color: #ffffff !important;
+    background-image: var(--filter-select-chevron) !important;
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px 10px;
+    padding: 10px 36px 10px 12px;
+    color: #1f293f;
+    font-size: 13px;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+body .field-group select:focus,
+body .filter-field select:focus {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    background-color: #ffffff !important;
+}
+
+body select.context-select:disabled,
+body .context-select:disabled,
+body .dashboard-select:disabled,
+body .page-size-select:disabled,
+body .filter-group select:disabled,
+body .field-group select:disabled,
+body select:disabled {
+    background-color: #f1f4f8 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+body select option,
+body .context-select option,
+body .dashboard-select option,
+body .field-group select option {
+    color: #1f2937;
+    background: #ffffff;
+    font-weight: 500;
+}
+
+/* Toolbar filtres */
+body .table-toolbar.filters-toolbar .filter-group select {
+    height: 42px;
+    padding: 0 44px 0 12px;
+    border: 1px solid #dbe2f0 !important;
+    border-radius: 10px;
+    background-color: #f1f4f8 !important;
+    background-image:
+        linear-gradient(#e9eef5, #e9eef5),
+        var(--filter-select-chevron) !important;
+    background-repeat: no-repeat;
+    background-position: right top, right 12px center;
+    background-size: 38px 100%, 14px 10px;
+    color: #0f172a;
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+body .table-toolbar.filters-toolbar .filter-group select:focus {
+    background-color: #ffffff !important;
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* Dark theme — selects clairs */
+body.dark-theme .page-container select.context-select,
+body.dark-theme .page-container .context-select,
+body.dark-theme .page-container .select-with-icon select,
+body.dark-theme .modal-backdrop select.context-select,
+body.dark-theme .modal-backdrop .context-select,
+body.dark-theme .field-group select,
+body.dark-theme .filter-group select,
+body.dark-theme .dashboard-select,
+body.dark-theme .page-size-select,
+body.dark-theme .filter-select,
+body.dark-theme .payments-page select.context-select,
+body.dark-theme .payments-page .select-with-icon select {
+    color: #0f172a !important;
+    border-color: #dbe2f0 !important;
+}
+
+body.dark-theme .page-container select.context-select,
+body.dark-theme .page-container .context-select,
+body.dark-theme .page-container .select-with-icon select,
+body.dark-theme .filter-group select,
+body.dark-theme .payments-page select.context-select,
+body.dark-theme .payments-page .select-with-icon select {
+    background-color: #f1f4f8 !important;
+    background-image:
+        linear-gradient(#e9eef5, #e9eef5),
+        var(--filter-select-chevron) !important;
+    background-repeat: no-repeat !important;
+    background-position: right top, right 12px center !important;
+    background-size: 38px 100%, 14px 10px !important;
+}
+
+body.dark-theme .page-container .dashboard-select,
+body.dark-theme .page-container .page-size-select,
+body.dark-theme .field-group select,
+body.dark-theme .payments-page .dashboard-select,
+body.dark-theme .payments-page .field-group select {
+    background-color: #ffffff !important;
+    background-image: var(--filter-select-chevron) !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 14px 10px !important;
+    color: #1f293f !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.dark-theme select option {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+}

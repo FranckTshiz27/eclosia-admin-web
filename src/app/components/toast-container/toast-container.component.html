@@ -1,0 +1,24 @@
+<div class="toast-viewport" aria-live="polite" aria-relevant="additions removals">
+  <article
+    class="toast-item"
+    *ngFor="let toast of toasts"
+    [class.toast-error]="toast.type === 'error'"
+    [class.toast-warning]="toast.type === 'warning'"
+    [class.toast-success]="toast.type === 'success'"
+    [class.toast-info]="toast.type === 'info'"
+    role="alert"
+  >
+    <div class="toast-icon" aria-hidden="true">
+      <i class="bi" [ngClass]="getIcon(toast.type)"></i>
+    </div>
+    <p class="toast-message">{{ toast.message }}</p>
+    <button type="button" class="toast-close" (click)="dismiss(toast.id)" aria-label="Fermer">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <span
+      class="toast-progress"
+      [style.animationDuration]="toast.durationMs + 'ms'"
+      aria-hidden="true"
+    ></span>
+  </article>
+</div>

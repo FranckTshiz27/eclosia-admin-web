@@ -9,13 +9,13 @@ import { CityOption, CityService } from '../../../../services/city.service';
 import { ClassroomApiResponse, ClassroomService } from '../../../../services/classroom.service';
 import { CommuneOption, CommuneService } from '../../../../services/commune.service';
 import { CountryOption, CountryService } from '../../../../services/country.service';
-import { CreateEnrollmentDto, EnrollmentApiResponse, EnrollmentService } from '../../../../services/enrollment.service';
+import { CreateEnrollmentDto, EnrollmentApiResponse, EnrollmentService, resolveEnrollmentPhotoUrls, resolveEnrollmentStudentIdentity } from '../../../../services/enrollment.service';
 import { CreateGuardianDto, GuardianApiResponse, GuardianService, UpdateGuardianDto } from '../../../../services/guardian.service';
-import { API_CONFIG } from '../../../../core/config/api.config';
 import { EnrollmentReportService } from '../../../../services/enrollment-report.service';
 import { SchoolApiResponse, SchoolService } from '../../../../services/school.service';
 import { StudentCategoryService } from '../../../../services/student-category.service';
 import { EcoleStudentCategoriesComponent } from '../ecole-student-categories/ecole-student-categories.component';
+import { compressCanvasImage, compressImageFile } from '../../../../core/utils/image-compression';
 
 interface SchoolOption {
   id: string;
@@ -33,6 +33,9 @@ interface YearOption {
 interface StudentRow {
   matricule: string;
   fullName: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   photoUrl: string;
   photoFallbackUrls: string[];
   classe: string;
@@ -205,6 +208,7 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
   isLoadingYears = false;
   isLoadingTutors = false;
   isLoadingEnrollments = false;
+  isSearchingStudents = false;
   isLoadingEnrollmentReferences = false;
   isExportingStudentsReport = false;
   loadError = '';
@@ -290,8 +294,46 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
     this.loadEnrollments();
   }
 
-  onStudentSearchChange(): void {
+  onStudentSearchSubmit(event: Event): void {
+    event.preventDefault();
+    this.searchStudentsByName();
+  }
+
+  searchStudentsByName(): void {
+    if (!this.selectedSchoolId || !this.selectedYearId) {
+      this.loadError = 'Selectionnez une ecole et une annee scolaire.';
+      return;
+    }
+
+    const name = this.studentSearchTerm.trim();
     this.currentPage = 1;
+    this.loadError = '';
+
+    if (!name) {
+      this.loadEnrollments();
+      return;
+    }
+
+    this.isSearchingStudents = true;
+
+    forkJoin({
+      enrollments: this.enrollmentService.searchByStudentName({
+        name,
+        academicYearId: this.selectedYearId,
+        schoolId: this.selectedSchoolId
+      }),
+      classrooms: this.classroomService.getAll(this.selectedSchoolId)
+    }).subscribe({
+      next: ({ enrollments, classrooms }) => {
+        this.applyEnrollmentRows(enrollments, classrooms);
+        this.isSearchingStudents = false;
+      },
+      error: () => {
+        this.students = [];
+        this.isSearchingStudents = false;
+        this.loadError = 'Recherche impossible pour le moment.';
+      }
+    });
   }
 
   onStudentFiltersChange(): void {
@@ -304,6 +346,7 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
     this.studentCategoryFilter = 'all';
     this.studentStatusFilter = 'all';
     this.currentPage = 1;
+    this.loadEnrollments();
   }
 
   onTutorSearchChange(): void {
@@ -412,25 +455,13 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   get filteredStudents(): StudentRow[] {
-    const term = this.normalize(this.studentSearchTerm);
-
     return this.students.filter((student) => {
-      const matchesSearch =
-        !term ||
-        this.normalize(student.matricule).includes(term) ||
-        this.normalize(student.fullName).includes(term) ||
-        this.normalize(student.classe).includes(term) ||
-        this.normalize(student.category).includes(term) ||
-        this.normalize(student.tutorName).includes(term) ||
-        this.normalize(student.tutorPhone).includes(term) ||
-        this.normalize(student.statut).includes(term);
-
       const matchesClass = this.studentClassFilter === 'all' || this.sameId(student.classe, this.studentClassFilter);
       const matchesCategory =
         this.studentCategoryFilter === 'all' || this.sameId(student.category, this.studentCategoryFilter);
       const matchesStatus = this.studentStatusFilter === 'all' || this.sameId(student.statut, this.studentStatusFilter);
 
-      return matchesSearch && matchesClass && matchesCategory && matchesStatus;
+      return matchesClass && matchesCategory && matchesStatus;
     });
   }
 
@@ -693,6 +724,11 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   getStudentIdentityMeta(student: StudentRow): string {
+    const nameDetails = this.getStudentNameDetails(student);
+    if (nameDetails) {
+      return nameDetails;
+    }
+
     const segments: string[] = [];
     if (student.birthDate && student.birthDate !== '—') {
       segments.push(`Ne le ${this.formatDateForStudentMeta(student.birthDate)}`);
@@ -701,6 +737,16 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
       segments.push(student.gender.toUpperCase());
     }
     return segments.join(' - ') || 'Informations indisponibles';
+  }
+
+  getStudentNameDetails(student: StudentRow): string {
+    const parts = [
+      student.lastName ? `Nom: ${student.lastName}` : '',
+      student.middleName ? `Postnom: ${student.middleName}` : '',
+      student.firstName ? `Prenom: ${student.firstName}` : ''
+    ].filter(Boolean);
+
+    return parts.join(' · ');
   }
 
   getCategoryChipClass(value: string): string {
@@ -1021,12 +1067,16 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
     }
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    this.studentPhotoPreview = canvas.toDataURL('image/jpeg', 0.92);
-    this.selectedEnrollmentPhotoFile = this.dataUrlToFile(
-      this.studentPhotoPreview,
-      `enrollment-photo-${Date.now()}.jpg`
+    void compressCanvasImage(canvas).then(
+      (result) => {
+        this.studentPhotoPreview = result.dataUrl;
+        this.selectedEnrollmentPhotoFile = result.file;
+        this.webcamError = '';
+      },
+      () => {
+        this.webcamError = 'Impossible de compresser la photo.';
+      }
     );
-    this.webcamError = '';
   }
 
   triggerPhotoUpload(): void {
@@ -1045,17 +1095,16 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
       return;
     }
 
-    this.selectedEnrollmentPhotoFile = file;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.studentPhotoPreview = String(reader.result ?? '');
-      this.webcamError = '';
-    };
-    reader.onerror = () => {
-      this.webcamError = "Impossible de lire l'image.";
-    };
-    reader.readAsDataURL(file);
+    void compressImageFile(file).then(
+      (result) => {
+        this.selectedEnrollmentPhotoFile = result.file;
+        this.studentPhotoPreview = result.dataUrl;
+        this.webcamError = '';
+      },
+      () => {
+        this.webcamError = 'Impossible de compresser l image.';
+      }
+    );
     input.value = '';
   }
 
@@ -1357,19 +1406,8 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
       classrooms: this.classroomService.getAll(this.selectedSchoolId)
     }).subscribe({
       next: ({ enrollments, classrooms }) => {
-        const classById = new Map(
-          classrooms
-            .map((item) => this.mapClassroomOption(item))
-            .filter((item) => !!item.id)
-            .map((item) => [item.id, item.label] as const)
-        );
-
-        this.students = enrollments
-          .map((row) => this.mapEnrollmentToStudentRow(row, classById))
-          .sort((a, b) => a.fullName.localeCompare(b.fullName, 'fr'));
-        this.currentPage = 1;
+        this.applyEnrollmentRows(enrollments, classrooms);
         this.isLoadingEnrollments = false;
-
       },
       error: () => {
         this.students = [];
@@ -1377,6 +1415,23 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
         this.loadError = "Impossible de charger les inscriptions.";
       }
     });
+  }
+
+  private applyEnrollmentRows(
+    enrollments: EnrollmentApiResponse[],
+    classrooms: ClassroomApiResponse[]
+  ): void {
+    const classById = new Map(
+      classrooms
+        .map((item) => this.mapClassroomOption(item))
+        .filter((item) => !!item.id)
+        .map((item) => [item.id, item.label] as const)
+    );
+
+    this.students = enrollments
+      .map((row) => this.mapEnrollmentToStudentRow(row, classById))
+      .sort((a, b) => a.fullName.localeCompare(b.fullName, 'fr'));
+    this.currentPage = 1;
   }
 
   private mapGuardianToTutorRow(row: GuardianApiResponse): TutorRow {
@@ -1457,29 +1512,7 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
       classById.get(classroomId) ||
       'Classe non definie';
 
-    const composedFullName =
-      this.readString(row.fullName, row.full_name, row.studentFullName, row.student_full_name) ||
-      this.readPathString(rowAny, 'student.fullName') ||
-      this.readPathString(rowAny, 'student.full_name') ||
-      this.readPathString(rowAny, 'student.name') ||
-      this.readPathString(rowAny, 'student.studentFullName') ||
-      this.readPathString(rowAny, 'student.student_full_name') ||
-      [
-        this.readString(row.studentLastName, row.student_last_name, row.lastName, row.last_name),
-        this.readString(row.studentMiddleName, row.student_middle_name, row.middleName, row.middle_name),
-        this.readString(row.studentFirstName, row.student_first_name, row.firstName, row.first_name)
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .trim() ||
-      [
-        this.readPathString(rowAny, 'student.lastName') || this.readPathString(rowAny, 'student.last_name'),
-        this.readPathString(rowAny, 'student.middleName') || this.readPathString(rowAny, 'student.middle_name'),
-        this.readPathString(rowAny, 'student.firstName') || this.readPathString(rowAny, 'student.first_name')
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .trim();
+    const identity = resolveEnrollmentStudentIdentity(rowAny);
 
     const tutorName =
       this.readString(row.guardianName, row.guardian_name, row.guardianFullName, row.guardian_full_name) ||
@@ -1512,11 +1545,14 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
       this.readString(row.birthDate, row.birth_date, row.studentBirthDate, row.student_birth_date) ||
       this.readPathString(rowAny, 'student.birthDate') ||
       this.readPathString(rowAny, 'student.birth_date');
-    const photoCandidates = this.resolveStudentPhotoUrls(rowAny);
+    const photoCandidates = resolveEnrollmentPhotoUrls(rowAny);
 
     return {
       matricule: enrollmentNumber || this.readString(row.id) || '—',
-      fullName: composedFullName || 'Eleve sans nom',
+      fullName: identity.fullName,
+      firstName: identity.firstName,
+      middleName: identity.middleName,
+      lastName: identity.lastName,
       photoUrl: photoCandidates[0] ?? '',
       photoFallbackUrls: photoCandidates.slice(1),
       classe: classroomLabel,
@@ -1594,28 +1630,6 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
     return value;
   }
 
-  private dataUrlToFile(dataUrl: string, fileName: string): File | null {
-    const parts = String(dataUrl || '').split(',');
-    if (parts.length !== 2) {
-      return null;
-    }
-
-    const meta = parts[0];
-    const payload = parts[1];
-    const mime = meta.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
-
-    try {
-      const binary = atob(payload);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i += 1) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      return new File([bytes], fileName, { type: mime });
-    } catch {
-      return null;
-    }
-  }
-
   private buildFullNameFromPath(source: unknown, rootPath: string): string {
     const firstName =
       this.readPathString(source, `${rootPath}.firstName`) || this.readPathString(source, `${rootPath}.first_name`);
@@ -1624,67 +1638,6 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
     const lastName =
       this.readPathString(source, `${rootPath}.lastName`) || this.readPathString(source, `${rootPath}.last_name`);
     return [firstName, middleName, lastName].filter(Boolean).join(' ').trim();
-  }
-
-  private resolveStudentPhotoUrls(source: unknown): string[] {
-    const candidates: string[] = [];
-    const directUrl =
-      this.readPathString(source, 'photo.url') ||
-      this.readPathString(source, 'photo.fileUrl') ||
-      this.readPathString(source, 'photo.file_url') ||
-      this.readPathString(source, 'photo.publicUrl') ||
-      this.readPathString(source, 'photo.public_url') ||
-      this.readPathString(source, 'student.photo.url') ||
-      this.readPathString(source, 'student.photo.fileUrl') ||
-      this.readPathString(source, 'student.photo.file_url') ||
-      this.readPathString(source, 'student.photo.publicUrl') ||
-      this.readPathString(source, 'student.photo.public_url') ||
-      this.readPathString(source, 'student.photoUrl') ||
-      this.readPathString(source, 'student.photo_url') ||
-      '';
-
-    if (directUrl) {
-      candidates.push(directUrl);
-    }
-
-    const fileName =
-      this.readPathString(source, 'photo.fileName') ||
-      this.readPathString(source, 'photo.file_name') ||
-      this.readPathString(source, 'student.photo.fileName') ||
-      this.readPathString(source, 'student.photo.file_name');
-    const rawPath =
-      this.readPathString(source, 'photo.path') ||
-      this.readPathString(source, 'student.photo.path');
-
-    if (fileName) {
-      const normalizedPath = rawPath.replace(/\\/g, '/');
-      const uploadsSegmentIndex = normalizedPath.toLowerCase().indexOf('/uploads/');
-      const uploadsRelativePath =
-        uploadsSegmentIndex >= 0
-          ? normalizedPath.slice(uploadsSegmentIndex).replace(/\/+$/, '')
-          : '/uploads/enrollments';
-      const cleanFileName = fileName.replace(/^\/+/, '');
-
-      // Common gateway static file serving variants.
-      candidates.push(`${API_CONFIG.gatewayBaseUrl}${uploadsRelativePath}/${cleanFileName}`);
-      candidates.push(
-        `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}${uploadsRelativePath}/${cleanFileName}`
-      );
-    }
-
-    const photoId =
-      this.readPathString(source, 'photoId') ||
-      this.readPathString(source, 'photo.id') ||
-      this.readPathString(source, 'student.photoId') ||
-      this.readPathString(source, 'student.photo.id');
-    if (photoId) {
-      // Backend contract: GET /api-organization/file-resource/{id}/content
-      candidates.push(
-        `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/file-resource/${photoId}/content`
-      );
-    }
-
-    return Array.from(new Set(candidates.filter(Boolean)));
   }
 
   private readPathString(source: unknown, path: string): string {

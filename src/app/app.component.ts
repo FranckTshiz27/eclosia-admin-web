@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { HeaderComponent } from './components/header/header.component';
+import { ToastContainerComponent } from './components/toast-container/toast-container.component';
 import { SidebarService } from './services/sidebar.service';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
@@ -11,7 +12,7 @@ import { InactivityService } from './services/inactivity.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent],
+  imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, ToastContainerComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

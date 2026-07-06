@@ -34,5 +34,6 @@ export const API_ENDPOINTS = {
   currencyRate: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/currency-rate`,
   guardian: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/guardian`,
   enrollment: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/enrollment`,
-  enrollmentReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/enrollment-report`
+  enrollmentReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/enrollment-report`,
+  paymentReceiptReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/report/payment-receipt`
 } as const;

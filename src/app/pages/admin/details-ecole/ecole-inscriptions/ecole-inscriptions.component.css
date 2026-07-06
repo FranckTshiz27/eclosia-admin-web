@@ -319,8 +319,20 @@
 
 .students-search {
   position: relative;
-  justify-self: end;
-  width: min(360px, 100%);
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 260px;
+  height: 36px;
+  border: 1px solid #dbe2f0;
+  border-radius: 10px;
+  background: #f1f4f8;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  overflow: hidden;
+}
+
+.tuteurs-head-actions .students-search {
+  max-width: 240px;
 }
 
 .tuteurs-head-actions {
@@ -329,15 +341,6 @@
   align-items: center;
   gap: 10px;
   flex-wrap: nowrap;
-}
-
-.tuteurs-head-actions .students-search {
-  width: min(320px, 100%);
-}
-
-.tuteurs-head-actions .btn-primary {
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .modal-backdrop {
@@ -476,13 +479,21 @@
 .field-group textarea,
 .field-group select {
   width: 100%;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  background: #f1f4f8;
-  padding: 9px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background-color: #ffffff;
+  background-image: var(--filter-select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 10px;
+  padding: 10px 36px 10px 12px;
   color: #1f293f;
-  font-size: 12px;
+  font-size: 13px;
   outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
@@ -529,31 +540,18 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image:
-    linear-gradient(#e9eef5, #e9eef5),
-    var(--filter-select-chevron);
-  background-repeat: no-repeat;
-  background-position: right top, right 12px center;
-  background-size: 38px 100%, 14px 10px;
-  padding-right: 44px;
-}
-
-.field-group select:focus {
-  background-image:
-    linear-gradient(#eef4ff, #eef4ff),
-    var(--filter-select-chevron);
 }
 
 .enrollment-modal .field-group select {
-  background-image:
-    linear-gradient(#ffffff, #ffffff),
-    var(--filter-select-chevron) !important;
+  background-color: #ffffff !important;
+  background-image: var(--filter-select-chevron) !important;
+  background-position: right 12px center !important;
+  background-size: 14px 10px !important;
 }
 
 .enrollment-modal .field-group select:focus {
-  background-image:
-    linear-gradient(#ffffff, #ffffff),
-    var(--filter-select-chevron) !important;
+  background-color: #ffffff !important;
+  background-image: var(--filter-select-chevron) !important;
 }
 
 .field-group input[type='date'] {
@@ -1129,24 +1127,55 @@
   cursor: not-allowed;
 }
 
-.students-search i {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #98a2b3;
+.tuteurs-head-actions .btn-primary {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.students-search:focus-within {
+  background: #ffffff;
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.students-search-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0a53de;
+  pointer-events: none;
+}
+
+.students-search-icon i {
+  font-size: 0.82rem;
 }
 
 .students-search input {
-  width: 100%;
-  height: 38px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #f8fafc;
-  padding: 0 12px 0 34px;
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0 10px 0 0;
   outline: none;
-  color: #1f293f;
-  font-size: 13px;
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.students-search input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.students-search input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .search-limit {
@@ -1212,7 +1241,23 @@
 
 :host-context(body.dark-theme) .inscriptions-panel .filters-card,
 :host-context(body.dark-theme) .inscriptions-panel .filter-group select,
+:host-context(body.dark-theme) .inscriptions-panel .students-search,
+:host-context(body.dark-theme) .eleves-dashboard .students-search {
+  background: #f1f4f8 !important;
+  border-color: #dbe2f0 !important;
+}
+
+:host-context(body.dark-theme) .inscriptions-panel .students-search:focus-within,
+:host-context(body.dark-theme) .eleves-dashboard .students-search:focus-within {
+  background: #ffffff !important;
+  border-color: #86b7fe !important;
+}
+
 :host-context(body.dark-theme) .inscriptions-panel .students-search input,
+:host-context(body.dark-theme) .eleves-dashboard .students-search input {
+  background: transparent !important;
+  color: #0f172a !important;
+}
 :host-context(body.dark-theme) .inscriptions-panel .table-card,
 :host-context(body.dark-theme) .inscriptions-panel .inscriptions-tabs,
 :host-context(body.dark-theme) .inscriptions-panel .pagination button,
@@ -1390,24 +1435,52 @@
   font-size: 0.95rem;
 }
 
-.context-card select,
+.context-card .select-with-icon {
+  position: relative;
+}
+
+.context-card .select-with-icon > i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #0a53de;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.context-card select.context-select,
 .context-select {
   width: 100%;
-  border: 0 !important;
-  background-color: transparent !important;
-  background-image: var(--filter-select-chevron);
+  height: 42px;
+  border: 1px solid #dbe2f0 !important;
+  border-radius: 10px;
+  background-color: #f1f4f8 !important;
+  background-image:
+    linear-gradient(#e9eef5, #e9eef5),
+    var(--filter-select-chevron) !important;
   background-repeat: no-repeat;
-  background-position: right 2px center;
-  background-size: 13px 9px;
+  background-position: right top, right 12px center;
+  background-size: 38px 100%, 14px 10px;
+  padding: 0 44px 0 38px;
   color: #0f172a;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 600;
   outline: none;
-  padding: 0 18px 0 0;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   color-scheme: light;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.context-card select.context-select:focus,
+.context-select:focus {
+  background-color: #ffffff !important;
+  border-color: #86b7fe !important;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
 }
 
 .period-row {
@@ -1499,7 +1572,7 @@
   padding: 0.7rem 0.75rem;
   border-bottom: 1px solid #edf0f6;
   display: grid;
-  grid-template-columns: 2fr repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: minmax(200px, 260px) repeat(3, minmax(130px, 1fr)) auto;
   gap: 0.7rem;
   align-items: center;
 }

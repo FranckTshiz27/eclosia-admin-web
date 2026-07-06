@@ -26,29 +26,35 @@
     <div class="context-cards">
       <div class="context-card">
         <span>Ecole</span>
-        <select
-          class="context-select"
-          [(ngModel)]="selectedSchoolId"
-          [ngModelOptions]="{ standalone: true }"
-          (ngModelChange)="onSchoolChange()"
-          [disabled]="isLoadingSchools || schools.length === 0"
-        >
-          <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Selectionner' }}</option>
-          <option *ngFor="let school of schools" [value]="school.id">{{ school.name }}</option>
-        </select>
+        <div class="select-with-icon">
+          <i class="bi bi-building"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="selectedSchoolId"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onSchoolChange()"
+            [disabled]="isLoadingSchools || schools.length === 0"
+          >
+            <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Selectionner' }}</option>
+            <option *ngFor="let school of schools" [value]="school.id">{{ school.name }}</option>
+          </select>
+        </div>
       </div>
       <div class="context-card">
         <span>Annee scolaire courante</span>
-        <select
-          class="context-select"
-          [(ngModel)]="selectedYearId"
-          [ngModelOptions]="{ standalone: true }"
-          (ngModelChange)="onYearChange()"
-          [disabled]="isLoadingYears || yearOptions.length === 0"
-        >
-          <option value="" disabled>{{ isLoadingYears ? 'Chargement...' : 'Selectionner' }}</option>
-          <option *ngFor="let year of yearOptions" [value]="year.id">{{ year.label }}</option>
-        </select>
+        <div class="select-with-icon">
+          <i class="bi bi-calendar3"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="selectedYearId"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onYearChange()"
+            [disabled]="isLoadingYears || yearOptions.length === 0"
+          >
+            <option value="" disabled>{{ isLoadingYears ? 'Chargement...' : 'Selectionner' }}</option>
+            <option *ngFor="let year of yearOptions" [value]="year.id">{{ year.label }}</option>
+          </select>
+        </div>
       </div>
       <div class="context-card">
         <span>Periode en cours</span>
@@ -72,15 +78,20 @@
 
     <div class="table-card eleves-table-card">
       <div class="table-filters-bar">
-        <div class="students-search">
-          <i class="bi bi-search"></i>
+        <div class="students-search" role="search">
+          <span class="students-search-icon" aria-hidden="true">
+            <i class="bi bi-search"></i>
+          </span>
           <input
-            type="text"
+            type="search"
             [(ngModel)]="studentSearchTerm"
             [ngModelOptions]="{ standalone: true }"
-            (ngModelChange)="onStudentSearchChange()"
+            (keydown.enter)="onStudentSearchSubmit($event)"
             [maxlength]="studentSearchMaxLength"
-            placeholder="Rechercher un eleve (nom, prenom, matricule...)"
+            placeholder="Nom, prenom, matricule... (Entree)"
+            title="Appuyez sur Entree pour lancer la recherche"
+            autocomplete="off"
+            spellcheck="false"
           />
         </div>
 
@@ -127,10 +138,12 @@
             <tr *ngIf="!selectedSchoolId || !selectedYearId">
               <td colspan="9" class="table-state">Selectionnez une ecole et une annee pour afficher les eleves.</td>
             </tr>
-            <tr *ngIf="selectedSchoolId && selectedYearId && isLoadingEnrollments">
-              <td colspan="9" class="table-state">Chargement des inscriptions...</td>
+            <tr *ngIf="selectedSchoolId && selectedYearId && (isLoadingEnrollments || isSearchingStudents)">
+              <td colspan="9" class="table-state">
+                {{ isSearchingStudents ? 'Recherche en cours...' : 'Chargement des inscriptions...' }}
+              </td>
             </tr>
-            <tr *ngIf="selectedSchoolId && selectedYearId && !isLoadingEnrollments && filteredStudents.length === 0">
+            <tr *ngIf="selectedSchoolId && selectedYearId && !isLoadingEnrollments && !isSearchingStudents && filteredStudents.length === 0">
               <td colspan="9" class="table-state">
                 {{ students.length === 0 ? 'Aucun eleve inscrit pour le moment.' : 'Aucun eleve trouve pour cette recherche.' }}
               </td>
@@ -235,15 +248,19 @@
     <div class="table-head">
       <h3>Tuteurs</h3>
       <div class="tuteurs-head-actions">
-        <div class="students-search">
-          <i class="bi bi-search"></i>
+        <div class="students-search" role="search">
+          <span class="students-search-icon" aria-hidden="true">
+            <i class="bi bi-search"></i>
+          </span>
           <input
-            type="text"
+            type="search"
             [(ngModel)]="tutorSearchTerm"
             [ngModelOptions]="{ standalone: true }"
             (ngModelChange)="onTutorSearchChange()"
             [maxlength]="tutorSearchMaxLength"
             placeholder="Rechercher un tuteur..."
+            autocomplete="off"
+            spellcheck="false"
           />
         </div>
         <button class="btn-primary" type="button" (click)="openNewTutor()" [disabled]="!selectedSchoolId">

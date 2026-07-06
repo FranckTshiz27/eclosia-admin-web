@@ -1,5 +1,6 @@
 @import '@angular/material/prebuilt-themes/azure-blue.css';
 @import './assets/framework/css/fp-core.css';
+@import './styles/selects.css';
 
 :root {
     --primary-blue: #0084FF;
@@ -21,6 +22,17 @@
     --scrollbar-thumb: #c7d8ef;
     --scrollbar-thumb-hover: #0a53de;
     --filter-select-chevron: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2364748B' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    --select-border: #dbe2f0;
+    --select-border-form: #e2e8f0;
+    --select-bg-context: #f1f4f8;
+    --select-bg: #ffffff;
+    --select-chevron-strip: #e9eef5;
+    --select-focus-border: #86b7fe;
+    --select-focus-ring: rgba(13, 110, 253, 0.15);
+    --select-text: #0f172a;
+    --select-text-form: #1f293f;
+    --select-radius: 10px;
+    --select-height: 42px;
 }
 
 body.dark-theme {
@@ -161,63 +173,22 @@ body.dark-theme > .fee-form-backdrop .fee-form-dialog,
 body.dark-theme > .fee-form-backdrop .fee-form-section,
 body.dark-theme > .fee-form-backdrop .field-group input,
 body.dark-theme > .fee-form-backdrop .field-group textarea,
-body.dark-theme > .fee-form-backdrop .field-group select,
 body.dark-theme > .fee-form-backdrop .btn-cancel,
 body.dark-theme > .fee-form-backdrop .toggle-row,
 body.dark-theme > .fee-form-backdrop .multi-select-trigger,
 body.dark-theme > .fee-form-backdrop .multi-select-panel,
 body.dark-theme > .fee-form-backdrop .fee-form-summary {
-    background: #ffffff !important;
+    background-color: #ffffff !important;
     color: #344054 !important;
     border-color: #e2e8f0 !important;
 }
 
-/* Filtres de liste (toolbar) */
+/* Filtres de liste (toolbar) — labels uniquement, selects dans styles/selects.css */
 body .table-toolbar.filters-toolbar .filter-group > label {
     color: #6b7890;
     font-weight: 600;
     font-size: 11px;
     letter-spacing: normal;
-}
-
-body .table-toolbar.filters-toolbar .filter-group select {
-    width: 100%;
-    height: 40px;
-    min-width: 0;
-    padding: 0 34px 0 10px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background-color: #f8fafc;
-    background-image: var(--filter-select-chevron);
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 14px 10px;
-    color: #344054;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.5;
-    cursor: pointer;
-    outline: none;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-}
-
-body .table-toolbar.filters-toolbar .filter-group select:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-    background-color: #fff;
-}
-
-body.dark-theme .table-toolbar.filters-toolbar .filter-group select {
-    background-color: #f8fafc !important;
-    background-image: var(--filter-select-chevron) !important;
-    background-repeat: no-repeat !important;
-    background-position: right 10px center !important;
-    background-size: 14px 10px !important;
-    color: #344054 !important;
-    border-color: #e2e8f0 !important;
 }
 
 .field-group label span,
@@ -392,11 +363,65 @@ body {
 
 /* Global Dark Mode Overrides */
 body.dark-theme input, 
-body.dark-theme select, 
 body.dark-theme textarea {
     background-color: var(--bg-light) !important;
     color: var(--text-dark) !important;
     border-color: var(--border-color) !important;
+}
+
+/* Page Paiements — champs toujours clairs (maquette) */
+body.dark-theme .payments-page {
+    color-scheme: light;
+}
+
+body.dark-theme .payments-page input,
+body.dark-theme .payments-page textarea,
+body.dark-theme .payments-page .search-box input,
+body.dark-theme .payments-page .input-with-icon input,
+body.dark-theme .payments-page .input-with-suffix input,
+body.dark-theme .payments-page input[type='date'],
+body.dark-theme .payments-page input[type='time'],
+body.dark-theme .payments-page input[type='number'],
+body.dark-theme .payments-page input[type='text'] {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.dark-theme .payments-page .input-with-suffix {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.dark-theme .payments-page .input-suffix {
+    background-color: #f8fafc !important;
+    color: #6b7280 !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.dark-theme .payments-page input:-webkit-autofill,
+body.dark-theme .payments-page input:-webkit-autofill:hover,
+body.dark-theme .payments-page input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+    -webkit-text-fill-color: #1f2937 !important;
+    caret-color: #1f2937 !important;
+}
+
+body.dark-theme .payments-page select option {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+}
+
+body.dark-theme .payments-page input[type='date']::-webkit-calendar-picker-indicator,
+body.dark-theme .payments-page input[type='time']::-webkit-calendar-picker-indicator {
+    filter: none;
+}
+
+body.dark-theme .payments-page input[type='date']::-webkit-datetime-edit,
+body.dark-theme .payments-page input[type='time']::-webkit-datetime-edit,
+body.dark-theme .payments-page input[type='date']::-webkit-datetime-edit-fields-wrapper,
+body.dark-theme .payments-page input[type='time']::-webkit-datetime-edit-fields-wrapper {
+    color: #1f2937 !important;
 }
 
 body.dark-theme .main-header .search-box input {
@@ -438,3 +463,5 @@ body.dark-theme .badge-danger {
     color: #f87171 !important;
     border: 1px solid rgba(239, 68, 68, 0.3);
 }
+
+/* ===== Select System — voir styles/selects.css ===== */

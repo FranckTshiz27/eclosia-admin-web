@@ -1,356 +1,574 @@
 <div class="payments-page">
-  <header class="payments-topbar" *ngIf="currentStep < 3">
-    <div class="topbar-left">
-      <button type="button" class="back-btn" (click)="cancelFlow()" aria-label="Retour">
-        <i class="bi bi-arrow-left"></i>
-      </button>
-      <div>
-        <h2>Enregistrer un paiement</h2>
-        <p>Saisissez les informations pour enregistrer un paiement de frais.</p>
-      </div>
-    </div>
+  <nav class="breadcrumb" aria-label="Fil d'Ariane">
+    <span>Paiements</span>
+    <i class="bi bi-chevron-right"></i>
+    <strong>Enregistrer un paiement</strong>
+  </nav>
 
-    <nav class="stepper" aria-label="Etapes du paiement">
-      <div
-        class="stepper-item"
-        *ngFor="let step of steps; let last = last"
-        [class.active]="currentStep === step.number"
-        [class.completed]="currentStep > step.number"
-      >
-        <div class="stepper-track">
-          <div class="stepper-index">{{ step.number }}</div>
-          <span class="stepper-line" *ngIf="!last"></span>
-        </div>
-        <div class="stepper-text">
-          <strong>{{ step.title }}</strong>
-        </div>
-      </div>
-    </nav>
+  <header class="page-header">
+    <div>
+      <h2>Enregistrer un paiement</h2>
+      <p>Saisissez les informations pour enregistrer un paiement de frais.</p>
+    </div>
   </header>
 
-  <div class="context-strip" *ngIf="currentStep === 1">
-    <div class="context-field">
-      <label>Ecole</label>
-      <select
-        [(ngModel)]="selectedSchoolId"
-        [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="onSchoolChange()"
-        [disabled]="isLoadingSchools || schools.length === 0"
-      >
-        <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Selectionner' }}</option>
-        <option *ngFor="let school of schools" [value]="school.value">{{ school.label }}</option>
-      </select>
+  <section class="context-bar" aria-label="Contexte du paiement">
+    <div class="context-item context-school">
+      <div class="context-content">
+        <span class="context-label">Ecole</span>
+        <div class="select-with-icon">
+          <i class="bi bi-building"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="selectedSchoolId"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onSchoolChange()"
+            [disabled]="isLoadingSchools || schools.length === 0"
+          >
+            <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Selectionner' }}</option>
+            <option *ngFor="let school of schools" [value]="school.value">{{ school.label }}</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div class="context-field">
-      <label>Annee scolaire</label>
-      <select
-        [(ngModel)]="selectedYearId"
-        [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="onYearChange()"
-        [disabled]="isLoadingContext || yearOptions.length === 0"
-      >
-        <option value="" disabled>{{ isLoadingContext ? 'Chargement...' : 'Selectionner' }}</option>
-        <option *ngFor="let year of yearOptions" [value]="year.value">{{ year.label }}</option>
-      </select>
+
+    <div class="context-divider"></div>
+
+    <div class="context-item context-year">
+      <div class="context-content">
+        <span class="context-label">Annee scolaire</span>
+        <div class="select-with-icon">
+          <i class="bi bi-calendar3"></i>
+          <select
+            class="context-select"
+            [(ngModel)]="selectedYearId"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onYearChange()"
+            [disabled]="isLoadingContext || yearOptions.length === 0"
+          >
+            <option value="" disabled>{{ isLoadingContext ? 'Chargement...' : 'Selectionner' }}</option>
+            <option *ngFor="let year of yearOptions" [value]="year.value">{{ year.label }}</option>
+          </select>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div class="payments-shell" *ngIf="currentStep === 1">
-    <div class="payments-layout">
-      <div class="form-column">
-        <section class="section-card">
-          <h3>Informations principales</h3>
+    <div class="context-divider"></div>
 
-          <div class="field-group">
-            <label>Eleve <span class="required">*</span></label>
-            <div class="search-box">
-              <i class="bi bi-search"></i>
+    <div class="context-item context-currency">
+      <div class="context-content">
+        <span class="context-label">Devise principale</span>
+        <div class="currency-display">
+          <span class="currency-badge">{{ primaryCurrencyCode }}</span>
+          <strong>{{ primaryCurrency ? primaryCurrency.code + ' - ' + primaryCurrency.name : '—' }}</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="payments-layout" *ngIf="!showConfirmation">
+    <div class="form-column">
+      <section class="step-section">
+        <div class="step-heading">
+          <span class="step-badge">1</span>
+          <h3>Eleve concerne</h3>
+        </div>
+
+        <div class="student-picker" *ngIf="!selectedStudent || isSelectingStudent">
+          <div class="field-group student-search-group">
+            <label class="student-search-label">Rechercher un eleve</label>
+            <div class="search-box student-search-box" role="search">
+              <span class="search-box-icon" aria-hidden="true">
+                <i class="bi bi-search"></i>
+              </span>
               <input
-                type="text"
+                type="search"
                 [(ngModel)]="studentSearchTerm"
                 [ngModelOptions]="{ standalone: true }"
-                placeholder="Rechercher un eleve (nom, prenom, matricule)..."
-                [disabled]="!selectedSchoolId || !selectedYearId || isLoadingStudents"
+                (keydown.enter)="onStudentSearchSubmit($event)"
+                placeholder="Nom, prenom ou matricule..."
+                [disabled]="!selectedSchoolId || !selectedYearId || isLoadingStudents || isSearchingStudents"
+                autocomplete="off"
+                spellcheck="false"
               />
             </div>
+            <p class="search-hint" *ngIf="!selectedSchoolId || !selectedYearId">
+              Selectionnez une ecole et une annee scolaire pour lancer la recherche.
+            </p>
+            <p class="search-hint" *ngIf="selectedSchoolId && selectedYearId && !isSearchingStudents && !hasSearchedStudents">
+              Appuyez sur Entree pour rechercher.
+            </p>
           </div>
-
-          <div class="filter-row">
-            <div class="filter-field">
-              <span>Classe</span>
-              <select [(ngModel)]="classFilter" [ngModelOptions]="{ standalone: true }">
-                <option *ngFor="let option of classFilterOptions" [value]="option.value">{{ option.label }}</option>
-              </select>
-            </div>
-            <div class="filter-field">
-              <span>Section</span>
-              <select [(ngModel)]="sectionFilter" [ngModelOptions]="{ standalone: true }">
-                <option *ngFor="let option of sectionFilterOptions" [value]="option.value">{{ option.label }}</option>
-              </select>
-            </div>
-            <button type="button" class="link-btn" (click)="resetStudentFilters()">Reinitialiser</button>
-          </div>
-
-          <div class="student-results" *ngIf="!selectedStudent && studentSearchTerm">
+          <div class="student-results" *ngIf="hasSearchedStudents">
+            <p class="empty-hint" *ngIf="isSearchingStudents">Recherche en cours...</p>
             <button
               type="button"
               class="student-result-item"
               *ngFor="let student of filteredStudents"
               (click)="selectStudent(student)"
             >
-              <div>
+              <span class="result-avatar">
+                <img
+                  *ngIf="student.photoUrl"
+                  [src]="student.photoUrl"
+                  [alt]="student.fullName"
+                  (error)="onStudentPhotoError(student)"
+                />
+                <span *ngIf="!student.photoUrl" class="result-avatar-fallback">{{ getStudentInitials(student.fullName) }}</span>
+              </span>
+              <span class="result-content">
                 <strong>{{ student.fullName }}</strong>
                 <span>{{ student.enrollmentNumber }} · {{ student.classroomLabel }}</span>
-              </div>
+              </span>
             </button>
-            <p class="empty-hint" *ngIf="filteredStudents.length === 0">Aucun eleve trouve.</p>
+            <p class="empty-hint" *ngIf="!isSearchingStudents && filteredStudents.length === 0">Aucun eleve trouve.</p>
           </div>
+        </div>
 
-          <div class="selected-student-card" *ngIf="selectedStudent">
+        <div class="student-profile-card" *ngIf="selectedStudent && !isSelectingStudent">
+          <div class="student-profile-main">
             <div class="student-avatar">
-              <i class="bi bi-person-circle"></i>
+              <img
+                *ngIf="selectedStudent.photoUrl"
+                [src]="selectedStudent.photoUrl"
+                [alt]="selectedStudent.fullName"
+                (error)="onStudentPhotoError(selectedStudent)"
+              />
+              <span *ngIf="!selectedStudent.photoUrl" class="student-avatar-fallback">
+                {{ getStudentInitials(selectedStudent.fullName) }}
+              </span>
             </div>
-            <div class="student-details">
+            <div>
               <div class="student-title-row">
                 <h4>{{ selectedStudent.fullName }}</h4>
-                <span class="status-badge" [class.active]="selectedStudent.statusTone === 'active'">
-                  {{ selectedStudent.statusLabel }}
-                </span>
+                <span class="status-badge active">{{ selectedStudent.statusLabel }}</span>
               </div>
               <p>Matricule : {{ selectedStudent.enrollmentNumber }}</p>
               <p>Classe : {{ selectedStudent.classroomLabel }}</p>
             </div>
           </div>
-        </section>
+          <button type="button" class="btn-outline" (click)="changeStudent()">Changer d'eleve</button>
+        </div>
+      </section>
 
-        <section class="section-card payment-fields">
-          <div class="field-group fee-field">
+      <section class="step-section payment-details-section">
+        <div class="step-heading step-heading-with-actions">
+          <div class="step-heading-main">
+            <span class="step-badge">2</span>
+            <h3>Details du paiement</h3>
+          </div>
+          <div class="step-heading-actions">
+            <button type="button" class="btn-secondary btn-sm" (click)="cancelPaymentDetails()">Annuler</button>
+            <button
+              type="button"
+              class="btn-outline btn-sm list-btn"
+              [disabled]="!canAddToPending"
+              (click)="addPaymentsToPending()"
+            >
+              <i class="bi bi-plus-circle"></i>
+              Ajouter a la liste
+            </button>
+          </div>
+        </div>
+
+        <p class="payment-form-hint" *ngIf="selectedStudent && feeOptions.length">
+          <i class="bi bi-info-circle" aria-hidden="true"></i>
+          <span>
+            Selectionnez un frais et un montant, puis ajoutez-le a la liste. Repetez pour chaque frais a payer.
+          </span>
+        </p>
+
+        <div class="payment-grid payment-grid-main">
+          <div class="field-group fee-select-field" [class.field-open]="isFeeSelectOpen">
             <label>Frais a payer <span class="required">*</span></label>
-            <div class="fee-select" [class.open]="feeDropdownOpen">
-              <button
-                type="button"
-                class="fee-select-trigger"
-                (click)="toggleFeeDropdown()"
-                [disabled]="!selectedStudent || feeOptions.length === 0"
+            <div
+              class="multi-select single-select fee-select"
+              [class.open]="isFeeSelectOpen"
+              [class.has-selection]="hasFeeSelection()"
+            >
+              <div
+                class="multi-select-trigger"
+                [class.is-disabled]="isFeeSelectDisabled()"
+                (click)="toggleFeeSelectPanel($event)"
+                role="button"
+                tabindex="0"
               >
-                <div class="fee-select-main" *ngIf="selectedFeeOption; else noFeeSelected">
-                  <strong>{{ selectedFeeOption.title }}</strong>
-                  <span>{{ selectedFeeOption.periodLabel }}</span>
+                <i class="bi bi-wallet2 trigger-icon"></i>
+                <div class="multi-select-values">
+                  <span class="multi-select-placeholder" *ngIf="!hasFeeSelection()">
+                    {{ getFeeSelectPlaceholder() }}
+                  </span>
+                  <span class="multi-select-chip" *ngIf="hasFeeSelection()" [title]="getSelectedFeeLabel()">
+                    <span class="chip-label">{{ getSelectedFeeLabel() }}</span>
+                    <button type="button" class="chip-remove" (click)="clearFeeSelection($event)" aria-label="Retirer">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </span>
                 </div>
-                <ng-template #noFeeSelected>
-                  <div class="fee-select-main placeholder">
-                    <strong>{{ selectedStudent ? 'Selectionner un frais' : 'Selectionnez un eleve' }}</strong>
-                  </div>
-                </ng-template>
-                <span class="fee-select-amount" *ngIf="selectedFeeOption">{{ formatMoney(selectedFeeOption.amount) }}</span>
-                <i class="bi bi-chevron-down"></i>
-              </button>
-              <div class="fee-dropdown" *ngIf="feeDropdownOpen">
+                <i class="bi bi-chevron-down trigger-chevron"></i>
+              </div>
+              <div class="multi-select-panel" *ngIf="isFeeSelectOpen" (click)="$event.stopPropagation()">
+                <p class="multi-select-empty" *ngIf="feeOptions.length === 0">
+                  {{ selectedStudent ? 'Aucun frais disponible pour cet eleve' : 'Selectionnez un eleve' }}
+                </p>
                 <button
                   type="button"
-                  class="fee-dropdown-item"
-                  *ngFor="let option of feeOptions"
-                  [class.selected]="selectedFeeOptionId === option.id"
-                  (click)="selectFeeOption(option)"
+                  class="single-select-option"
+                  *ngFor="let option of feeOptions; trackBy: trackFeeOption"
+                  [class.active]="selectedFeeOptionId === option.id"
+                  [class.is-disabled]="isFeeOptionDisabled(option)"
+                  [disabled]="isFeeOptionDisabled(option)"
+                  (click)="selectFeeOption(option, $event)"
                 >
-                  <div>
-                    <strong>{{ option.title }}</strong>
-                    <span>{{ option.periodLabel }}</span>
-                  </div>
-                  <strong class="fee-item-amount">{{ formatMoney(option.amount) }}</strong>
+                  <i class="bi bi-check2" *ngIf="selectedFeeOptionId === option.id"></i>
+                  <span>{{ option.title }}</span>
+                  <small *ngIf="!isFeeInPending(option) && !isFeeBlockedByInstallmentOrder(option)">
+                    {{ formatMoney(resolveRemainingForFee(option), primaryCurrencyCode) }}
+                  </small>
+                  <small class="pending-tag" *ngIf="isFeeInPending(option)">Dans la liste</small>
+                  <small class="blocked-tag" *ngIf="isFeeBlockedByInstallmentOrder(option)" [title]="getFeeBlockedReason(option)">
+                    Echeance precedente non soldee
+                  </small>
                 </button>
               </div>
             </div>
           </div>
 
-          <div class="fields-grid">
-            <div class="field-group">
-              <label>Devise de paiement <span class="required">*</span></label>
-              <div class="select-with-icon">
-                <i class="bi bi-currency-exchange"></i>
-                <select [(ngModel)]="selectedPaymentCurrencyId" [ngModelOptions]="{ standalone: true }">
-                  <option *ngFor="let currency of schoolCurrencies" [value]="currency.id">
-                    {{ currency.code }} - {{ currency.name }}
-                  </option>
-                </select>
-              </div>
+          <div class="field-group">
+            <label>Montant du</label>
+            <div class="readonly-field-box">
+              <i class="bi bi-receipt" aria-hidden="true"></i>
+              <span>{{ formatMoney(amountDue, primaryCurrencyCode) }}</span>
             </div>
+          </div>
 
-            <div class="field-group">
-              <label>Montant a payer <span class="required">*</span></label>
-              <div class="input-with-suffix">
-                <input
-                  type="number"
-                  [(ngModel)]="amountToPay"
-                  [ngModelOptions]="{ standalone: true }"
-                  (ngModelChange)="onAmountToPayChange()"
-                  min="0"
-                  step="0.01"
-                  [max]="amountRemaining"
-                />
-                <span class="input-suffix">{{ selectedCurrencyCode }}</span>
-              </div>
-              <div class="amount-hint">
-                <i class="bi bi-info-circle"></i>
-                <span>Montant du pour ce frais : {{ formatMoney(amountDue) }}</span>
-              </div>
+          <div class="field-group">
+            <label>Montant a payer <span class="required">*</span></label>
+            <div
+              class="input-with-icon input-with-currency"
+              [class.is-disabled]="!selectedFeeOption"
+            >
+              <i class="bi bi-cash-coin" aria-hidden="true"></i>
+              <span class="input-currency-symbol" aria-hidden="true">{{ selectedPaymentCurrencySymbol }}</span>
+              <input
+                type="number"
+                class="field-input"
+                min="0"
+                step="0.01"
+                [(ngModel)]="amountToPay"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="onAmountToPayChange()"
+                [disabled]="!selectedFeeOption"
+                placeholder="0,00"
+              />
+            </div>
+            <p class="distribution-hint" *ngIf="hasAmountDistribution">
+              <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
+              Repartition automatique : {{ amountDistributionPreview }}
+            </p>
+            <p class="distribution-warning" *ngIf="amountDistributionSurplus > 0.005">
+              Surplus de {{ formatMoney(amountDistributionSurplus, primaryCurrencyCode) }} non reparti.
+            </p>
+          </div>
+
+          <div class="field-group">
+            <label>Devise de paiement <span class="required">*</span></label>
+            <div class="select-with-icon">
+              <i class="bi bi-currency-exchange"></i>
+              <select
+                class="context-select"
+                [(ngModel)]="selectedPaymentCurrencyId"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="onPaymentCurrencyChange()"
+              >
+                <option *ngFor="let currency of schoolCurrencies" [value]="currency.id">
+                  {{ currency.code }} - {{ currency.name }}
+                </option>
+              </select>
             </div>
           </div>
 
           <div class="field-group">
             <label>Mode de paiement</label>
-            <div class="payment-method-list">
-              <button
-                type="button"
-                class="payment-method-card"
-                *ngFor="let method of paymentMethods"
-                [class.selected]="selectedPaymentMethod === method.value"
-                (click)="selectPaymentMethod(method.value)"
-              >
-                <i class="bi" [ngClass]="method.icon"></i>
-                <span>{{ method.label }}</span>
-              </button>
+            <div class="select-with-icon">
+              <i class="bi" [ngClass]="selectedPaymentMethodIcon"></i>
+              <select class="context-select" [(ngModel)]="selectedPaymentMethod" [ngModelOptions]="{ standalone: true }">
+                <option *ngFor="let method of paymentMethods" [value]="method.value">{{ method.label }}</option>
+              </select>
             </div>
           </div>
 
           <div class="field-group">
-            <label>Commentaire (optionnel)</label>
-            <textarea
-              rows="3"
-              [(ngModel)]="comment"
+            <label>Date du paiement <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <i class="bi bi-calendar-event" aria-hidden="true"></i>
+              <input
+                type="date"
+                class="field-input"
+                [(ngModel)]="paymentDate"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group payment-reference-field">
+          <label>Reference / N° de transaction</label>
+          <div class="input-with-icon">
+            <i class="bi bi-hash" aria-hidden="true"></i>
+            <input
+              type="text"
+              class="field-input"
+              [(ngModel)]="transactionReference"
               [ngModelOptions]="{ standalone: true }"
-              placeholder="Ajouter un commentaire..."
-            ></textarea>
+              placeholder="Saisir la reference..."
+            />
           </div>
-
-          <div class="fields-grid">
-            <div class="field-group">
-              <label>Date du paiement <span class="required">*</span></label>
-              <div class="input-with-icon">
-                <i class="bi bi-calendar3"></i>
-                <input type="date" [(ngModel)]="paymentDate" [ngModelOptions]="{ standalone: true }" />
-              </div>
-            </div>
-            <div class="field-group">
-              <label>Heure</label>
-              <div class="input-with-icon">
-                <i class="bi bi-clock"></i>
-                <input type="time" [(ngModel)]="paymentTime" [ngModelOptions]="{ standalone: true }" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div class="info-banner">
-          <i class="bi bi-info-circle"></i>
-          <p>Les numeros de recu et de transaction seront generes automatiquement apres l'enregistrement.</p>
         </div>
 
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" (click)="cancelFlow()">Annuler</button>
-          <button type="button" class="btn-primary" [disabled]="!canGoNext" (click)="goNext()">
-            Suivant : Verifier le recapitulatif
-            <i class="bi bi-arrow-right"></i>
-          </button>
+        <div class="pending-payments-panel" *ngIf="selectedStudent">
+          <div class="pending-payments-heading">
+            <h4>
+              <i class="bi bi-list-check"></i>
+              Liste de paiements
+              <span class="list-count" *ngIf="pendingPaymentLines.length">{{ pendingPaymentLines.length }}</span>
+            </h4>
+            <button
+              type="button"
+              class="link-btn"
+              *ngIf="pendingPaymentLines.length"
+              (click)="clearPendingPayments()"
+            >
+              Vider la liste
+            </button>
+          </div>
+
+          <p class="list-empty-hint" *ngIf="!pendingPaymentLines.length">
+            Aucun paiement saisi. Ajoutez un ou plusieurs frais avant d'enregistrer.
+          </p>
+
+          <div class="pending-payment-line" *ngFor="let line of pendingPaymentLines">
+            <div class="pending-payment-info">
+              <strong>{{ line.feeTitle }}</strong>
+              <span>{{ formatMoney(line.amount, primaryCurrencyCode) }}</span>
+            </div>
+            <button
+              type="button"
+              class="pending-payment-remove"
+              (click)="removePendingPaymentLine(line.id)"
+              aria-label="Retirer de la liste"
+            >
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+
+          <div class="pending-payments-total" *ngIf="pendingPaymentLines.length">
+            <span>{{ pendingPaymentLines.length }} paiement(s) en attente</span>
+            <strong>{{ formatMoney(pendingTotalAmount, primaryCurrencyCode) }}</strong>
+          </div>
+
+          <div class="list-draft-line" *ngIf="hasCurrentDraftPayment">
+            <span class="list-draft-label">Paiement(s) en cours (non ajoute{{ currentDraftLines.length > 1 ? 's' : '' }})</span>
+            <div class="pending-payment-info" *ngFor="let line of currentDraftLines">
+              <strong>{{ line.feeTitle }}</strong>
+              <span>{{ formatMoney(line.amount, primaryCurrencyCode) }}</span>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <aside class="summary-column">
-        <section class="summary-card">
-          <h3>Resume du paiement</h3>
-          <div class="summary-row"><span>Eleve</span><strong>{{ selectedStudent?.fullName || '—' }}</strong></div>
-          <div class="summary-row"><span>Frais</span><strong>{{ selectedFeeOption?.title || '—' }}</strong></div>
-          <div class="summary-row"><span>Periode</span><strong>{{ selectedInstallmentLabel }}</strong></div>
-          <div class="summary-row">
-            <span>Devise</span>
-            <strong>{{ selectedCurrency ? selectedCurrency.code + ' - ' + selectedCurrency.name : '—' }}</strong>
-          </div>
-          <div class="summary-row"><span>Montant du</span><strong>{{ formatMoney(amountDue) }}</strong></div>
-          <div class="summary-row"><span>Deja paye</span><strong>{{ formatMoney(amountPaid) }}</strong></div>
-          <div class="summary-total">
-            <span>Montant a payer</span>
-            <strong>{{ totalToPayLabel }}</strong>
-          </div>
-        </section>
-
-        <section class="summary-card chart-card" *ngIf="selectedStudent">
-          <h3>Resume des paiements (par tranche)</h3>
-          <div class="chart-wrap">
-            <svg viewBox="0 0 100 100" class="donut-chart">
-              <circle cx="50" cy="50" r="42" class="donut-bg"></circle>
-              <circle
-                cx="50"
-                cy="50"
-                r="42"
-                class="donut-progress"
-                [attr.stroke-dasharray]="chartCircumference"
-                [attr.stroke-dashoffset]="chartPaidOffset"
-              ></circle>
-            </svg>
-            <div class="chart-center">
-              <strong>{{ chartPaidPercent }}%</strong>
-              <span>Paye</span>
+        <div class="payment-meta-row">
+          <div class="exchange-rate-box" *ngIf="showExchangeRate">
+            <div>
+              <span class="exchange-label">Taux de change</span>
+              <strong>{{ exchangeRateLabel }}</strong>
             </div>
+            <span class="rate-badge" *ngIf="exchangeRateActive">Actif</span>
           </div>
-          <div class="chart-legend">
-            <div class="legend-item" *ngFor="let item of installmentChartItems">
-              <span class="legend-dot" [style.background]="item.color"></span>
-              <span>{{ item.code }}</span>
-              <strong>{{ formatMoney(item.paid) }}</strong>
+
+          <div class="converted-amount-box" *ngIf="showConvertedAmount">
+            <span>Montant a payer en {{ selectedCurrencyCode }}</span>
+            <strong>{{ convertedAmountLabel }}</strong>
+            <small>(= {{ formatMoney(parsedAmountToPay, primaryCurrencyCode) }})</small>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Commentaires</label>
+          <textarea
+            class="field-textarea"
+            rows="3"
+            [(ngModel)]="comment"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="Ajouter un commentaire..."
+          ></textarea>
+        </div>
+      </section>
+
+      <section class="step-section">
+        <div class="step-heading">
+          <span class="step-badge">3</span>
+          <h3>Pieces justificatives</h3>
+        </div>
+
+        <div class="upload-row">
+          <label class="upload-dropzone">
+            <input type="file" accept="image/*,.pdf" (change)="onFileSelected($event)" hidden />
+            <i class="bi bi-cloud-arrow-up"></i>
+            <strong>Deposer un fichier</strong>
+            <span>Glissez-deposez ou cliquez pour selectionner</span>
+          </label>
+
+          <div class="upload-preview" *ngIf="uploadedFileName">
+            <i class="bi bi-file-earmark-check"></i>
+            <div>
+              <strong>{{ uploadedFileName }}</strong>
+              <span>Fichier pret</span>
             </div>
+            <i class="bi bi-check-circle-fill success-icon"></i>
           </div>
-          <div class="chart-totals">
-            <div><span>Total paye</span><strong class="paid">{{ formatMoney(totalInstallmentPaid) }}</strong></div>
-            <div><span>Total du</span><strong>{{ formatMoney(totalInstallmentDue) }}</strong></div>
-          </div>
-        </section>
+        </div>
+      </section>
 
-        <section class="summary-card student-info-card" *ngIf="selectedStudent">
-          <h3>Informations sur l'eleve</h3>
-          <div class="summary-row"><span>Classe</span><strong>{{ selectedStudent.classroomLabel }}</strong></div>
-          <div class="summary-row"><span>Section</span><strong>{{ selectedStudent.sectionLabel }}</strong></div>
-          <div class="summary-row"><span>N° d'inscription</span><strong>{{ selectedStudent.registrationNumber }}</strong></div>
-          <div class="summary-row"><span>Annee scolaire</span><strong>{{ selectedYearLabel }}</strong></div>
-          <button type="button" class="profile-link" disabled>
-            Voir le profil de l'eleve
-            <i class="bi bi-arrow-right"></i>
-          </button>
-        </section>
-      </aside>
-    </div>
-  </div>
-
-  <section class="verification-shell" *ngIf="currentStep === 2">
-    <div class="verification-card">
-      <h3>Verification du recapitulatif</h3>
-      <div class="verification-grid">
-        <div><span>Eleve</span><strong>{{ selectedStudent?.fullName }}</strong></div>
-        <div><span>Classe</span><strong>{{ selectedStudent?.classroomLabel }}</strong></div>
-        <div><span>Frais</span><strong>{{ selectedFeeOption?.title }}</strong></div>
-        <div><span>Periode</span><strong>{{ selectedInstallmentLabel }}</strong></div>
-        <div><span>Devise</span><strong>{{ selectedCurrency?.code }}</strong></div>
-        <div><span>Mode de paiement</span><strong>{{ selectedPaymentMethodLabel }}</strong></div>
-        <div><span>Date</span><strong>{{ paymentDate }} {{ paymentTime }}</strong></div>
-        <div class="full-span"><span>Montant a payer</span><strong class="accent">{{ totalToPayLabel }}</strong></div>
-        <div class="full-span" *ngIf="comment"><span>Commentaire</span><strong>{{ comment }}</strong></div>
-      </div>
       <div class="form-actions">
-        <button type="button" class="btn-secondary" (click)="goBack()">Retour</button>
-        <button type="button" class="btn-primary" [disabled]="isSaving" (click)="submitPayment()">
-          {{ isSaving ? 'Enregistrement...' : 'Enregistrer le paiement' }}
+        <p class="form-actions-hint" *ngIf="selectedStudent && !canSubmit">
+          Selectionnez un frais, un montant et une date pour pouvoir enregistrer.
+        </p>
+        <button type="button" class="btn-primary" [disabled]="!canSubmit || isSaving" (click)="submitPayment()">
+          <i class="bi bi-check2-circle" *ngIf="!isSaving"></i>
+          {{ submitButtonLabel }}
         </button>
       </div>
     </div>
-  </section>
 
-  <section class="confirmation-shell" *ngIf="currentStep === 3">
+    <aside class="summary-column">
+      <section class="summary-card">
+        <div class="summary-alert" [class.success]="paymentSuccessMessage">
+          <i class="bi" [ngClass]="paymentSuccessMessage ? 'bi-check-circle-fill' : 'bi-info-circle'"></i>
+          <span>{{ paymentSuccessMessage || 'Nouveau paiement' }}</span>
+        </div>
+        <h3>Resume du paiement</h3>
+        <div class="summary-row"><span>Eleve</span><strong>{{ selectedStudent?.fullName || '—' }}</strong></div>
+        <div class="summary-row">
+          <span>Liste</span>
+          <strong>{{ submitLines.length ? submitLines.length + ' paiement(s)' : '—' }}</strong>
+        </div>
+        <div class="summary-fee-list" *ngIf="pendingPaymentLines.length">
+          <div class="summary-fee-item" *ngFor="let line of pendingPaymentLines">
+            <span>{{ line.feeTitle }}</span>
+            <strong>{{ formatMoney(line.amount, primaryCurrencyCode) }}</strong>
+          </div>
+        </div>
+        <div class="summary-row summary-draft" *ngFor="let line of currentDraftLines">
+          <span>+ {{ line.feeTitle }}</span>
+          <strong>{{ formatMoney(line.amount, primaryCurrencyCode) }}</strong>
+        </div>
+        <div class="summary-row" *ngIf="selectedFeeOption && !submitLines.length">
+          <span>Frais</span>
+          <strong>{{ selectedFeeOption.title }}</strong>
+        </div>
+        <div class="summary-row" *ngIf="selectedFeeOption && !submitLines.length">
+          <span>Montant</span>
+          <strong>{{ totalToPayLabel }}</strong>
+        </div>
+        <div class="summary-row"><span>Devise</span><strong>{{ selectedCurrency ? selectedCurrency.code + ' - ' + selectedCurrency.name : '—' }}</strong></div>
+        <div class="summary-row"><span>Mode</span><strong>{{ selectedPaymentMethodLabel }}</strong></div>
+        <div class="summary-total">
+          <span>Total a enregistrer</span>
+          <strong>{{ formatMoney(submitTotalAmount, primaryCurrencyCode) }}</strong>
+        </div>
+      </section>
+
+      <section class="summary-card history-card">
+        <h3>Historique des paiements</h3>
+        <div class="history-list" *ngIf="paymentHistory.length; else noHistory">
+          <article class="history-item" *ngFor="let item of paymentHistory">
+            <div>
+              <strong>{{ item.title }}</strong>
+              <span>{{ item.dateLabel }}</span>
+            </div>
+            <span class="history-amount">{{ formatMoney(item.amount, primaryCurrencyCode) }}</span>
+          </article>
+        </div>
+        <ng-template #noHistory>
+          <p class="empty-hint">Aucun paiement enregistre pour cet eleve.</p>
+        </ng-template>
+      </section>
+    </aside>
+  </div>
+
+  <div class="stats-row" *ngIf="!showConfirmation">
+    <article class="stat-card tone-blue">
+      <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
+      <div>
+        <span>Reste a payer</span>
+        <strong>{{ formatMoney(remainingBalance, primaryCurrencyCode) }}</strong>
+      </div>
+    </article>
+    <article class="stat-card tone-green">
+      <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+      <div>
+        <span>Total paye (cette annee)</span>
+        <strong>{{ formatMoney(yearTotalPaid, primaryCurrencyCode) }}</strong>
+      </div>
+    </article>
+    <article class="stat-card tone-purple">
+      <div class="stat-icon"><i class="bi bi-arrow-left-right"></i></div>
+      <div>
+        <span>Taux de change actuel</span>
+        <strong>{{ exchangeRateLabel }}</strong>
+      </div>
+    </article>
+    <article class="stat-card tone-green">
+      <div class="stat-icon"><i class="bi bi-patch-check"></i></div>
+      <div>
+        <span>Statut de l'eleve</span>
+        <strong>{{ studentFinancialStatus }}</strong>
+      </div>
+    </article>
+  </div>
+
+  <section class="confirmation-shell" *ngIf="showConfirmation">
     <div class="confirmation-card">
       <div class="confirmation-icon"><i class="bi bi-check-circle-fill"></i></div>
-      <h3>Paiement enregistre</h3>
-      <p>Le paiement a ete enregistre avec succes.</p>
-      <p class="confirmation-ref" *ngIf="confirmationReference">Reference : {{ confirmationReference }}</p>
-      <p class="warning-hint" *ngIf="saveError">{{ saveError }}</p>
-      <button type="button" class="btn-primary" (click)="startNewPayment()">Nouveau paiement</button>
+      <h3>Paiement{{ confirmationReferences.length > 1 ? 's enregistres' : ' enregistre' }}</h3>
+      <p>
+        {{
+          confirmationReferences.length > 1
+            ? confirmationReferences.length + ' paiements ont ete enregistres avec succes.'
+            : 'Le paiement a ete enregistre avec succes.'
+        }}
+      </p>
+      <p class="confirmation-ref" *ngIf="confirmationReceiptNumbers.length">
+        Numero{{ confirmationReceiptNumbers.length > 1 ? 's' : '' }} de recu :
+        <strong>{{ confirmationReceiptNumberLabel }}</strong>
+      </p>
+      <p class="confirmation-ref" *ngIf="!confirmationReceiptNumbers.length && confirmationReferences.length">
+        Reference{{ confirmationReferences.length > 1 ? 's' : '' }} :
+        {{ confirmationReference }}
+      </p>
+      <div class="confirmation-actions">
+        <button
+          type="button"
+          class="btn-outline receipt-btn"
+          *ngIf="canDownloadReceipt"
+          [disabled]="isDownloadingReceipt"
+          (click)="downloadPaymentReceipt()"
+        >
+          <i class="bi bi-file-earmark-pdf"></i>
+          {{ isDownloadingReceipt ? 'Generation du recu...' : 'Voir le recu PDF' }}
+        </button>
+        <button
+          type="button"
+          class="btn-outline receipt-btn"
+          *ngFor="let receiptNumber of confirmationReceiptNumbers.slice(1)"
+          [disabled]="isDownloadingReceipt"
+          (click)="downloadPaymentReceipt(receiptNumber)"
+        >
+          <i class="bi bi-file-earmark-pdf"></i>
+          Recu {{ receiptNumber }}
+        </button>
+        <button type="button" class="btn-primary" (click)="startNewPayment()">Nouveau paiement</button>
+      </div>
     </div>
   </section>
 </div>

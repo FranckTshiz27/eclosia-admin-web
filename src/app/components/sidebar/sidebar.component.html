@@ -145,6 +145,18 @@
                             <span>Paiements</span>
                         </a>
                     </li>
+                    <li>
+                        <a
+                            routerLink="/finances"
+                            [queryParams]="{ tab: 'etats-financiers' }"
+                            routerLinkActive="active"
+                            [routerLinkActiveOptions]="{ exact: true }"
+                            class="submenu-link"
+                            (click)="onLinkClick()"
+                        >
+                            <span>Etats financiers</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 

@@ -1,0 +1,379 @@
+<div class="financial-statements-page">
+  <header class="page-header">
+    <div>
+      <h2>Etats financiers</h2>
+      <p>Consultez et generez les differents etats financiers de votre etablissement.</p>
+    </div>
+  </header>
+
+  <section class="filters-card">
+    <div class="filters-grid">
+      <div class="filter-field">
+        <label>Ecole</label>
+        <select
+          class="filter-select"
+          [(ngModel)]="selectedSchoolId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onSchoolChange()"
+          [disabled]="isLoadingSchools || schools.length === 0"
+        >
+          <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Selectionner' }}</option>
+          <option *ngFor="let school of schools" [value]="school.value">{{ school.label }}</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label>Annee scolaire</label>
+        <select
+          class="filter-select"
+          [(ngModel)]="selectedYearId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onYearChange()"
+          [disabled]="isLoadingFilters || !selectedSchoolId || yearOptions.length === 0"
+        >
+          <option value="" disabled>{{ isLoadingFilters ? 'Chargement...' : 'Selectionner' }}</option>
+          <option *ngFor="let year of yearOptions" [value]="year.value">{{ year.label }}</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label>Catégorie de frais</label>
+        <select
+          class="filter-select"
+          [(ngModel)]="selectedFeeCategoryId"
+          [ngModelOptions]="{ standalone: true }"
+          [disabled]="isLoadingFilters || !selectedSchoolId || !feeCategoryOptions.length"
+        >
+          <option value="" disabled>
+            {{
+              isLoadingFilters
+                ? 'Chargement...'
+                : feeCategoryOptions.length
+                  ? 'Selectionner'
+                  : 'Aucune categorie disponible'
+            }}
+          </option>
+          <option *ngFor="let option of feeCategoryOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label>Date debut</label>
+        <input type="date" class="filter-input" [(ngModel)]="startDate" [ngModelOptions]="{ standalone: true }" />
+      </div>
+
+      <div class="filter-field">
+        <label>Date fin</label>
+        <input type="date" class="filter-input" [(ngModel)]="endDate" [ngModelOptions]="{ standalone: true }" />
+      </div>
+
+      <div class="filter-field filter-field-multi">
+        <label>Tranches</label>
+        <div
+          class="multi-select"
+          [class.open]="openFilterPanel === 'tranche'"
+          [class.has-selection]="hasFilterSelection('tranche')"
+        >
+          <div
+            class="multi-select-trigger"
+            [class.is-disabled]="isLoadingFilters || !selectedSchoolId"
+            (click)="toggleFilterPanel('tranche', $event)"
+            role="button"
+            tabindex="0"
+          >
+            <i class="bi trigger-icon" [ngClass]="getFilterIcon('tranche')"></i>
+            <div class="multi-select-values">
+              <span class="multi-select-placeholder" *ngIf="!hasFilterSelection('tranche')">
+                {{ getFilterPlaceholder('tranche') }}
+              </span>
+              <span
+                class="multi-select-chip"
+                *ngFor="let option of getSelectedFilterOptions('tranche')"
+                [title]="option.label"
+              >
+                <span class="chip-label">{{ option.label }}</span>
+                <button
+                  type="button"
+                  class="chip-remove"
+                  (click)="removeFilterOption('tranche', option.value, $event)"
+                  aria-label="Retirer"
+                >
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+            <i class="bi bi-chevron-down trigger-chevron"></i>
+          </div>
+
+          <div class="multi-select-panel" *ngIf="openFilterPanel === 'tranche'" (click)="$event.stopPropagation()">
+            <div class="multi-select-actions">
+              <button type="button" (click)="selectAllFilterOptions('tranche')">Tout selectionner</button>
+              <button type="button" (click)="clearFilterOptions('tranche', $event)">Effacer</button>
+            </div>
+            <p class="multi-select-empty" *ngIf="!trancheOptions.length">Aucune tranche disponible</p>
+            <label class="multi-select-option" *ngFor="let option of trancheOptions">
+              <input
+                type="checkbox"
+                [checked]="isFilterOptionSelected('tranche', option.value)"
+                (change)="toggleFilterOption('tranche', option.value)"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-field filter-field-multi">
+        <label>Cycle</label>
+        <div
+          class="multi-select"
+          [class.open]="openFilterPanel === 'cycle'"
+          [class.has-selection]="hasFilterSelection('cycle')"
+        >
+          <div
+            class="multi-select-trigger"
+            [class.is-disabled]="isLoadingFilters || !selectedSchoolId"
+            (click)="toggleFilterPanel('cycle', $event)"
+            role="button"
+            tabindex="0"
+          >
+            <i class="bi trigger-icon" [ngClass]="getFilterIcon('cycle')"></i>
+            <div class="multi-select-values">
+              <span class="multi-select-placeholder" *ngIf="!hasFilterSelection('cycle')">
+                {{ getFilterPlaceholder('cycle') }}
+              </span>
+              <span
+                class="multi-select-chip"
+                *ngFor="let option of getSelectedFilterOptions('cycle')"
+                [title]="option.label"
+              >
+                <span class="chip-label">{{ option.label }}</span>
+                <button
+                  type="button"
+                  class="chip-remove"
+                  (click)="removeFilterOption('cycle', option.value, $event)"
+                  aria-label="Retirer"
+                >
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+            <i class="bi bi-chevron-down trigger-chevron"></i>
+          </div>
+
+          <div class="multi-select-panel" *ngIf="openFilterPanel === 'cycle'" (click)="$event.stopPropagation()">
+            <div class="multi-select-actions">
+              <button type="button" (click)="selectAllFilterOptions('cycle')">Tout selectionner</button>
+              <button type="button" (click)="clearFilterOptions('cycle', $event)">Effacer</button>
+            </div>
+            <p class="multi-select-empty" *ngIf="!cycleOptions.length">Aucun cycle disponible</p>
+            <label class="multi-select-option" *ngFor="let option of cycleOptions">
+              <input
+                type="checkbox"
+                [checked]="isFilterOptionSelected('cycle', option.value)"
+                (change)="toggleFilterOption('cycle', option.value)"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-field filter-field-multi">
+        <label>Classe</label>
+        <div
+          class="multi-select"
+          [class.open]="openFilterPanel === 'classroom'"
+          [class.has-selection]="hasFilterSelection('classroom')"
+        >
+          <div
+            class="multi-select-trigger"
+            [class.is-disabled]="isLoadingFilters || !selectedSchoolId"
+            (click)="toggleFilterPanel('classroom', $event)"
+            role="button"
+            tabindex="0"
+          >
+            <i class="bi trigger-icon" [ngClass]="getFilterIcon('classroom')"></i>
+            <div class="multi-select-values">
+              <span class="multi-select-placeholder" *ngIf="!hasFilterSelection('classroom')">
+                {{ getFilterPlaceholder('classroom') }}
+              </span>
+              <span
+                class="multi-select-chip"
+                *ngFor="let option of getSelectedFilterOptions('classroom')"
+                [title]="option.label"
+              >
+                <span class="chip-label">{{ option.label }}</span>
+                <button
+                  type="button"
+                  class="chip-remove"
+                  (click)="removeFilterOption('classroom', option.value, $event)"
+                  aria-label="Retirer"
+                >
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+            <i class="bi bi-chevron-down trigger-chevron"></i>
+          </div>
+
+          <div class="multi-select-panel" *ngIf="openFilterPanel === 'classroom'" (click)="$event.stopPropagation()">
+            <div class="multi-select-actions">
+              <button type="button" (click)="selectAllFilterOptions('classroom')">Tout selectionner</button>
+              <button type="button" (click)="clearFilterOptions('classroom', $event)">Effacer</button>
+            </div>
+            <p class="multi-select-empty" *ngIf="!classroomOptions.length">
+              {{
+                selectedCycleIds.length
+                  ? 'Aucune classe disponible pour les cycles selectionnes'
+                  : 'Aucune classe disponible'
+              }}
+            </p>
+            <label class="multi-select-option" *ngFor="let option of classroomOptions">
+              <input
+                type="checkbox"
+                [checked]="isFilterOptionSelected('classroom', option.value)"
+                (change)="toggleFilterOption('classroom', option.value)"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filters-actions">
+      <button type="button" class="btn-primary" (click)="applyFilters()">
+        <i class="bi bi-funnel"></i>
+        Filtrer
+      </button>
+      <button type="button" class="btn-reset" (click)="resetFilters()">
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Reinitialiser
+      </button>
+    </div>
+  </section>
+
+  <section class="reports-section">
+    <div class="section-toolbar">
+      <h3>Liste des etats disponibles</h3>
+      <div class="toolbar-right">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="Rechercher un etat..."
+          />
+        </div>
+        <div class="view-toggle" role="group" aria-label="Mode d'affichage">
+          <button
+            type="button"
+            class="view-btn"
+            [class.active]="viewMode === 'grid'"
+            (click)="setViewMode('grid')"
+            aria-label="Vue grille"
+          >
+            <i class="bi bi-grid-3x3-gap"></i>
+          </button>
+          <button
+            type="button"
+            class="view-btn"
+            [class.active]="viewMode === 'list'"
+            (click)="setViewMode('list')"
+            aria-label="Vue liste"
+          >
+            <i class="bi bi-list-ul"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="reports-grid" [class.is-list]="viewMode === 'list'" *ngIf="filteredReportTypes.length; else noReports">
+      <article class="report-card" *ngFor="let report of filteredReportTypes" [ngClass]="'tone-' + report.tone">
+        <div class="report-card-head">
+          <div class="report-icon"><i class="bi" [ngClass]="report.icon"></i></div>
+          <h4>{{ report.title }}</h4>
+        </div>
+        <p>{{ report.description }}</p>
+        <div class="report-card-actions">
+          <button
+            type="button"
+            class="action-link view"
+            [disabled]="isReportGenerating(report.id)"
+            (click)="viewReport(report)"
+          >
+            <i class="bi bi-eye"></i>
+            {{ isReportGenerating(report.id) ? 'Generation...' : 'Voir' }}
+          </button>
+          <button
+            type="button"
+            class="action-link export"
+            [disabled]="isReportGenerating(report.id)"
+            (click)="exportReport(report)"
+          >
+            <i class="bi bi-download"></i>
+            Exporter
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <ng-template #noReports>
+      <p class="empty-state">Aucun etat ne correspond a votre recherche.</p>
+    </ng-template>
+  </section>
+
+  <section class="saved-reports-section">
+    <div class="saved-reports-header">
+      <h3>Mes rapports sauvegardes</h3>
+      <button type="button" class="btn-outline" (click)="viewAllSavedReports()">
+        <i class="bi bi-list-ul"></i>
+        Voir tous mes rapports
+      </button>
+    </div>
+
+    <div class="saved-reports-table-wrap">
+      <table class="saved-reports-table">
+        <thead>
+          <tr>
+            <th>Nom du rapport</th>
+            <th>Type d'etat</th>
+            <th>Periode</th>
+            <th>Derniere generation</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let report of savedReports">
+            <td><strong>{{ report.name }}</strong></td>
+            <td>{{ report.typeLabel }}</td>
+            <td>{{ report.periodLabel }}</td>
+            <td>{{ report.generatedAtLabel }}</td>
+            <td class="actions-cell">
+              <button type="button" class="table-btn view" (click)="viewSavedReport(report)">
+                <i class="bi bi-eye"></i>
+                Voir
+              </button>
+              <button type="button" class="table-btn export" (click)="exportSavedReport(report)">
+                <i class="bi bi-download"></i>
+                Exporter
+              </button>
+              <button
+                type="button"
+                class="table-btn delete"
+                (click)="deleteSavedReport(report)"
+                aria-label="Supprimer"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

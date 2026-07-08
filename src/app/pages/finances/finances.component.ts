@@ -7,6 +7,7 @@ import { EcoleFeeCategoriesComponent } from './ecole-fee-categories/ecole-fee-ca
 import { EcolePaymentInstallmentsComponent } from './ecole-payment-installments/ecole-payment-installments.component';
 import { EcoleSchoolFeesComponent } from './ecole-school-fees/ecole-school-fees.component';
 import { EcolePaymentsComponent } from './ecole-payments/ecole-payments.component';
+import { EcoleFinancialStatementsComponent } from './ecole-financial-statements/ecole-financial-statements.component';
 
 type FinancesTab =
   | 'devises'
@@ -16,6 +17,7 @@ type FinancesTab =
   | 'frais-scolaires'
   | 'montants-classe'
   | 'paiements'
+  | 'etats-financiers'
   | 'remises-bourses'
   | 'penalites'
   | 'recus'
@@ -31,7 +33,8 @@ type FinancesTab =
     EcoleFeeCategoriesComponent,
     EcolePaymentInstallmentsComponent,
     EcoleSchoolFeesComponent,
-    EcolePaymentsComponent
+    EcolePaymentsComponent,
+    EcoleFinancialStatementsComponent
   ],
   templateUrl: './finances.component.html',
   styleUrl: './finances.component.css'
@@ -64,6 +67,7 @@ export class FinancesComponent implements OnInit {
       tab === 'frais-scolaires' ||
       tab === 'montants-classe' ||
       tab === 'paiements' ||
+      tab === 'etats-financiers' ||
       tab === 'remises-bourses' ||
       tab === 'penalites' ||
       tab === 'recus' ||

@@ -361,8 +361,18 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     return Number.isFinite(amount) ? amount : 0;
   }
 
+  get isPaymentCurrencyPrimary(): boolean {
+    const payment = this.selectedCurrency;
+    const primary = this.primaryCurrency;
+    return !payment || !primary || payment.id === primary.id;
+  }
+
+  get parsedAmountInPrimaryCurrency(): number {
+    return this.convertPaymentAmountToPrimary(this.parsedAmountToPay);
+  }
+
   get totalToPayLabel(): string {
-    return this.formatMoney(this.parsedAmountToPay, this.primaryCurrencyCode);
+    return this.formatMoney(this.parsedAmountToPay, this.selectedCurrencyCode);
   }
 
   get pendingTotalAmount(): number {
@@ -372,7 +382,7 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
   get submitLines(): PendingPaymentLine[] {
     const lines = [...this.pendingPaymentLines];
     if (this.canAddToPending && this.selectedFeeOption) {
-      const distribution = this.buildDistributionLines(this.selectedFeeOption, this.parsedAmountToPay);
+      const distribution = this.buildDistributionLines(this.selectedFeeOption, this.parsedAmountInPrimaryCurrency);
       distribution.lines.forEach((line, index) => {
         lines.push({
           id: `current-draft-${index}`,
@@ -387,7 +397,7 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     if (!this.selectedFeeOption || this.parsedAmountToPay <= 0) {
       return '';
     }
-    const distribution = this.buildDistributionLines(this.selectedFeeOption, this.parsedAmountToPay);
+    const distribution = this.buildDistributionLines(this.selectedFeeOption, this.parsedAmountInPrimaryCurrency);
     if (distribution.lines.length <= 1) {
       return '';
     }
@@ -404,7 +414,7 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     if (!this.selectedFeeOption || this.parsedAmountToPay <= 0) {
       return 0;
     }
-    return this.buildDistributionLines(this.selectedFeeOption, this.parsedAmountToPay).unallocated;
+    return this.buildDistributionLines(this.selectedFeeOption, this.parsedAmountInPrimaryCurrency).unallocated;
   }
 
   get submitTotalAmount(): number {
@@ -419,7 +429,7 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     if (!this.selectedFeeOption || this.parsedAmountToPay <= 0) {
       return [];
     }
-    return this.buildDistributionLines(this.selectedFeeOption, this.parsedAmountToPay).lines;
+    return this.buildDistributionLines(this.selectedFeeOption, this.parsedAmountInPrimaryCurrency).lines;
   }
 
   get submitButtonLabel(): string {
@@ -441,13 +451,16 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     if (!this.selectedStudent || !fee || this.isFeeBlockedByInstallmentOrder(fee)) {
       return false;
     }
-    if (this.pendingPaymentLines.some((line) => line.academicFeeId === fee.academicFeeId)) {
+    if (this.resolveRemainingForFee(fee) <= 0) {
       return false;
     }
-    if (this.parsedAmountToPay <= 0) {
+    if (this.parsedAmountToPay <= 0 || this.parsedAmountInPrimaryCurrency <= 0) {
       return false;
     }
-    const distribution = this.buildDistributionLines(fee, this.parsedAmountToPay);
+    if (!this.isPaymentCurrencyPrimary && !this.paymentCurrencyRate) {
+      return false;
+    }
+    const distribution = this.buildDistributionLines(fee, this.parsedAmountInPrimaryCurrency);
     return distribution.lines.length > 0 && distribution.unallocated <= 0.005;
   }
 
@@ -536,34 +549,7 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
   }
 
   get showConvertedAmount(): boolean {
-    return (
-      !!this.selectedCurrency &&
-      !!this.primaryCurrency &&
-      this.selectedCurrency.id !== this.primaryCurrency.id &&
-      this.parsedAmountToPay > 0
-    );
-  }
-
-  get convertedAmountLabel(): string {
-    return this.formatMoney(this.convertedPaymentAmount, this.selectedCurrencyCode);
-  }
-
-  get convertedPaymentAmount(): number {
-    const amount = this.parsedAmountToPay;
-    const rateRow = this.activeExchangeRate;
-    const payment = this.selectedCurrency;
-    const primary = this.primaryCurrency;
-    if (!amount || !rateRow || !payment || !primary || payment.id === primary.id) {
-      return amount;
-    }
-
-    const value = Number(rateRow.rate ?? 0);
-    const source = String(rateRow.sourceCurrencyId ?? rateRow.source_currency_id ?? '');
-    if (!value) {
-      return amount;
-    }
-
-    return source === payment.id ? amount / value : amount * value;
+    return !this.isPaymentCurrencyPrimary && this.parsedAmountToPay > 0 && !!this.paymentCurrencyRate;
   }
 
   get remainingBalance(): number {
@@ -715,13 +701,12 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     return !this.selectedStudent || this.feeOptions.length === 0;
   }
 
-  isFeeInPending(option: FeeOption): boolean {
-    return this.pendingPaymentLines.some((line) => line.academicFeeId === option.academicFeeId);
+  hasPendingPaymentForFee(option: FeeOption): boolean {
+    return this.getPendingAmountForFee(option.academicFeeId) > 0;
   }
 
   isFeeOptionDisabled(option: FeeOption): boolean {
     return (
-      this.isFeeInPending(option) ||
       this.isFeeBlockedByInstallmentOrder(option) ||
       (this.resolveRemainingForFee(option) <= 0 && !this.isFeeSelected(option.id))
     );
@@ -764,10 +749,8 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     event?.stopPropagation();
     event?.preventDefault();
 
-    if (this.isFeeInPending(option) || this.isFeeBlockedByInstallmentOrder(option)) {
-      if (this.isFeeBlockedByInstallmentOrder(option)) {
-        this.toastService.warning(this.getFeeBlockedReason(option));
-      }
+    if (this.isFeeBlockedByInstallmentOrder(option)) {
+      this.toastService.warning(this.getFeeBlockedReason(option));
       return;
     }
 
@@ -776,7 +759,9 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     }
 
     this.selectedFeeOptionId = option.id;
-    this.amountToPay = String(this.resolveRemainingForFee(option));
+    this.amountToPay = this.formatAmountForInput(
+      this.convertPrimaryAmountToPayment(this.resolveRemainingForFee(option))
+    );
     this.isFeeSelectOpen = false;
   }
 
@@ -796,7 +781,18 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
   }
 
   onPaymentCurrencyChange(): void {
-    // Le taux de change s'applique au total converti affiche.
+    if (!this.selectedFeeOption) {
+      return;
+    }
+
+    const remainingPrimary = this.resolveRemainingForFee(this.selectedFeeOption);
+    if (remainingPrimary <= 0) {
+      return;
+    }
+
+    this.amountToPay = this.formatAmountForInput(
+      this.convertPrimaryAmountToPayment(remainingPrimary)
+    );
   }
 
   onFileSelected(event: Event): void {
@@ -809,6 +805,49 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     // Le surplus non reparti est signale sous le champ via distribution-warning.
   }
 
+  private convertPaymentAmountToPrimary(amount: number): number {
+    const rateRow = this.activeExchangeRate;
+    const payment = this.selectedCurrency;
+    const primary = this.primaryCurrency;
+    if (!amount || !payment || !primary || payment.id === primary.id) {
+      return amount;
+    }
+
+    const value = Number(rateRow?.rate ?? 0);
+    const source = String(rateRow?.sourceCurrencyId ?? rateRow?.source_currency_id ?? '');
+    if (!rateRow || !value) {
+      return 0;
+    }
+
+    const converted = source === payment.id ? amount * value : amount / value;
+    return Math.round(converted * 100) / 100;
+  }
+
+  private convertPrimaryAmountToPayment(amount: number): number {
+    const rateRow = this.activeExchangeRate;
+    const payment = this.selectedCurrency;
+    const primary = this.primaryCurrency;
+    if (!amount || !payment || !primary || payment.id === primary.id) {
+      return amount;
+    }
+
+    const value = Number(rateRow?.rate ?? 0);
+    const source = String(rateRow?.sourceCurrencyId ?? rateRow?.source_currency_id ?? '');
+    if (!rateRow || !value) {
+      return amount;
+    }
+
+    const converted = source === payment.id ? amount / value : amount * value;
+    return Math.round(converted * 100) / 100;
+  }
+
+  private formatAmountForInput(amount: number): string {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return '';
+    }
+    return String(Math.round(amount * 100) / 100);
+  }
+
   private buildDistributionLines(
     startFee: FeeOption,
     totalAmount: number
@@ -819,9 +858,6 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     for (const fee of this.getDistributionFeeChain(startFee)) {
       if (remainingAmount <= 0) {
         break;
-      }
-      if (this.pendingPaymentLines.some((line) => line.academicFeeId === fee.academicFeeId)) {
-        continue;
       }
 
       const feeRemaining = this.resolveRemainingForFee(fee);
@@ -885,13 +921,24 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.pendingPaymentLines.some((line) => line.academicFeeId === fee.academicFeeId)) {
-      this.toastService.warning('Ce frais est deja dans la liste de paiements.');
+    const distribution = this.buildDistributionLines(fee, this.parsedAmountInPrimaryCurrency);
+    if (this.parsedAmountToPay <= 0) {
+      this.toastService.warning('Saisissez un montant superieur a zero.');
       return;
     }
 
-    const distribution = this.buildDistributionLines(fee, this.parsedAmountToPay);
-    if (!distribution.lines.length || this.parsedAmountToPay <= 0) {
+    if (!this.isPaymentCurrencyPrimary && !this.paymentCurrencyRate) {
+      this.toastService.error('Aucun taux de change actif disponible pour la devise selectionnee.');
+      return;
+    }
+
+    if (this.parsedAmountInPrimaryCurrency <= 0) {
+      this.toastService.error('Impossible de convertir le montant en devise principale.');
+      return;
+    }
+
+    if (!distribution.lines.length) {
+      this.toastService.warning('Aucun frais disponible pour ce montant.');
       return;
     }
 

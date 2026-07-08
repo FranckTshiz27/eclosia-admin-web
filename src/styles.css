@@ -424,6 +424,39 @@ body.dark-theme .payments-page input[type='time']::-webkit-datetime-edit-fields-
     color: #1f2937 !important;
 }
 
+/* Page Etats financiers — champs toujours clairs */
+body.dark-theme .financial-statements-page {
+    color-scheme: light;
+}
+
+body.dark-theme .financial-statements-page input,
+body.dark-theme .financial-statements-page .search-box input,
+body.dark-theme .financial-statements-page .filter-input,
+body.dark-theme .financial-statements-page input[type='date'],
+body.dark-theme .financial-statements-page input[type='text'] {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    border-color: #e2e8f0 !important;
+    color-scheme: light;
+}
+
+body.dark-theme .financial-statements-page input:-webkit-autofill,
+body.dark-theme .financial-statements-page input:-webkit-autofill:hover,
+body.dark-theme .financial-statements-page input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+    -webkit-text-fill-color: #1f2937 !important;
+    caret-color: #1f2937 !important;
+}
+
+body.dark-theme .financial-statements-page input[type='date']::-webkit-calendar-picker-indicator {
+    filter: none;
+}
+
+body.dark-theme .financial-statements-page input[type='date']::-webkit-datetime-edit,
+body.dark-theme .financial-statements-page input[type='date']::-webkit-datetime-edit-fields-wrapper {
+    color: #1f2937 !important;
+}
+
 body.dark-theme .main-header .search-box input {
     background: #f8f9fa !important;
     color: #1f2937 !important;

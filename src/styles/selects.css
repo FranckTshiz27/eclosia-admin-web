@@ -185,6 +185,18 @@ body .table-toolbar.filters-toolbar .filter-group select:focus {
 }
 
 /* Dark theme — selects clairs */
+body.dark-theme .filter-select,
+body.dark-theme .financial-statements-page .filter-select,
+body.dark-theme .financial-statements-page .filter-field select {
+    background-color: #ffffff !important;
+    background-image: var(--filter-select-chevron) !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 14px 10px !important;
+    color: #1f293f !important;
+    border-color: #e2e8f0 !important;
+}
+
 body.dark-theme .page-container select.context-select,
 body.dark-theme .page-container .context-select,
 body.dark-theme .page-container .select-with-icon select,

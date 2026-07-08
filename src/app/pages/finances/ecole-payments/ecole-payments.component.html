@@ -222,10 +222,21 @@
                 >
                   <i class="bi bi-check2" *ngIf="selectedFeeOptionId === option.id"></i>
                   <span>{{ option.title }}</span>
-                  <small *ngIf="!isFeeInPending(option) && !isFeeBlockedByInstallmentOrder(option)">
-                    {{ formatMoney(resolveRemainingForFee(option), primaryCurrencyCode) }}
+                  <small *ngIf="resolveRemainingForFee(option) > 0 && !isFeeBlockedByInstallmentOrder(option)">
+                    Reste : {{ formatMoney(resolveRemainingForFee(option), primaryCurrencyCode) }}
                   </small>
-                  <small class="pending-tag" *ngIf="isFeeInPending(option)">Dans la liste</small>
+                  <small
+                    class="pending-tag"
+                    *ngIf="hasPendingPaymentForFee(option) && resolveRemainingForFee(option) > 0"
+                  >
+                    {{ formatMoney(getPendingAmountForFee(option.academicFeeId), primaryCurrencyCode) }} en attente
+                  </small>
+                  <small
+                    class="pending-tag"
+                    *ngIf="hasPendingPaymentForFee(option) && resolveRemainingForFee(option) <= 0"
+                  >
+                    Dans la liste
+                  </small>
                   <small class="blocked-tag" *ngIf="isFeeBlockedByInstallmentOrder(option)" [title]="getFeeBlockedReason(option)">
                     Echeance precedente non soldee
                   </small>
@@ -386,9 +397,9 @@
           </div>
 
           <div class="converted-amount-box" *ngIf="showConvertedAmount">
-            <span>Montant a payer en {{ selectedCurrencyCode }}</span>
-            <strong>{{ convertedAmountLabel }}</strong>
-            <small>(= {{ formatMoney(parsedAmountToPay, primaryCurrencyCode) }})</small>
+            <span>Equivalent en {{ primaryCurrencyCode }}</span>
+            <strong>{{ formatMoney(parsedAmountInPrimaryCurrency, primaryCurrencyCode) }}</strong>
+            <small>(= {{ formatMoney(parsedAmountToPay, selectedCurrencyCode) }})</small>
           </div>
         </div>
 

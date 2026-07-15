@@ -41,7 +41,7 @@ export class SidebarComponent implements OnInit {
     this.isConfigurationExpanded = url.startsWith('/configuration');
     this.isAdminExpanded = url.startsWith('/admin');
     this.isStudentsExpanded = url.startsWith('/inscriptions');
-    this.isFinancesExpanded = url.startsWith('/finances') || url.startsWith('/dashboard');
+    this.isFinancesExpanded = url.startsWith('/finances');
     this.isAgentsExpanded = url.startsWith('/agents');
     this.isSettingsExpanded = url.startsWith('/settings');
   }

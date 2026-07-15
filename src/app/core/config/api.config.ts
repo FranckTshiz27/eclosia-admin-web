@@ -37,5 +37,8 @@ export const API_ENDPOINTS = {
   enrollmentReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/enrollment-report`,
   paymentReceiptReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/report/payment-receipt`,
   paymentJournalReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/report/payment-journal`,
-  paymentRecoveryReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/report/payment-recovery/dashboard`
+  paymentRecoveryReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/report/payment-recovery/dashboard`,
+  configuredFeesReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/report/configured-fees`,
+  revenueStatementReport: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/report/revenue-statement`,
+  financeDashboard: `${API_CONFIG.gatewayBaseUrl}/${API_CONFIG.services.organization}/finance/dashboard`
 } as const;

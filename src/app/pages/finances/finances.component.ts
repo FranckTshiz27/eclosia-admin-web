@@ -8,8 +8,10 @@ import { EcolePaymentInstallmentsComponent } from './ecole-payment-installments/
 import { EcoleSchoolFeesComponent } from './ecole-school-fees/ecole-school-fees.component';
 import { EcolePaymentsComponent } from './ecole-payments/ecole-payments.component';
 import { EcoleFinancialStatementsComponent } from './ecole-financial-statements/ecole-financial-statements.component';
+import { EcoleFinancialDashboardComponent } from './ecole-financial-dashboard/ecole-financial-dashboard.component';
 
 type FinancesTab =
+  | 'tableau-de-bord-financier'
   | 'devises'
   | 'taux'
   | 'categories-frais'
@@ -28,6 +30,7 @@ type FinancesTab =
   standalone: true,
   imports: [
     CommonModule,
+    EcoleFinancialDashboardComponent,
     EcoleCurrenciesComponent,
     EcoleExchangeRatesComponent,
     EcoleFeeCategoriesComponent,
@@ -40,7 +43,7 @@ type FinancesTab =
   styleUrl: './finances.component.css'
 })
 export class FinancesComponent implements OnInit {
-  activeTab: FinancesTab = 'categories-frais';
+  activeTab: FinancesTab = 'tableau-de-bord-financier';
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -53,13 +56,14 @@ export class FinancesComponent implements OnInit {
       if (this.isValidTab(tab)) {
         this.activeTab = tab;
       } else if (!tab) {
-        this.activeTab = 'categories-frais';
+        this.activeTab = 'tableau-de-bord-financier';
       }
     });
   }
 
   private isValidTab(tab: string | null): tab is FinancesTab {
     return (
+      tab === 'tableau-de-bord-financier' ||
       tab === 'devises' ||
       tab === 'taux' ||
       tab === 'categories-frais' ||

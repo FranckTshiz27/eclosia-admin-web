@@ -1,0 +1,310 @@
+<div class="financial-dashboard-page">
+  <header class="page-header">
+    <div>
+      <h2>Tableau de bord financier</h2>
+      <p>Vue d'ensemble de la situation financière de l'établissement</p>
+    </div>
+
+    <div class="header-filters">
+      <div class="filter-field">
+        <label>École</label>
+        <select
+          class="filter-select"
+          [(ngModel)]="selectedSchoolId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onSchoolChange()"
+          [disabled]="isLoadingSchools || schools.length === 0"
+        >
+          <option value="" disabled>{{ isLoadingSchools ? 'Chargement...' : 'Sélectionner' }}</option>
+          <option *ngFor="let school of schools" [value]="school.value">{{ school.label }}</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label>Année scolaire</label>
+        <select
+          class="filter-select"
+          [(ngModel)]="selectedYearId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onYearChange()"
+          [disabled]="isLoadingYears || !selectedSchoolId || yearOptions.length === 0"
+        >
+          <option value="" disabled>{{ isLoadingYears ? 'Chargement...' : 'Sélectionner' }}</option>
+          <option *ngFor="let year of yearOptions" [value]="year.value">{{ year.label }}</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading skeletons -->
+  <ng-container *ngIf="pageState === 'loading'">
+    <div class="kpi-grid">
+      <div class="skeleton-card" *ngFor="let _ of [1, 2, 3, 4, 5, 6]"></div>
+    </div>
+    <div class="content-grid">
+      <div class="skeleton-panel wide"></div>
+      <div class="skeleton-panel"></div>
+    </div>
+    <div class="content-grid">
+      <div class="skeleton-panel wide"></div>
+      <div class="skeleton-panel"></div>
+    </div>
+  </ng-container>
+
+  <!-- Error -->
+  <section class="state-card error" *ngIf="pageState === 'error'">
+    <i class="bi bi-exclamation-triangle"></i>
+    <h3>Impossible de charger le tableau de bord</h3>
+    <p>Une erreur est survenue lors du chargement des données financières.</p>
+    <button type="button" class="btn-primary" (click)="retry()">Réessayer</button>
+  </section>
+
+  <!-- Empty -->
+  <section class="state-card empty" *ngIf="pageState === 'empty'">
+    <i class="bi bi-inbox"></i>
+    <h3>Aucune donnée financière disponible</h3>
+    <p>Aucune donnée financière disponible pour cette école et cette année scolaire.</p>
+  </section>
+
+  <!-- Ready -->
+  <ng-container *ngIf="pageState === 'ready' && dashboard as data">
+    <section class="today-strip">
+      <div class="today-item">
+        <i class="bi bi-calendar-check"></i>
+        <div>
+          <span>Aujourd'hui</span>
+          <strong>{{ formatMoney(data.summary.todayCollectedAmount) }} encaissés</strong>
+        </div>
+      </div>
+      <div class="today-item">
+        <i class="bi bi-receipt"></i>
+        <div>
+          <span>Paiements du jour</span>
+          <strong>{{ data.summary.todayPaymentCount }} paiements enregistrés</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="kpi-grid">
+      <article class="kpi-card tone-blue">
+        <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+        <div>
+          <span>Montant attendu</span>
+          <strong>{{ formatMoney(data.summary.expectedAmount) }}</strong>
+          <small>100 % du prévisionnel</small>
+        </div>
+      </article>
+
+      <article class="kpi-card tone-green">
+        <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
+        <div>
+          <span>Montant encaissé</span>
+          <strong>{{ formatMoney(data.summary.collectedAmount) }}</strong>
+          <small>{{ formatPercent(data.summary.recoveryRate) }} du total attendu</small>
+        </div>
+      </article>
+
+      <article class="kpi-card tone-red">
+        <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div>
+          <span>Solde restant</span>
+          <strong>{{ formatMoney(data.summary.remainingAmount) }}</strong>
+          <small>{{ formatPercent(100 - data.summary.recoveryRate) }} du total attendu</small>
+        </div>
+      </article>
+
+      <article class="kpi-card tone-orange">
+        <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <div>
+          <span>Taux de recouvrement</span>
+          <strong>{{ formatPercent(data.summary.recoveryRate) }}</strong>
+          <small>Performance globale</small>
+        </div>
+      </article>
+
+      <article class="kpi-card tone-purple">
+        <div class="kpi-icon"><i class="bi bi-people"></i></div>
+        <div>
+          <span>Nombre d'élèves</span>
+          <strong>{{ data.summary.totalStudents }}</strong>
+          <small>Élèves concernés</small>
+        </div>
+      </article>
+
+      <article class="kpi-card tone-teal">
+        <div class="kpi-icon"><i class="bi bi-mortarboard"></i></div>
+        <div>
+          <span>Nombre de classes</span>
+          <strong>{{ data.summary.totalClasses }}</strong>
+          <small>Classes (groupes)</small>
+        </div>
+      </article>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel wide">
+        <div class="panel-header">
+          <h3>Évolution des encaissements</h3>
+          <span class="panel-hint">{{ currencySymbol }}</span>
+        </div>
+        <div class="bar-chart" *ngIf="evolutionBars.length; else noEvolution">
+          <div class="bar-col" *ngFor="let bar of evolutionBars">
+            <div class="bar-value">{{ formatMoney(bar.amount) }}</div>
+            <div class="bar-track">
+              <div class="bar-fill" [style.height.%]="bar.height" [title]="formatMoney(bar.amount)"></div>
+            </div>
+            <span class="bar-label">{{ bar.label }}</span>
+          </div>
+        </div>
+        <ng-template #noEvolution>
+          <p class="panel-empty">Aucune évolution disponible.</p>
+        </ng-template>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <h3>Recettes par catégorie</h3>
+        </div>
+        <div class="donut-block" *ngIf="data.revenueByCategory.length; else noCategories">
+          <div class="donut" [style.background]="categoryDonutStyle"></div>
+          <ul class="legend-list">
+            <li *ngFor="let item of data.revenueByCategory; let i = index; trackBy: trackCategory">
+              <span class="dot" [style.background]="categoryColors[i % categoryColors.length]"></span>
+              <div>
+                <strong>{{ item.categoryName }}</strong>
+                <small>{{ formatMoney(item.collectedAmount) }} · {{ formatPercent(item.percentage) }}</small>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <ng-template #noCategories>
+          <p class="panel-empty">Aucune répartition par catégorie.</p>
+        </ng-template>
+      </article>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel wide">
+        <div class="panel-header">
+          <h3>Performance par classe</h3>
+          <button type="button" class="link-btn" (click)="goToRecoveryDetail()">Voir le détail</button>
+        </div>
+
+        <div class="class-list" *ngIf="topClasses.length; else noClasses">
+          <article class="class-row" *ngFor="let item of topClasses; trackBy: trackClass">
+            <div class="class-head">
+              <div>
+                <strong>{{ item.classroomName }}</strong>
+                <small>{{ item.studentCount }} élèves</small>
+              </div>
+              <span class="rate-badge" [class.good]="item.recoveryRate >= 75" [class.mid]="item.recoveryRate >= 50 && item.recoveryRate < 75" [class.low]="item.recoveryRate < 50">
+                {{ formatPercent(item.recoveryRate) }}
+              </span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" [style.width.%]="item.recoveryRate"></div>
+            </div>
+            <div class="class-metrics">
+              <span>Attendu : {{ formatMoney(item.expectedAmount) }}</span>
+              <span>Encaissé : {{ formatMoney(item.collectedAmount) }}</span>
+              <span>Solde : {{ formatMoney(item.remainingAmount) }}</span>
+            </div>
+          </article>
+        </div>
+        <ng-template #noClasses>
+          <p class="panel-empty">Aucune performance de classe disponible.</p>
+        </ng-template>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <h3>Modes de paiement</h3>
+        </div>
+        <div class="donut-block" *ngIf="data.revenueByPaymentMethod.length; else noMethods">
+          <div class="donut" [style.background]="methodDonutStyle"></div>
+          <ul class="legend-list">
+            <li *ngFor="let item of data.revenueByPaymentMethod; let i = index; trackBy: trackMethod">
+              <span class="dot" [style.background]="methodColors[i % methodColors.length]"></span>
+              <div>
+                <strong>{{ paymentMethodLabel(item.paymentMethod) }}</strong>
+                <small>{{ formatMoney(item.collectedAmount) }} · {{ formatPercent(item.percentage) }}</small>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <ng-template #noMethods>
+          <p class="panel-empty">Aucun mode de paiement renseigné.</p>
+        </ng-template>
+      </article>
+    </section>
+
+    <section class="content-grid bottom-grid">
+      <article class="panel arrears-panel">
+        <div class="panel-header">
+          <h3>Situation des impayés</h3>
+          <i class="bi bi-exclamation-circle arrears-icon"></i>
+        </div>
+        <div class="arrears-body">
+          <strong class="arrears-count">{{ data.arrearsSummary.unpaidStudentCount }} élèves avec impayés</strong>
+          <p class="arrears-amount">{{ formatMoney(data.arrearsSummary.remainingAmount) }}</p>
+          <small>restant à recouvrer</small>
+          <div class="arrears-meta">
+            <span>{{ formatPercent(data.arrearsSummary.remainingPercentage) }} du montant attendu</span>
+            <span>Recouvrement : {{ formatPercent(data.arrearsSummary.recoveryRate) }}</span>
+          </div>
+          <button type="button" class="btn-outline" (click)="goToArrears()">Voir les impayés</button>
+        </div>
+      </article>
+
+      <article class="panel wide">
+        <div class="panel-header">
+          <h3>Derniers paiements</h3>
+        </div>
+
+        <div class="payments-list" *ngIf="data.recentPayments.length; else noPayments">
+          <article class="payment-row" *ngFor="let payment of data.recentPayments; trackBy: trackPayment">
+            <div class="payment-main">
+              <strong>{{ payment.studentFullName }}</strong>
+              <small>{{ payment.studentNumber }} · {{ payment.classroomName }}</small>
+            </div>
+            <div class="payment-meta">
+              <strong>{{ formatMoney(payment.amount, payment.currencyCode) }}</strong>
+              <small>{{ paymentMethodLabel(payment.paymentMethod) }}</small>
+            </div>
+            <div class="payment-ref">
+              <span>{{ payment.receiptNumber }}</span>
+              <small>{{ formatPaymentDate(payment.paymentDate) }}</small>
+            </div>
+          </article>
+        </div>
+        <ng-template #noPayments>
+          <p class="panel-empty">Aucun paiement récent.</p>
+        </ng-template>
+      </article>
+    </section>
+
+    <section class="quick-summary panel" *ngIf="data.quickSummary">
+      <div class="panel-header">
+        <h3>Récapitulatif rapide</h3>
+      </div>
+      <div class="quick-grid">
+        <div>
+          <span>Frais configurés</span>
+          <strong>{{ data.quickSummary.configuredFeesCount }}</strong>
+        </div>
+        <div>
+          <span>Tranches configurées</span>
+          <strong>{{ data.quickSummary.configuredInstallmentsCount }}</strong>
+        </div>
+        <div>
+          <span>Moyenne attendue / élève</span>
+          <strong>{{ formatMoney(data.quickSummary.averageExpectedPerStudent) }}</strong>
+        </div>
+        <div>
+          <span>Moyenne encaissée / élève</span>
+          <strong>{{ formatMoney(data.quickSummary.averageCollectedPerStudent) }}</strong>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</div>

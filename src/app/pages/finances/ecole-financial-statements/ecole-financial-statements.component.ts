@@ -37,6 +37,14 @@ import {
   PaymentRecoveryReportQuery,
   PaymentRecoveryReportService
 } from '../../../services/payment-recovery-report.service';
+import {
+  ConfiguredFeesReportQuery,
+  ConfiguredFeesReportService
+} from '../../../services/configured-fees-report.service';
+import {
+  RevenueStatementReportQuery,
+  RevenueStatementReportService
+} from '../../../services/revenue-statement-report.service';
 import { ToastService } from '../../../services/toast.service';
 
 type ReportTone = 'green' | 'orange' | 'blue' | 'purple' | 'teal' | 'yellow' | 'red';
@@ -188,6 +196,8 @@ export class EcoleFinancialStatementsComponent implements OnInit {
     private readonly feeCategoryService: FeeCategoryService,
     private readonly paymentJournalReportService: PaymentJournalReportService,
     private readonly paymentRecoveryReportService: PaymentRecoveryReportService,
+    private readonly configuredFeesReportService: ConfiguredFeesReportService,
+    private readonly revenueStatementReportService: RevenueStatementReportService,
     private readonly paymentInstallmentService: PaymentInstallmentService,
     private readonly toastService: ToastService
   ) {}
@@ -381,6 +391,56 @@ export class EcoleFinancialStatementsComponent implements OnInit {
       return;
     }
 
+    if (report.id === 'configured-fees') {
+      const query = this.buildConfiguredFeesQuery();
+      if (!query) {
+        return;
+      }
+
+      this.generatingReportId = report.id;
+      this.configuredFeesReportService.generateConfiguredFeesReport(query).subscribe({
+        next: (pdfBlob) => {
+          this.generatingReportId = '';
+          const filename = 'etat-frais-configures.pdf';
+          if (mode === 'export') {
+            this.downloadPdfBlob(pdfBlob, filename);
+            return;
+          }
+          this.openPdfBlob(pdfBlob, filename);
+        },
+        error: (error) => {
+          this.generatingReportId = '';
+          this.toastService.apiError(error, 'Impossible de generer l\'etat des frais configures.');
+        }
+      });
+      return;
+    }
+
+    if (report.id === 'revenue-status') {
+      const query = this.buildRevenueStatementQuery();
+      if (!query) {
+        return;
+      }
+
+      this.generatingReportId = report.id;
+      this.revenueStatementReportService.generateRevenueStatement(query).subscribe({
+        next: (pdfBlob) => {
+          this.generatingReportId = '';
+          const filename = 'etat-recettes.pdf';
+          if (mode === 'export') {
+            this.downloadPdfBlob(pdfBlob, filename);
+            return;
+          }
+          this.openPdfBlob(pdfBlob, filename);
+        },
+        error: (error) => {
+          this.generatingReportId = '';
+          this.toastService.apiError(error, 'Impossible de generer l\'etat des recettes.');
+        }
+      });
+      return;
+    }
+
     this.toastService.info(`Ouverture de « ${report.title} » (bientot disponible).`);
   }
 
@@ -471,6 +531,50 @@ export class EcoleFinancialStatementsComponent implements OnInit {
 
     query.startDate = startDate;
     query.endDate = endDate;
+
+    return query;
+  }
+
+  private buildConfiguredFeesQuery(): ConfiguredFeesReportQuery | null {
+    return this.buildSchoolYearScopedReportQuery();
+  }
+
+  private buildRevenueStatementQuery(): RevenueStatementReportQuery | null {
+    return this.buildSchoolYearScopedReportQuery();
+  }
+
+  private buildSchoolYearScopedReportQuery(): {
+    schoolId: string;
+    academicYearId: string;
+    cycleIds?: string[];
+    classroomIds?: string[];
+  } | null {
+    const schoolId = String(this.selectedSchoolId ?? '').trim();
+    const academicYearId = String(this.selectedYearId ?? '').trim();
+
+    if (!schoolId) {
+      this.toastService.warning('Selectionnez une ecole.');
+      return null;
+    }
+    if (!academicYearId) {
+      this.toastService.warning('Selectionnez une annee scolaire.');
+      return null;
+    }
+
+    const query: {
+      schoolId: string;
+      academicYearId: string;
+      cycleIds?: string[];
+      classroomIds?: string[];
+    } = {
+      schoolId,
+      academicYearId,
+      cycleIds: this.resolveCycleIdsForQuery()
+    };
+
+    if (this.selectedClassroomIds.length) {
+      query.classroomIds = [...this.selectedClassroomIds];
+    }
 
     return query;
   }

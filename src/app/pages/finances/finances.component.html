@@ -1,4 +1,5 @@
 <div class="page-container finances-page">
+  <app-ecole-financial-dashboard *ngIf="activeTab === 'tableau-de-bord-financier'"></app-ecole-financial-dashboard>
   <app-ecole-currencies *ngIf="activeTab === 'devises'"></app-ecole-currencies>
   <app-ecole-exchange-rates *ngIf="activeTab === 'taux'"></app-ecole-exchange-rates>
   <app-ecole-fee-categories *ngIf="activeTab === 'categories-frais'"></app-ecole-fee-categories>
@@ -9,7 +10,7 @@
 
   <section
     class="placeholder-panel"
-    *ngIf="activeTab !== 'devises' && activeTab !== 'taux' && activeTab !== 'categories-frais' && activeTab !== 'tranches-paiement' && activeTab !== 'frais-scolaires' && activeTab !== 'paiements' && activeTab !== 'etats-financiers'"
+    *ngIf="activeTab !== 'tableau-de-bord-financier' && activeTab !== 'devises' && activeTab !== 'taux' && activeTab !== 'categories-frais' && activeTab !== 'tranches-paiement' && activeTab !== 'frais-scolaires' && activeTab !== 'paiements' && activeTab !== 'etats-financiers'"
   >
     <div class="placeholder-card">
       <i class="bi bi-tools"></i>

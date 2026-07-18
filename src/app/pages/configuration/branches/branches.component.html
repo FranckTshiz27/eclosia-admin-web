@@ -1,0 +1,346 @@
+<div class="page-container branches-page">
+  <div class="branches-header">
+    <div class="branches-title-wrap">
+      <span class="branches-icon"><i class="bi bi-diagram-2"></i></span>
+      <div>
+        <h1>Branches</h1>
+        <p>Gérez les branches (matières) rattachées aux domaines et sous-domaines</p>
+      </div>
+    </div>
+    <button class="btn-new-row" type="button" (click)="openCreateModal()">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Nouvelle branche
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher une branche..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Pays</label>
+          <div class="searchable-select">
+            <input
+              type="text"
+              [(ngModel)]="countryFilter"
+              [ngModelOptions]="{ standalone: true }"
+              autocomplete="off"
+              [placeholder]="isLoadingCountries ? 'Chargement des pays...' : 'Tous les pays'"
+              (focus)="openCountryFilterDropdown()"
+              (input)="onCountryFilterInput()"
+              (blur)="closeCountryFilterDropdown()"
+            />
+            <i class="bi bi-chevron-down select-chevron"></i>
+            <div class="select-dropdown" *ngIf="isCountryFilterDropdownOpen">
+              <button
+                type="button"
+                class="select-option"
+                *ngFor="let option of filteredFilterCountryOptions"
+                (mousedown)="selectFilterCountry(option)"
+              >
+                {{ option.label }}
+              </button>
+              <div class="select-empty" *ngIf="countryFilter && filteredFilterCountryOptions.length <= 1">
+                Aucun pays trouvé.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>Domaine</label>
+          <select
+            [(ngModel)]="domainFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onDomainFilterChange()"
+          >
+            <option value="all">Tous les domaines</option>
+            <option *ngFor="let domain of filterDomainOptions" [value]="domain.id">{{ domain.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Sous-domaine</label>
+          <select [(ngModel)]="subDomainFilter" [ngModelOptions]="{ standalone: true }">
+            <option value="all">Tous les sous-domaines</option>
+            <option *ngFor="let item of filterSubDomainOptions" [value]="item.id">{{ item.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="branches-table-wrapper">
+      <table class="branches-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Abréviation</th>
+            <th>Pays</th>
+            <th>Domaine</th>
+            <th>Sous-domaine</th>
+            <th>Ordre</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingRows || isLoadingLookups">
+            <td colspan="9" class="table-state">Chargement des branches...</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && !isLoadingLookups && loadError">
+            <td colspan="9" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && !isLoadingLookups && !loadError && filteredRows.length === 0">
+            <td colspan="9" class="table-state">Aucune branche trouvée pour cette recherche.</td>
+          </tr>
+          <tr *ngFor="let row of filteredRows">
+            <td class="code-col">{{ row.code }}</td>
+            <td><span class="row-name">{{ row.name }}</span></td>
+            <td>{{ row.abbreviation || '—' }}</td>
+            <td>
+              <div class="country-cell">
+                <span class="country-flag">{{ getCountryFlag(row.countryIso2) }}</span>
+                <span>{{ row.countryLabel }}</span>
+              </div>
+            </td>
+            <td>{{ row.domainLabel }}</td>
+            <td>{{ row.subDomainLabel }}</td>
+            <td>{{ row.displayOrder }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="row.status === 'Actif'"
+                [class.badge-muted]="row.status === 'Inactif'"
+              >
+                {{ row.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" title="Modifier" (click)="openEditModal(row)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" title="Supprimer" (click)="deleteRow(row)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ filteredRows.length }} sur {{ rows.length }} branches</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-row-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier la branche' : 'Nouvelle branche' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez à jour les informations de cette branche'
+              : 'Remplissez les informations pour créer une nouvelle branche'
+          }}
+        </p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #rowForm="ngForm" (ngSubmit)="saveRow(rowForm)" novalidate>
+      <div class="modal-body">
+        <section class="form-section">
+          <h4>Informations générales</h4>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Pays <span>*</span></label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  name="country"
+                  [(ngModel)]="form.country"
+                  #countryCtrl="ngModel"
+                  required
+                  autocomplete="off"
+                  [placeholder]="isLoadingCountries ? 'Chargement des pays...' : 'Rechercher ou sélectionner un pays'"
+                  [class.input-invalid]="(countryCtrl.invalid && countryCtrl.touched) || (isSubmitted && countryCtrl.invalid)"
+                  (focus)="openCountryDropdown()"
+                  (input)="openCountryDropdown()"
+                  (blur)="closeCountryDropdown()"
+                />
+                <i class="bi bi-chevron-down select-chevron"></i>
+                <div class="select-dropdown" *ngIf="isCountryDropdownOpen">
+                  <button
+                    type="button"
+                    class="select-option"
+                    *ngFor="let country of filteredCountryOptions"
+                    (mousedown)="selectCountry(country.name)"
+                  >
+                    {{ country.name }}
+                  </button>
+                  <div class="select-empty" *ngIf="filteredCountryOptions.length === 0">Aucun pays trouvé.</div>
+                </div>
+              </div>
+              <small class="field-error" *ngIf="(countryCtrl.touched || isSubmitted) && countryCtrl.invalid">
+                Le pays est obligatoire.
+              </small>
+              <small class="field-error" *ngIf="countryLoadError">{{ countryLoadError }}</small>
+            </div>
+
+            <div class="field-group">
+              <label>Domaine</label>
+              <select
+                name="subjectDomainId"
+                [(ngModel)]="form.subjectDomainId"
+                (ngModelChange)="onFormDomainChange()"
+              >
+                <option value="">Aucun</option>
+                <option *ngFor="let domain of formDomainOptions" [value]="domain.id">{{ domain.label }}</option>
+              </select>
+              <small class="field-hint">Optionnel</small>
+            </div>
+
+            <div class="field-group">
+              <label>Sous-domaine</label>
+              <select
+                name="subjectSubDomainId"
+                [(ngModel)]="form.subjectSubDomainId"
+                [disabled]="!form.subjectDomainId"
+              >
+                <option value="">Aucun</option>
+                <option *ngFor="let item of formSubDomainOptions" [value]="item.id">{{ item.label }}</option>
+              </select>
+              <small class="field-hint">Filtré selon le domaine choisi</small>
+            </div>
+
+            <div class="field-group">
+              <label>Code <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                pattern=".*\S.*"
+                maxlength="20"
+                placeholder="Ex: MATH"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">
+                Le code est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Nom <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                minlength="2"
+                maxlength="150"
+                placeholder="Ex: Mathématiques"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">
+                Le nom est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Abréviation</label>
+              <input
+                type="text"
+                name="abbreviation"
+                [(ngModel)]="form.abbreviation"
+                maxlength="20"
+                placeholder="Ex: Math"
+              />
+            </div>
+
+            <div class="field-group">
+              <label>Ordre d'affichage</label>
+              <input
+                type="number"
+                name="displayOrder"
+                [(ngModel)]="form.displayOrder"
+                min="1"
+                placeholder="1"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Statut</h4>
+          <label class="section-label">Statut de la branche <span>*</span></label>
+          <div class="status-cards">
+            <label class="status-card" [class.selected]="form.status === 'Actif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Actif" required />
+              <span class="status-dot active"></span>
+              <div>
+                <strong>Actif</strong>
+                <small>Branche disponible</small>
+              </div>
+            </label>
+            <label class="status-card" [class.selected]="form.status === 'Inactif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Inactif" required />
+              <span class="status-dot inactive"></span>
+              <div>
+                <strong>Inactif</strong>
+                <small>Branche archivée</small>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || rowForm.invalid">
+          <i class="bi bi-save"></i>
+          {{
+            isSaving
+              ? isEditMode
+                ? 'Mise à jour...'
+                : 'Enregistrement...'
+              : isEditMode
+                ? 'Mettre à jour'
+                : 'Enregistrer'
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

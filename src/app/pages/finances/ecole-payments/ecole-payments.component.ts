@@ -1258,6 +1258,7 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: ({ years, categories, installments, currencies, schoolCurrencies, rates, studentCategories, sections }) => {
         this.yearOptions = (years as AcademicYearApiResponse[])
+          .filter((row) => row.active !== false)
           .map((row) => ({ value: String(row.id ?? ''), label: this.buildYearLabel(row) }))
           .filter((item) => item.value)
           .sort((a, b) => b.label.localeCompare(a.label, 'fr'));
@@ -1741,20 +1742,7 @@ export class EcolePaymentsComponent implements OnInit, OnDestroy {
   }
 
   private buildYearLabel(row: AcademicYearApiResponse): string {
-    const code = (row.code ?? '').trim();
-    if (code) {
-      return code;
-    }
-    const start = row.startDate ?? row.start_date;
-    const end = row.endDate ?? row.end_date;
-    if (start && end) {
-      const startYear = new Date(start).getFullYear();
-      const endYear = new Date(end).getFullYear();
-      if (!Number.isNaN(startYear) && !Number.isNaN(endYear)) {
-        return `${startYear} - ${endYear}`;
-      }
-    }
-    return 'Annee scolaire';
+    return AcademicYearService.buildLabel(row);
   }
 
   private buildInstallmentLabel(row: PaymentInstallmentApiResponse): string {

@@ -295,9 +295,10 @@ export class EcoleFinancialDashboardComponent implements OnInit {
       next: ({ years }) => {
         this.academicYearsCache = years as AcademicYearApiResponse[];
         this.yearOptions = this.academicYearsCache
+          .filter((row) => row.active !== false)
           .map((row) => ({
             value: String(row.id ?? ''),
-            label: this.buildYearLabel(row)
+            label: AcademicYearService.buildLabel(row)
           }))
           .filter((item) => item.value)
           .sort((a, b) => b.label.localeCompare(a.label, 'fr'));
@@ -402,22 +403,5 @@ export class EcoleFinancialDashboardComponent implements OnInit {
       parts.push(`#e2e8f0 ${cursor}deg 360deg`);
     }
     return `conic-gradient(${parts.join(', ')})`;
-  }
-
-  private buildYearLabel(row: AcademicYearApiResponse): string {
-    const code = (row.code ?? '').trim();
-    if (code) {
-      return code;
-    }
-    const start = row.startDate ?? row.start_date;
-    const end = row.endDate ?? row.end_date;
-    if (start && end) {
-      const startYear = new Date(start).getFullYear();
-      const endYear = new Date(end).getFullYear();
-      if (!Number.isNaN(startYear) && !Number.isNaN(endYear)) {
-        return `${startYear} - ${endYear}`;
-      }
-    }
-    return 'Année scolaire';
   }
 }

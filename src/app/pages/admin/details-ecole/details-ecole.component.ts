@@ -5,7 +5,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EcoleClassesComponent } from './ecole-classes/ecole-classes.component';
 import { EcoleClassroomDesignationsComponent } from './ecole-classroom-designations/ecole-classroom-designations.component';
 import { EcoleAcademicYearCurrenciesComponent } from './ecole-academic-year-currencies/ecole-academic-year-currencies.component';
-import { EcoleAcademicYearsComponent } from './ecole-academic-years/ecole-academic-years.component';
 import {
   AcademicModelApiResponse,
   AcademicModelService
@@ -18,7 +17,6 @@ import {
 } from '../../../services/school-academic-model.service';
 
 type DetailsTab =
-  | 'annee-scolaire'
   | 'devises-annee-scolaire'
   | 'modeles-academiques'
   | 'designations-salles'
@@ -71,7 +69,6 @@ interface AssociationForm {
     FormsModule,
     EcoleClassesComponent,
     EcoleClassroomDesignationsComponent,
-    EcoleAcademicYearsComponent,
     EcoleAcademicYearCurrenciesComponent
   ],
   templateUrl: './details-ecole.component.html',
@@ -105,7 +102,6 @@ export class DetailsEcoleComponent implements OnInit {
   private associationApiRows: SchoolAcademicModelApiResponse[] = [];
 
   readonly tabs: { id: DetailsTab; label: string; icon: string }[] = [
-    { id: 'annee-scolaire', label: 'Annee scolaire', icon: 'bi-calendar3' },
     { id: 'devises-annee-scolaire', label: 'Devises par annee scolaire', icon: 'bi-currency-exchange' },
     { id: 'modeles-academiques', label: 'Modeles academiques', icon: 'bi-journal-bookmark' },
     { id: 'designations-salles', label: 'Designations salles', icon: 'bi-door-open' },

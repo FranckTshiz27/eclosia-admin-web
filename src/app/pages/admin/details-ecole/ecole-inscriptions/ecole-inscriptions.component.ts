@@ -1249,14 +1249,13 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
     this.academicYearService.getAll({ schoolId: this.selectedSchoolId }).subscribe({
       next: (rows: AcademicYearApiResponse[]) => {
         this.yearOptions = rows
-          .filter((row) => this.isCurrent(row.current))
+          .filter((row) => row.active !== false)
           .map((row) => {
             const id = String(row.id ?? '');
-            const code = (row.code ?? '').trim();
             return {
               id,
-              code,
-              label: code || this.buildYearLabel(row)
+              code: (row.code ?? '').trim(),
+              label: AcademicYearService.buildLabel(row)
             };
           })
           .filter((item) => item.id)
@@ -1275,7 +1274,7 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
         this.yearOptions = [];
         this.selectedYearId = '';
         this.students = [];
-        this.loadError = this.activeTab === 'inscriptions' ? 'Impossible de charger les annees courantes.' : '';
+        this.loadError = this.activeTab === 'inscriptions' ? 'Impossible de charger les annees scolaires.' : '';
         this.loadTutors();
       }
     });
@@ -1567,21 +1566,6 @@ export class EcoleInscriptionsComponent implements OnInit, OnChanges, OnDestroy 
 
   onStudentPhotoError(student: StudentRow): void {
     student.photoUrl = student.photoFallbackUrls.shift() ?? '';
-  }
-
-  private isCurrent(value: unknown): boolean {
-    return value === true || value === 'true' || value === 1 || value === '1';
-  }
-
-  private buildYearLabel(row: AcademicYearApiResponse): string {
-    const start = String(row.startDate ?? row.start_date ?? '');
-    const end = String(row.endDate ?? row.end_date ?? '');
-    const s = start.match(/^(\d{4})/)?.[1];
-    const e = end.match(/^(\d{4})/)?.[1];
-    if (s && e) {
-      return `${s}-${e}`;
-    }
-    return 'Annee courante';
   }
 
   private readNullableNumber(value: unknown): number | null {

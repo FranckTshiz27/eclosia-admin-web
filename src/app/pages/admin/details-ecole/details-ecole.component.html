@@ -135,10 +135,6 @@
     </aside>
   </section>
 
-  <section *ngIf="activeTab === 'annee-scolaire'" class="tab-panel">
-    <app-ecole-academic-years [schoolId]="selectedSchoolId"></app-ecole-academic-years>
-  </section>
-
   <section *ngIf="activeTab === 'devises-annee-scolaire'" class="tab-panel">
     <app-ecole-academic-year-currencies
       [schoolId]="selectedSchoolId"
@@ -154,7 +150,7 @@
     <app-ecole-classroom-designations [schoolId]="selectedSchoolId"></app-ecole-classroom-designations>
   </section>
 
-  <section *ngIf="activeTab !== 'modeles-academiques' && activeTab !== 'annee-scolaire' && activeTab !== 'devises-annee-scolaire' && activeTab !== 'classes' && activeTab !== 'designations-salles'" class="tab-panel tab-placeholder">
+  <section *ngIf="activeTab !== 'modeles-academiques' && activeTab !== 'devises-annee-scolaire' && activeTab !== 'classes' && activeTab !== 'designations-salles'" class="tab-panel tab-placeholder">
     <div class="placeholder-card">
       <i class="bi bi-tools"></i>
       <h2>{{ activeTabLabel }}</h2>
@@ -248,7 +244,7 @@
         <ul>
           <li><i class="bi bi-check-circle-fill"></i> Creer des classes</li>
           <li><i class="bi bi-check-circle-fill"></i> Gerer les niveaux, sections et options disponibles</li>
-          <li><i class="bi bi-check-circle-fill"></i> Organiser les annees scolaires futures</li>
+          <li><i class="bi bi-check-circle-fill"></i> Utiliser les annees scolaires du pays</li>
         </ul>
       </aside>
 

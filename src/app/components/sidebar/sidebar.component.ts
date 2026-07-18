@@ -18,6 +18,7 @@ export class SidebarComponent implements OnInit {
   isStudentsExpanded = false;
   isFinancesExpanded = false;
   isAdminExpanded = false;
+  isPedagogicalConfigExpanded = false;
   isConfigurationExpanded = false;
   isSettingsExpanded = false;
 
@@ -38,7 +39,19 @@ export class SidebarComponent implements OnInit {
   }
 
   private syncExpandedMenus(url: string): void {
-    this.isConfigurationExpanded = url.startsWith('/configuration');
+    this.isPedagogicalConfigExpanded =
+      url.startsWith('/configuration/domaines') ||
+      url.startsWith('/configuration/sous-domaines') ||
+      url.startsWith('/configuration/branches') ||
+      url.startsWith('/configuration/periodes-scolaires') ||
+      url.startsWith('/configuration/programme-pedagogique');
+    this.isConfigurationExpanded =
+      url.startsWith('/configuration') &&
+      !url.startsWith('/configuration/domaines') &&
+      !url.startsWith('/configuration/sous-domaines') &&
+      !url.startsWith('/configuration/branches') &&
+      !url.startsWith('/configuration/periodes-scolaires') &&
+      !url.startsWith('/configuration/programme-pedagogique');
     this.isAdminExpanded = url.startsWith('/admin');
     this.isStudentsExpanded = url.startsWith('/inscriptions');
     this.isFinancesExpanded = url.startsWith('/finances');

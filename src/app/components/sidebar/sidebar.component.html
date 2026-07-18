@@ -198,6 +198,47 @@
                 </a>
             </li>
 
+            <!-- CONFIGURATION PÉDAGOGIQUE -->
+            <li class="has-submenu" [class.open]="isPedagogicalConfigExpanded">
+                <a (click)="isPedagogicalConfigExpanded = !isPedagogicalConfigExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
+                    <i class="bi bi-mortarboard"></i>
+                    <span>CONFIGURATION PÉDAGOGIQUE</span>
+                    <span class="chevron-down"></span>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a routerLink="/configuration/domaines" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-bookmarks"></i>
+                            <span>Domaines</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a routerLink="/configuration/sous-domaines" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-diagram-3"></i>
+                            <span>Sous-domaines</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a routerLink="/configuration/branches" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-diagram-2"></i>
+                            <span>Branches</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a routerLink="/configuration/periodes-scolaires" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-calendar3"></i>
+                            <span>Périodes scolaires</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a routerLink="/configuration/programme-pedagogique" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-journal-richtext"></i>
+                            <span>Programme pédagogique</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             <!-- CONFIGURATION -->
             <li class="has-submenu" [class.open]="isConfigurationExpanded">
                 <a (click)="isConfigurationExpanded = !isConfigurationExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
@@ -263,6 +304,12 @@
                         <a routerLink="/admin/details-ecole" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
                             <i class="bi bi-building-gear"></i>
                             <span>Details ecole</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a routerLink="/admin/annees-scolaires" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-calendar-range"></i>
+                            <span>Années scolaires</span>
                         </a>
                     </li>
                 </ul>

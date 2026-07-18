@@ -1230,11 +1230,11 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
         schoolCurrencies
       }) => {
         this.yearOptions = (years as AcademicYearApiResponse[])
-          .map((row) => {
-            const id = String(row.id ?? '');
-            const code = (row.code ?? '').trim();
-            return { value: id, label: code || this.buildYearLabel(row) };
-          })
+          .filter((row) => row.active !== false)
+          .map((row) => ({
+            value: String(row.id ?? ''),
+            label: AcademicYearService.buildLabel(row)
+          }))
           .filter((item) => item.value)
           .sort((a, b) => b.label.localeCompare(a.label, 'fr'));
 
@@ -1985,19 +1985,6 @@ export class EcoleSchoolFeesComponent implements OnInit, OnDestroy {
       symbol: meta.symbol,
       decimalPlaces
     };
-  }
-
-  private buildYearLabel(row: AcademicYearApiResponse): string {
-    const start = row.startDate ?? row.start_date;
-    const end = row.endDate ?? row.end_date;
-    if (start && end) {
-      const startYear = new Date(start).getFullYear();
-      const endYear = new Date(end).getFullYear();
-      if (!Number.isNaN(startYear) && !Number.isNaN(endYear)) {
-        return `${startYear} - ${endYear}`;
-      }
-    }
-    return 'Annee scolaire';
   }
 
   private normalize(value: string): string {

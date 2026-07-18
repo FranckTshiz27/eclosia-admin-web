@@ -1,0 +1,241 @@
+<div class="page-container sous-domaines-page">
+  <div class="sous-domaines-header">
+    <div class="sous-domaines-title-wrap">
+      <span class="sous-domaines-icon"><i class="bi bi-diagram-3"></i></span>
+      <div>
+        <h1>Sous-domaines</h1>
+        <p>Gérez les sous-domaines rattachés aux domaines pédagogiques</p>
+      </div>
+    </div>
+    <button class="btn-new-row" type="button" (click)="openCreateModal()">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Nouveau sous-domaine
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher un sous-domaine..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Domaine</label>
+          <select [(ngModel)]="domainFilter" [ngModelOptions]="{ standalone: true }">
+            <option value="all">Tous les domaines</option>
+            <option *ngFor="let domain of domains" [value]="domain.id">{{ domain.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="sous-domaines-table-wrapper">
+      <table class="sous-domaines-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Domaine</th>
+            <th>Ordre</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingRows">
+            <td colspan="6" class="table-state">Chargement des sous-domaines...</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && loadError">
+            <td colspan="6" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && !loadError && filteredRows.length === 0">
+            <td colspan="6" class="table-state">Aucun sous-domaine trouvé pour cette recherche.</td>
+          </tr>
+          <tr *ngFor="let row of filteredRows">
+            <td class="code-col">{{ row.code }}</td>
+            <td><span class="row-name">{{ row.name }}</span></td>
+            <td>{{ row.domainLabel }}</td>
+            <td>{{ row.displayOrder }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="row.status === 'Actif'"
+                [class.badge-muted]="row.status === 'Inactif'"
+              >
+                {{ row.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" title="Modifier" (click)="openEditModal(row)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" title="Supprimer" (click)="deleteRow(row)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ filteredRows.length }} sur {{ rows.length }} sous-domaines</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-row-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier le sous-domaine' : 'Nouveau sous-domaine' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez à jour les informations de ce sous-domaine'
+              : 'Remplissez les informations pour créer un nouveau sous-domaine'
+          }}
+        </p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #rowForm="ngForm" (ngSubmit)="saveRow(rowForm)" novalidate>
+      <div class="modal-body">
+        <section class="form-section">
+          <h4>Informations générales</h4>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Domaine <span>*</span></label>
+              <select
+                name="subjectDomainId"
+                [(ngModel)]="form.subjectDomainId"
+                #domainCtrl="ngModel"
+                required
+                [class.input-invalid]="(domainCtrl.invalid && domainCtrl.touched) || (isSubmitted && domainCtrl.invalid)"
+              >
+                <option value="" disabled>Sélectionner un domaine</option>
+                <option *ngFor="let domain of domains" [value]="domain.id">{{ domain.label }}</option>
+              </select>
+              <small class="field-hint">Domaine parent obligatoire</small>
+              <small class="field-error" *ngIf="(domainCtrl.touched || isSubmitted) && domainCtrl.invalid">
+                Le domaine est obligatoire.
+              </small>
+              <small class="field-error" *ngIf="domainsLoadError">{{ domainsLoadError }}</small>
+            </div>
+
+            <div class="field-group">
+              <label>Code <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                pattern=".*\S.*"
+                maxlength="20"
+                placeholder="Ex: ALG"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+              <small class="field-hint">Code unique par domaine</small>
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">
+                Le code est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Nom <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                minlength="2"
+                maxlength="150"
+                placeholder="Ex: Algèbre"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">
+                Le nom est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Ordre d'affichage</label>
+              <input
+                type="number"
+                name="displayOrder"
+                [(ngModel)]="form.displayOrder"
+                min="1"
+                placeholder="1"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Statut</h4>
+          <label class="section-label">Statut du sous-domaine <span>*</span></label>
+          <div class="status-cards">
+            <label class="status-card" [class.selected]="form.status === 'Actif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Actif" required />
+              <span class="status-dot active"></span>
+              <div>
+                <strong>Actif</strong>
+                <small>Sous-domaine disponible</small>
+              </div>
+            </label>
+            <label class="status-card" [class.selected]="form.status === 'Inactif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Inactif" required />
+              <span class="status-dot inactive"></span>
+              <div>
+                <strong>Inactif</strong>
+                <small>Sous-domaine archivé</small>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || rowForm.invalid || isLoadingDomains">
+          <i class="bi bi-save"></i>
+          {{
+            isSaving
+              ? isEditMode
+                ? 'Mise à jour...'
+                : 'Enregistrement...'
+              : isEditMode
+                ? 'Mettre à jour'
+                : 'Enregistrer'
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

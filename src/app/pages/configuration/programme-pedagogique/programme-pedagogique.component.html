@@ -1,0 +1,347 @@
+<div class="page-container periodes-page">
+  <div class="periodes-header">
+    <div class="periodes-title-wrap">
+      <span class="periodes-icon"><i class="bi bi-journal-richtext"></i></span>
+      <div>
+        <h1>Programme pédagogique</h1>
+        <p>Définissez les parcours pédagogiques par année, cycle, niveau, section et option</p>
+      </div>
+    </div>
+    <button class="btn-new-row" type="button" (click)="openCreateModal()" [disabled]="isLoadingLookups">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Nouveau programme
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher un programme..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Pays</label>
+          <div class="searchable-select">
+            <input
+              type="text"
+              [(ngModel)]="countryFilter"
+              [ngModelOptions]="{ standalone: true }"
+              autocomplete="off"
+              [placeholder]="isLoadingCountries ? 'Chargement des pays...' : 'Tous les pays'"
+              (focus)="openCountryFilterDropdown()"
+              (input)="onCountryFilterInput()"
+              (blur)="closeCountryFilterDropdown()"
+            />
+            <i class="bi bi-chevron-down select-chevron"></i>
+            <div class="select-dropdown" *ngIf="isCountryFilterDropdownOpen">
+              <button
+                type="button"
+                class="select-option"
+                *ngFor="let option of filteredFilterCountryOptions"
+                (mousedown)="selectFilterCountry(option)"
+              >
+                {{ option.label }}
+              </button>
+              <div class="select-empty" *ngIf="countryFilter && filteredFilterCountryOptions.length <= 1">
+                Aucun pays trouvé.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>Année scolaire</label>
+          <select [(ngModel)]="yearFilter" [ngModelOptions]="{ standalone: true }">
+            <option value="all">Toutes</option>
+            <option *ngFor="let year of yearFilterOptions" [value]="year.id">{{ year.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Cycle</label>
+          <select [(ngModel)]="cycleFilter" [ngModelOptions]="{ standalone: true }">
+            <option value="all">Tous</option>
+            <option *ngFor="let cycle of cycles" [value]="cycle.id">{{ cycle.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="periodes-table-wrapper">
+      <table class="periodes-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Année</th>
+            <th>Cycle</th>
+            <th>Niveau</th>
+            <th>Section</th>
+            <th>Option</th>
+            <th>Pays</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingRows">
+            <td colspan="10" class="table-state">Chargement des programmes pédagogiques...</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && loadError">
+            <td colspan="10" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && !loadError && filteredRows.length === 0">
+            <td colspan="10" class="table-state">Aucun programme pédagogique trouvé.</td>
+          </tr>
+          <tr *ngFor="let row of filteredRows">
+            <td class="code-col">{{ row.code }}</td>
+            <td><span class="row-name">{{ row.name }}</span></td>
+            <td>{{ row.academicYearLabel }}</td>
+            <td>{{ row.academicCycleLabel }}</td>
+            <td>{{ row.academicLevelLabel }}</td>
+            <td>{{ row.academicSectionLabel }}</td>
+            <td>{{ row.academicOptionLabel }}</td>
+            <td>{{ row.countryLabel }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="row.status === 'Actif'"
+                [class.badge-muted]="row.status === 'Inactif'"
+              >
+                {{ row.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" (click)="openEditModal(row)" title="Modifier">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" (click)="deleteRow(row)" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ filteredRows.length }} sur {{ rows.length }} programmes</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-row-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier le programme pédagogique' : 'Nouveau programme pédagogique' }}</h3>
+        <p>Un programme lie une année scolaire à un parcours cycle / niveau / section / option.</p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #rowForm="ngForm" (ngSubmit)="saveRow(rowForm)" novalidate>
+      <div class="modal-body">
+        <section class="form-section">
+          <h4>Contexte académique</h4>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Pays</label>
+              <select
+                name="countryId"
+                [(ngModel)]="form.countryId"
+                (ngModelChange)="onFormCountryChange()"
+              >
+                <option value="">Tous / sans filtre</option>
+                <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
+              </select>
+              <small class="field-hint">Filtre les années scolaires du pays</small>
+              <small class="field-error" *ngIf="countryLoadError">{{ countryLoadError }}</small>
+            </div>
+
+            <div class="field-group">
+              <label>Année scolaire <span>*</span></label>
+              <select
+                name="academicYearId"
+                [(ngModel)]="form.academicYearId"
+                #yearCtrl="ngModel"
+                required
+                [class.input-invalid]="(yearCtrl.invalid && yearCtrl.touched) || (isSubmitted && yearCtrl.invalid)"
+              >
+                <option value="" disabled>Sélectionner une année</option>
+                <option *ngFor="let year of formYearOptions" [value]="year.id">{{ year.label }}</option>
+              </select>
+              <small class="field-error" *ngIf="(yearCtrl.touched || isSubmitted) && yearCtrl.invalid">
+                L'année scolaire est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Cycle <span>*</span></label>
+              <select
+                name="academicCycleId"
+                [(ngModel)]="form.academicCycleId"
+                #cycleCtrl="ngModel"
+                required
+                (ngModelChange)="onFormCycleChange()"
+                [class.input-invalid]="(cycleCtrl.invalid && cycleCtrl.touched) || (isSubmitted && cycleCtrl.invalid)"
+              >
+                <option value="" disabled>Sélectionner un cycle</option>
+                <option *ngFor="let cycle of cycles" [value]="cycle.id">{{ cycle.label }}</option>
+              </select>
+              <small class="field-error" *ngIf="(cycleCtrl.touched || isSubmitted) && cycleCtrl.invalid">
+                Le cycle est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Niveau <span>*</span></label>
+              <select
+                name="academicLevelId"
+                [(ngModel)]="form.academicLevelId"
+                #levelCtrl="ngModel"
+                required
+                [class.input-invalid]="(levelCtrl.invalid && levelCtrl.touched) || (isSubmitted && levelCtrl.invalid)"
+              >
+                <option value="" disabled>Sélectionner un niveau</option>
+                <option *ngFor="let level of formLevelOptions" [value]="level.id">{{ level.label }}</option>
+              </select>
+              <small class="field-hint" *ngIf="!form.academicCycleId">Sélectionnez d'abord un cycle</small>
+              <small class="field-error" *ngIf="(levelCtrl.touched || isSubmitted) && levelCtrl.invalid">
+                Le niveau est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Section</label>
+              <select
+                name="academicSectionId"
+                [(ngModel)]="form.academicSectionId"
+                (ngModelChange)="onFormSectionChange()"
+                [disabled]="!form.academicCycleId"
+              >
+                <option value="">Aucune</option>
+                <option *ngFor="let section of formSectionOptions" [value]="section.id">{{ section.label }}</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Option</label>
+              <select
+                name="academicOptionId"
+                [(ngModel)]="form.academicOptionId"
+                [disabled]="!form.academicSectionId"
+              >
+                <option value="">Aucune</option>
+                <option *ngFor="let option of formOptionOptions" [value]="option.id">{{ option.label }}</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Informations générales</h4>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Code <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                pattern=".*\S.*"
+                maxlength="30"
+                placeholder="Ex: PROG-6EME-A"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">
+                Le code est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Nom <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                minlength="2"
+                maxlength="200"
+                placeholder="Ex: Programme 6ème Scientifique"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">
+                Le nom est obligatoire.
+              </small>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Statut</h4>
+          <label class="section-label">Statut du programme <span>*</span></label>
+          <div class="status-cards">
+            <label class="status-card" [class.selected]="form.status === 'Actif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Actif" required />
+              <span class="status-dot active"></span>
+              <div>
+                <strong>Actif</strong>
+                <small>Disponible pour la configuration pédagogique</small>
+              </div>
+            </label>
+            <label class="status-card" [class.selected]="form.status === 'Inactif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Inactif" required />
+              <span class="status-dot inactive"></span>
+              <div>
+                <strong>Inactif</strong>
+                <small>Programme archivé</small>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || rowForm.invalid">
+          <i class="bi bi-save"></i>
+          {{
+            isSaving
+              ? isEditMode
+                ? 'Mise à jour...'
+                : 'Enregistrement...'
+              : isEditMode
+                ? 'Mettre à jour'
+                : 'Enregistrer'
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

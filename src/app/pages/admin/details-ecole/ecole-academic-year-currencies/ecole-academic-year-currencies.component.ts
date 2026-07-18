@@ -21,8 +21,7 @@ type InnerTab = 'configuration' | 'historique';
 interface AcademicYearOption {
   id: string;
   label: string;
-  status: string;
-  statusLabel: string;
+  active: boolean;
 }
 
 interface PlatformCurrencyRow {
@@ -270,17 +269,8 @@ export class EcoleAcademicYearCurrenciesComponent implements OnInit, OnChanges {
     });
   }
 
-  getYearStatusClass(status: string): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'status-open';
-      case 'CLOSED':
-        return 'status-closed';
-      case 'ARCHIVED':
-        return 'status-archived';
-      default:
-        return 'status-planned';
-    }
+  getYearStatusClass(active: boolean): string {
+    return active ? 'status-open' : 'status-closed';
   }
 
   private bootstrap(): void {
@@ -298,6 +288,7 @@ export class EcoleAcademicYearCurrenciesComponent implements OnInit, OnChanges {
     }).subscribe({
       next: ({ years, currencies }) => {
         this.yearOptions = (years as AcademicYearApiResponse[])
+          .filter((row) => row.active !== false)
           .map((row) => this.mapYearOption(row))
           .filter((item) => item.id)
           .sort((a, b) => b.label.localeCompare(a.label, 'fr'));
@@ -306,10 +297,7 @@ export class EcoleAcademicYearCurrenciesComponent implements OnInit, OnChanges {
           .map((row) => this.mapCurrencyRow(row))
           .filter((item) => item.id && item.active);
 
-        this.selectedYearId =
-          this.yearOptions.find((year) => year.status === 'ACTIVE')?.id ??
-          this.yearOptions[0]?.id ??
-          '';
+        this.selectedYearId = this.yearOptions[0]?.id ?? '';
 
         this.isLoading = false;
         this.loadSchoolConfiguration(true);
@@ -423,12 +411,10 @@ export class EcoleAcademicYearCurrenciesComponent implements OnInit, OnChanges {
   }
 
   private mapYearOption(row: AcademicYearApiResponse): AcademicYearOption {
-    const status = String(row.status ?? 'PLANNED').trim().toUpperCase();
     return {
       id: String(row.id ?? ''),
-      label: (row.code ?? '').trim() || 'Annee scolaire',
-      status,
-      statusLabel: this.resolveYearStatusLabel(status)
+      label: AcademicYearService.buildLabel(row),
+      active: row.active !== false
     };
   }
 
@@ -445,21 +431,6 @@ export class EcoleAcademicYearCurrenciesComponent implements OnInit, OnChanges {
       iconTone: tones.iconTone,
       codeTone: tones.codeTone
     };
-  }
-
-  private resolveYearStatusLabel(status: string): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'Ouverte';
-      case 'CLOSED':
-        return 'Cloturee';
-      case 'ARCHIVED':
-        return 'Archivee';
-      case 'PLANNED':
-        return 'Planifiee';
-      default:
-        return status;
-    }
   }
 
   private resolveCurrencyTones(code: string): { iconTone: string; codeTone: string } {

@@ -31,9 +31,9 @@
         <span
           class="year-status-badge"
           *ngIf="selectedYear"
-          [ngClass]="getYearStatusClass(selectedYear.status)"
+          [ngClass]="getYearStatusClass(selectedYear.active)"
         >
-          {{ selectedYear.statusLabel }}
+          {{ selectedYear.active ? 'Actif' : 'Inactif' }}
         </span>
       </div>
     </div>

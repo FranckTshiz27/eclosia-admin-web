@@ -72,6 +72,38 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'modele-academique', pathMatch: 'full' },
       {
+        path: 'domaines',
+        loadComponent: () =>
+          import('./pages/configuration/domaines/domaines.component').then((m) => m.DomainesComponent)
+      },
+      {
+        path: 'sous-domaines',
+        loadComponent: () =>
+          import('./pages/configuration/sous-domaines/sous-domaines.component').then(
+            (m) => m.SousDomainesComponent
+          )
+      },
+      {
+        path: 'branches',
+        loadComponent: () =>
+          import('./pages/configuration/branches/branches.component').then((m) => m.BranchesComponent)
+      },
+      {
+        path: 'periodes-scolaires',
+        loadComponent: () =>
+          import('./pages/configuration/periodes-scolaires/periodes-scolaires.component').then(
+            (m) => m.PeriodesScolairesComponent
+          )
+      },
+      {
+        path: 'programme-pedagogique',
+        loadComponent: () =>
+          import('./pages/configuration/programme-pedagogique/programme-pedagogique.component').then(
+            (m) => m.ProgrammePedagogiqueComponent
+          )
+      },
+      { path: 'annees-scolaires', redirectTo: '/admin/annees-scolaires', pathMatch: 'full' },
+      {
         path: 'modele-academique',
         loadComponent: () =>
           import('./pages/configuration/modele-academique/modele-academique.component').then(
@@ -115,6 +147,13 @@ export const routes: Routes = [
         path: 'details-ecole',
         loadComponent: () =>
           import('./pages/admin/details-ecole/details-ecole.component').then((m) => m.DetailsEcoleComponent)
+      },
+      {
+        path: 'annees-scolaires',
+        loadComponent: () =>
+          import('./pages/configuration/annees-scolaires/annees-scolaires.component').then(
+            (m) => m.AnneesScolairesComponent
+          )
       },
       { path: 'cycle', redirectTo: '/configuration/cycle', pathMatch: 'full' },
       { path: 'section', redirectTo: '/configuration/section', pathMatch: 'full' },

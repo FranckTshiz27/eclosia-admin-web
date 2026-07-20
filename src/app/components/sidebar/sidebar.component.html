@@ -199,7 +199,7 @@
             </li>
 
             <!-- CONFIGURATION PÉDAGOGIQUE -->
-            <li class="has-submenu" [class.open]="isPedagogicalConfigExpanded">
+            <li class="has-submenu pedagogical-menu" [class.open]="isPedagogicalConfigExpanded">
                 <a (click)="isPedagogicalConfigExpanded = !isPedagogicalConfigExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
                     <i class="bi bi-mortarboard"></i>
                     <span>CONFIGURATION PÉDAGOGIQUE</span>
@@ -231,9 +231,21 @@
                         </a>
                     </li>
                     <li>
+                        <a routerLink="/configuration/trimestres-semestres" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-calendar-range"></i>
+                            <span>Trimestres / Semestres</span>
+                        </a>
+                    </li>
+                    <li>
                         <a routerLink="/configuration/programme-pedagogique" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
                             <i class="bi bi-journal-richtext"></i>
                             <span>Programme pédagogique</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a routerLink="/configuration/matieres-programme" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
+                            <i class="bi bi-journal-bookmark"></i>
+                            <span>Matières du programme</span>
                         </a>
                     </li>
                 </ul>

@@ -96,10 +96,24 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'trimestres-semestres',
+        loadComponent: () =>
+          import('./pages/configuration/trimestres-semestres/trimestres-semestres.component').then(
+            (m) => m.TrimestresSemestresComponent
+          )
+      },
+      {
         path: 'programme-pedagogique',
         loadComponent: () =>
           import('./pages/configuration/programme-pedagogique/programme-pedagogique.component').then(
             (m) => m.ProgrammePedagogiqueComponent
+          )
+      },
+      {
+        path: 'matieres-programme',
+        loadComponent: () =>
+          import('./pages/configuration/matieres-programme/matieres-programme.component').then(
+            (m) => m.MatieresProgrammeComponent
           )
       },
       { path: 'annees-scolaires', redirectTo: '/admin/annees-scolaires', pathMatch: 'full' },

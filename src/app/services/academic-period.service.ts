@@ -3,11 +3,14 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { API_ENDPOINTS } from '../core/config/api.config';
 
+export type AcademicPeriodType = 'PERIOD' | 'EXAM';
+
 export interface CreateAcademicPeriodDto {
-  countryId: string;
+  academicTermId: string;
   code: string;
   name: string;
-  orderNumber: number;
+  periodType: AcademicPeriodType;
+  displayOrder: number;
   active?: boolean;
 }
 
@@ -15,17 +18,26 @@ export type UpdateAcademicPeriodDto = CreateAcademicPeriodDto;
 
 export interface AcademicPeriodApiResponse {
   id?: string;
+  academicTermId?: string;
+  academic_term_id?: string;
   code?: string;
   name?: string;
+  periodType?: AcademicPeriodType | string;
+  period_type?: AcademicPeriodType | string;
+  displayOrder?: number;
+  display_order?: number;
+  /** @deprecated ancien contrat */
   orderNumber?: number;
   order_number?: number;
   active?: boolean;
-  countryId?: string;
-  country_id?: string;
   createdAt?: string;
   created_at?: string;
   updatedAt?: string;
   updated_at?: string;
+}
+
+export interface AcademicPeriodQuery {
+  academicTermId?: string;
 }
 
 type AcademicPeriodListPayload =
@@ -62,41 +74,48 @@ export class AcademicPeriodService {
     return this.http.get<AcademicPeriodApiResponse>(`${this.endpoint}/${id}`);
   }
 
-  getAll(countryId?: string): Observable<AcademicPeriodApiResponse[]> {
+  getAll(query: AcademicPeriodQuery | string = {}): Observable<AcademicPeriodApiResponse[]> {
+    const normalized: AcademicPeriodQuery =
+      typeof query === 'string' ? { academicTermId: query } : query ?? {};
+
     let params = new HttpParams();
-    if (countryId) {
-      params = params.set('countryId', countryId);
+    if (normalized.academicTermId) {
+      params = params.set('academicTermId', normalized.academicTermId);
     }
 
-    return this.http.get<AcademicPeriodListPayload | AcademicPeriodApiResponse>(this.endpoint, { params }).pipe(
-      map((response) => {
-        if (Array.isArray(response)) {
-          return response;
-        }
-        if (response && typeof response === 'object') {
-          const wrapped = response as {
-            value?: AcademicPeriodApiResponse[];
-            data?: AcademicPeriodApiResponse[];
-            content?: AcademicPeriodApiResponse[];
-            items?: AcademicPeriodApiResponse[];
-            results?: AcademicPeriodApiResponse[];
-            id?: string;
-          };
-          const list =
-            wrapped.value ??
-            wrapped.data ??
-            wrapped.content ??
-            wrapped.items ??
-            wrapped.results;
-          if (Array.isArray(list)) {
-            return list;
-          }
-          if (wrapped.id) {
-            return [response as AcademicPeriodApiResponse];
-          }
-        }
-        return [];
-      })
-    );
+    return this.http
+      .get<AcademicPeriodListPayload | AcademicPeriodApiResponse>(this.endpoint, { params })
+      .pipe(map((response) => this.unwrapList(response)));
+  }
+
+  private unwrapList(
+    response: AcademicPeriodListPayload | AcademicPeriodApiResponse
+  ): AcademicPeriodApiResponse[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+    if (response && typeof response === 'object') {
+      const wrapped = response as {
+        value?: AcademicPeriodApiResponse[];
+        data?: AcademicPeriodApiResponse[];
+        content?: AcademicPeriodApiResponse[];
+        items?: AcademicPeriodApiResponse[];
+        results?: AcademicPeriodApiResponse[];
+        id?: string;
+      };
+      const list =
+        wrapped.value ??
+        wrapped.data ??
+        wrapped.content ??
+        wrapped.items ??
+        wrapped.results;
+      if (Array.isArray(list)) {
+        return list;
+      }
+      if (wrapped.id) {
+        return [response as AcademicPeriodApiResponse];
+      }
+    }
+    return [];
   }
 }

@@ -1,37 +1,52 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { CountryOption, CountryService } from '../../../services/country.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { extractApiErrorMessage } from '../../../core/utils/api-error';
 import {
   AcademicPeriodApiResponse,
   AcademicPeriodService,
+  AcademicPeriodType,
   CreateAcademicPeriodDto
 } from '../../../services/academic-period.service';
+import {
+  AcademicTermApiResponse,
+  AcademicTermService
+} from '../../../services/academic-term.service';
+import {
+  AcademicYearApiResponse,
+  AcademicYearService
+} from '../../../services/academic-year.service';
 
 type StatusLabel = 'Actif' | 'Inactif';
 
+interface SelectOption {
+  id: string;
+  label: string;
+  academicYearId?: string;
+}
+
 interface PeriodItem {
   id: string;
+  academicTermId: string;
+  academicTermLabel: string;
   code: string;
   name: string;
-  country: string;
-  countryId?: string;
-  countryIso2: string;
-  orderNumber: number;
+  periodType: AcademicPeriodType;
+  periodTypeLabel: string;
+  displayOrder: number;
   status: StatusLabel;
 }
 
 interface PeriodForm {
+  academicTermId: string;
+  academicTermLabel: string;
   code: string;
   name: string;
-  country: string;
-  orderNumber: string;
+  periodType: AcademicPeriodType;
+  displayOrder: string;
   status: StatusLabel;
-}
-
-interface CountryFilterOption {
-  label: string;
-  id: string | null;
 }
 
 @Component({
@@ -43,8 +58,9 @@ interface CountryFilterOption {
 })
 export class PeriodesScolairesComponent implements OnInit {
   searchTerm = '';
-  countryFilter = '';
-  countryFilterId: string | null = null;
+  termFilter = '';
+  termFilterId: string | null = null;
+  periodTypeFilter: 'all' | AcademicPeriodType = 'all';
   statusFilter = 'all';
 
   isModalOpen = false;
@@ -53,15 +69,16 @@ export class PeriodesScolairesComponent implements OnInit {
   isSubmitted = false;
   isSaving = false;
   saveError = '';
+  saveSuccess = '';
 
-  isCountryFilterDropdownOpen = false;
-  isCountryDropdownOpen = false;
-  isLoadingCountries = false;
+  isTermFilterOpen = false;
+  isFormTermOpen = false;
+
+  isLoadingLookups = false;
   isLoadingRows = false;
   loadError = '';
-  countryLoadError = '';
 
-  countries: CountryOption[] = [];
+  terms: SelectOption[] = [];
   rows: PeriodItem[] = [];
 
   form: PeriodForm = this.createEmptyForm();
@@ -72,8 +89,19 @@ export class PeriodesScolairesComponent implements OnInit {
     { value: 'Inactif', label: 'Inactif' }
   ];
 
+  readonly periodTypeOptions: { value: AcademicPeriodType; label: string }[] = [
+    { value: 'PERIOD', label: 'Période' },
+    { value: 'EXAM', label: 'Examen' }
+  ];
+
+  readonly periodTypeFilterOptions = [
+    { value: 'all', label: 'Tous' },
+    ...this.periodTypeOptions
+  ];
+
   constructor(
-    private readonly countryService: CountryService,
+    private readonly academicYearService: AcademicYearService,
+    private readonly academicTermService: AcademicTermService,
     private readonly academicPeriodService: AcademicPeriodService
   ) {}
 
@@ -81,42 +109,31 @@ export class PeriodesScolairesComponent implements OnInit {
     this.bootstrapData();
   }
 
-  get filteredFilterCountryOptions(): CountryFilterOption[] {
-    const term = this.normalize(this.countryFilter);
-    const options: CountryFilterOption[] = [{ label: 'Tous les pays', id: null }];
-
-    for (const country of [...this.countries].sort((a, b) => a.name.localeCompare(b.name, 'fr'))) {
-      if (!this.countryMatchesSearchTerm(country, term)) {
-        continue;
-      }
-      options.push({ label: country.name, id: String(country.id) });
-    }
-
-    return options;
+  get filteredTermFilterOptions(): SelectOption[] {
+    return this.filterOptions(this.terms, this.termFilter);
   }
 
-  get filteredCountryOptions(): CountryOption[] {
-    const term = this.normalize(this.form.country);
-    if (!term) {
-      return this.countries;
-    }
-    return this.countries.filter((country) => this.countryMatchesSearchTerm(country, term));
+  get filteredFormTermOptions(): SelectOption[] {
+    return this.filterOptions(this.terms, this.form.academicTermLabel);
   }
 
   get filteredRows(): PeriodItem[] {
     const term = this.normalize(this.searchTerm);
-
     return this.rows.filter((row) => {
       const matchesSearch =
         !term ||
-        this.normalize(row.name).includes(term) ||
         this.normalize(row.code).includes(term) ||
-        this.normalize(row.country).includes(term);
+        this.normalize(row.name).includes(term) ||
+        this.normalize(row.academicTermLabel).includes(term) ||
+        this.normalize(row.periodTypeLabel).includes(term);
 
-      const matchesCountry = this.matchesCountryFilter(row);
+      const matchesTerm =
+        !this.termFilterId || this.sameId(row.academicTermId, this.termFilterId);
+      const matchesPeriodType =
+        this.periodTypeFilter === 'all' || row.periodType === this.periodTypeFilter;
       const matchesStatus = this.statusFilter === 'all' || row.status === this.statusFilter;
 
-      return matchesSearch && matchesCountry && matchesStatus;
+      return matchesSearch && matchesTerm && matchesPeriodType && matchesStatus;
     });
   }
 
@@ -126,10 +143,12 @@ export class PeriodesScolairesComponent implements OnInit {
     this.editingId = null;
     this.isSubmitted = false;
     this.saveError = '';
-    this.closeAllDropdowns();
+    this.saveSuccess = '';
     this.form = this.createEmptyForm();
-    if (this.countryFilterId) {
-      this.form.country = this.findCountryNameById(this.countryFilterId);
+    if (this.termFilterId) {
+      this.form.academicTermId = this.termFilterId;
+      this.form.academicTermLabel = this.termFilter;
+      this.form.displayOrder = String(this.nextDisplayOrder(this.termFilterId));
     }
   }
 
@@ -139,12 +158,14 @@ export class PeriodesScolairesComponent implements OnInit {
     this.editingId = this.toPersistedId(item.id);
     this.isSubmitted = false;
     this.saveError = '';
-    this.closeAllDropdowns();
+    this.saveSuccess = '';
     this.form = {
+      academicTermId: item.academicTermId,
+      academicTermLabel: item.academicTermLabel,
       code: item.code,
       name: item.name,
-      country: item.country !== '--' ? item.country : this.findCountryNameById(item.countryId),
-      orderNumber: String(item.orderNumber ?? 1),
+      periodType: item.periodType,
+      displayOrder: String(item.displayOrder),
       status: item.status
     };
   }
@@ -155,67 +176,88 @@ export class PeriodesScolairesComponent implements OnInit {
     this.editingId = null;
     this.isSubmitted = false;
     this.saveError = '';
-    this.closeAllDropdowns();
+    this.saveSuccess = '';
+    this.isFormTermOpen = false;
     this.form = this.createEmptyForm();
   }
 
-  openCountryFilterDropdown(): void {
-    this.isCountryFilterDropdownOpen = true;
+  openTermFilterDropdown(): void {
+    this.isTermFilterOpen = true;
   }
 
-  closeCountryFilterDropdown(): void {
+  closeTermFilterDropdown(): void {
     setTimeout(() => {
-      this.isCountryFilterDropdownOpen = false;
+      this.isTermFilterOpen = false;
     }, 120);
   }
 
-  onCountryFilterInput(): void {
-    this.countryFilterId = null;
-    this.openCountryFilterDropdown();
+  onTermFilterInput(): void {
+    this.termFilterId = null;
+    this.openTermFilterDropdown();
   }
 
-  selectFilterCountry(option: CountryFilterOption): void {
-    if (!option.id) {
-      this.countryFilter = '';
-      this.countryFilterId = null;
+  selectTermFilter(option: SelectOption | null): void {
+    if (!option) {
+      this.termFilter = '';
+      this.termFilterId = null;
     } else {
-      this.countryFilter = option.label;
-      this.countryFilterId = option.id;
+      this.termFilter = option.label;
+      this.termFilterId = option.id;
     }
-    this.isCountryFilterDropdownOpen = false;
+    this.isTermFilterOpen = false;
+    this.loadRows(true);
   }
 
-  openCountryDropdown(): void {
-    this.isCountryDropdownOpen = true;
+  openFormTermDropdown(): void {
+    this.isFormTermOpen = true;
   }
 
-  closeCountryDropdown(): void {
+  closeFormTermDropdown(): void {
     setTimeout(() => {
-      this.isCountryDropdownOpen = false;
+      this.isFormTermOpen = false;
     }, 120);
   }
 
-  selectCountry(countryName: string): void {
-    this.form.country = countryName;
-    this.isCountryDropdownOpen = false;
+  onFormTermInput(): void {
+    this.form.academicTermId = '';
+    this.openFormTermDropdown();
+  }
+
+  selectFormTerm(option: SelectOption): void {
+    this.form.academicTermId = option.id;
+    this.form.academicTermLabel = option.label;
+    this.isFormTermOpen = false;
+    if (!this.isEditMode) {
+      this.form.displayOrder = String(this.nextDisplayOrder(option.id));
+    }
   }
 
   saveRow(formRef: NgForm): void {
     this.isSubmitted = true;
+    this.saveSuccess = '';
     if (!formRef.valid || this.isSaving) {
       formRef.control.markAllAsTouched();
       return;
     }
 
-    const countryId = this.findCountryIdByName(this.form.country.trim());
-    if (!countryId) {
-      this.saveError = 'Veuillez sélectionner un pays valide.';
+    const displayOrder = Number(this.form.displayOrder);
+    const code = this.form.code.trim();
+    const name = this.form.name.trim();
+
+    if (!this.form.academicTermId) {
+      this.saveError = 'Le trimestre / semestre est obligatoire.';
       return;
     }
-
-    const orderNumber = Number(this.form.orderNumber);
-    if (!Number.isFinite(orderNumber) || orderNumber < 1) {
-      this.saveError = "Le numéro d'ordre doit être un entier positif.";
+    if (!code || !name) {
+      this.saveError = 'Le code et le nom sont obligatoires.';
+      return;
+    }
+    if (!this.form.periodType) {
+      this.saveError = 'Le type de période est obligatoire.';
+      return;
+    }
+    if (!Number.isInteger(displayOrder) || displayOrder < 0) {
+      this.saveError = "L'ordre d'affichage doit être un entier positif ou nul.";
       return;
     }
 
@@ -223,31 +265,32 @@ export class PeriodesScolairesComponent implements OnInit {
     this.saveError = '';
 
     const dto: CreateAcademicPeriodDto = {
-      countryId,
-      code: this.form.code.trim(),
-      name: this.form.name.trim(),
-      orderNumber,
+      academicTermId: this.form.academicTermId,
+      code,
+      name,
+      periodType: this.form.periodType,
+      displayOrder,
       active: this.form.status === 'Actif'
     };
 
     if (this.isEditMode) {
       if (!this.editingId) {
         this.isSaving = false;
-        this.saveError = 'Impossible de mettre à jour cette période: identifiant invalide.';
+        this.saveError = 'Impossible de mettre à jour: identifiant invalide.';
         return;
       }
 
       this.academicPeriodService.update(this.editingId, dto).subscribe({
         next: () => {
           this.isSaving = false;
-          this.closeModal();
+          this.saveSuccess = 'Période mise à jour.';
           this.loadRows(false);
         },
         error: (err) => {
           this.isSaving = false;
-          this.saveError = this.extractApiError(
+          this.saveError = extractApiErrorMessage(
             err,
-            "Échec de mise à jour de la période scolaire. Vérifiez l'API puis réessayez."
+            "Échec de mise à jour. Vérifiez l'API puis réessayez."
           );
         }
       });
@@ -257,21 +300,22 @@ export class PeriodesScolairesComponent implements OnInit {
     this.academicPeriodService.create(dto).subscribe({
       next: () => {
         this.isSaving = false;
-        this.closeModal();
+        this.saveSuccess = 'Période enregistrée. Vous pouvez en ajouter une autre.';
+        this.prepareNextCreate();
         this.loadRows(false);
       },
       error: (err) => {
         this.isSaving = false;
-        this.saveError = this.extractApiError(
+        this.saveError = extractApiErrorMessage(
           err,
-          "Échec de création de la période scolaire. Vérifiez l'API puis réessayez."
+          "Échec de création. Vérifiez l'API puis réessayez."
         );
       }
     });
   }
 
   deleteRow(item: PeriodItem): void {
-    if (!confirm(`Supprimer la période scolaire "${item.name}" ?`)) {
+    if (!confirm(`Supprimer la période "${item.code} — ${item.name}" ?`)) {
       return;
     }
 
@@ -282,69 +326,88 @@ export class PeriodesScolairesComponent implements OnInit {
 
     this.academicPeriodService.delete(id).subscribe({
       next: () => this.loadRows(false),
-      error: () => {
-        this.loadError = 'Impossible de supprimer cette période scolaire.';
+      error: (err) => {
+        this.loadError = extractApiErrorMessage(err, 'Impossible de supprimer cette période.');
       }
     });
   }
 
   resetFilters(): void {
     this.searchTerm = '';
-    this.countryFilter = '';
-    this.countryFilterId = null;
+    this.termFilter = '';
+    this.termFilterId = null;
+    this.periodTypeFilter = 'all';
     this.statusFilter = 'all';
-    this.isCountryFilterDropdownOpen = false;
+    this.isTermFilterOpen = false;
+    this.loadRows(true);
   }
 
-  getCountryFlag(iso2: string): string {
-    if (!iso2 || iso2 === 'INT') {
-      return '🌐';
-    }
-    return iso2
-      .toUpperCase()
-      .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
+  periodTypeLabel(type: AcademicPeriodType | string): string {
+    return this.periodTypeOptions.find((item) => item.value === type)?.label || String(type);
   }
 
-  private matchesCountryFilter(row: PeriodItem): boolean {
-    if (!this.countryFilter.trim() && !this.countryFilterId) {
-      return true;
-    }
-
-    if (this.countryFilterId) {
-      return Boolean(row.countryId && this.sameId(row.countryId, this.countryFilterId));
-    }
-
-    return this.normalize(row.country).includes(this.normalize(this.countryFilter));
+  private prepareNextCreate(): void {
+    const termId = this.form.academicTermId;
+    const termLabel = this.form.academicTermLabel;
+    const periodType = this.form.periodType;
+    const nextOrder = Number(this.form.displayOrder) + 1;
+    const status = this.form.status;
+    this.isSubmitted = false;
+    this.form = this.createEmptyForm();
+    this.form.academicTermId = termId;
+    this.form.academicTermLabel = termLabel;
+    this.form.periodType = periodType;
+    this.form.status = status;
+    this.form.displayOrder = String(Number.isFinite(nextOrder) ? nextOrder : 1);
   }
 
-  private countryMatchesSearchTerm(country: CountryOption, term: string): boolean {
-    if (!term) {
-      return true;
+  private nextDisplayOrder(termId: string): number {
+    if (!termId) {
+      return 1;
     }
-    return (
-      this.normalize(country.name).includes(term) ||
-      this.normalize(country.iso2 ?? '').includes(term) ||
-      this.normalize(country.iso3 ?? '').includes(term)
-    );
+    const maxOrder = this.rows
+      .filter((row) => this.sameId(row.academicTermId, termId))
+      .reduce((max, row) => Math.max(max, row.displayOrder), 0);
+    return maxOrder + 1;
   }
 
   private bootstrapData(): void {
-    this.isLoadingCountries = true;
-    this.isLoadingRows = true;
-    this.countryLoadError = '';
+    this.isLoadingLookups = true;
 
-    this.countryService.getAll().subscribe({
-      next: (countries) => {
-        this.countries = countries;
-        this.isLoadingCountries = false;
-        if (countries.length === 0) {
-          this.countryLoadError = "Aucun pays reçu depuis l'API.";
+    forkJoin({
+      years: this.academicYearService.getAll().pipe(catchError(() => of([]))),
+      terms: this.academicTermService.getAll().pipe(catchError(() => of([])))
+    }).subscribe({
+      next: ({ years, terms }) => {
+        const yearLabels = new Map<string, string>();
+        for (const row of years as AcademicYearApiResponse[]) {
+          const id = String(row.id ?? '');
+          if (id) {
+            yearLabels.set(id, AcademicYearService.buildLabel(row));
+          }
         }
+
+        this.terms = (terms as AcademicTermApiResponse[])
+          .map((row) => {
+            const id = String(row.id ?? '');
+            const yearId = String(row.academicYearId ?? row.academic_year_id ?? '');
+            const yearLabel = yearLabels.get(yearId) || 'Année';
+            const termLabel = this.buildLookupLabel(row.code, row.name);
+            return {
+              id,
+              label: `${yearLabel} · ${termLabel}`,
+              academicYearId: yearId
+            };
+          })
+          .filter((item) => item.id)
+          .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
+
+        this.isLoadingLookups = false;
         this.loadRows(true);
       },
       error: () => {
-        this.isLoadingCountries = false;
-        this.countryLoadError = 'Impossible de charger la liste des pays.';
+        this.isLoadingLookups = false;
+        this.loadError = 'Impossible de charger les trimestres / semestres.';
         this.loadRows(true);
       }
     });
@@ -356,58 +419,85 @@ export class PeriodesScolairesComponent implements OnInit {
     }
     this.loadError = '';
 
-    this.academicPeriodService.getAll().subscribe({
+    const query = this.termFilterId ? { academicTermId: this.termFilterId } : {};
+    this.academicPeriodService.getAll(query).subscribe({
       next: (rows) => {
         this.rows = rows
           .map((row, index) => this.mapApiToItem(row, index))
-          .sort((a, b) => a.orderNumber - b.orderNumber || a.name.localeCompare(b.name, 'fr'));
+          .sort((a, b) => {
+            const byTerm = a.academicTermLabel.localeCompare(b.academicTermLabel, 'fr');
+            if (byTerm !== 0) {
+              return byTerm;
+            }
+            return a.displayOrder - b.displayOrder;
+          });
         this.isLoadingRows = false;
       },
-      error: () => {
+      error: (err) => {
+        this.rows = [];
         this.isLoadingRows = false;
-        this.loadError = 'Impossible de charger la liste des périodes scolaires.';
+        this.loadError = extractApiErrorMessage(
+          err,
+          'Impossible de charger les périodes scolaires.'
+        );
       }
     });
   }
 
   private mapApiToItem(response: AcademicPeriodApiResponse, index: number): PeriodItem {
-    const countryId = response.countryId ?? response.country_id;
+    const academicTermId = String(response.academicTermId ?? response.academic_term_id ?? '');
+    const periodType = this.normalizePeriodType(response.periodType ?? response.period_type);
+    const displayOrder = Number(
+      response.displayOrder ??
+        response.display_order ??
+        response.orderNumber ??
+        response.order_number ??
+        0
+    );
 
     return {
-      id: response.id ?? `period-${index}`,
-      code: response.code ?? '',
-      name: response.name ?? '',
-      country: this.findCountryNameById(countryId) || '--',
-      countryId: countryId ? String(countryId) : undefined,
-      countryIso2: this.resolveCountryIso2(countryId),
-      orderNumber: response.orderNumber ?? response.order_number ?? 1,
+      id: String(response.id ?? `academic-period-${index}`),
+      academicTermId,
+      academicTermLabel: this.findLabel(this.terms, academicTermId),
+      code: (response.code ?? '').trim(),
+      name: (response.name ?? '').trim(),
+      periodType,
+      periodTypeLabel: this.periodTypeLabel(periodType),
+      displayOrder: Number.isFinite(displayOrder) ? displayOrder : 0,
       status: response.active === false ? 'Inactif' : 'Actif'
     };
   }
 
-  private extractApiError(err: unknown, fallback: string): string {
-    const message = (err as { error?: { message?: string } })?.error?.message;
-    return message?.trim() || fallback;
+  private normalizePeriodType(value: string | undefined | null): AcademicPeriodType {
+    const raw = String(value ?? '').trim().toUpperCase();
+    return raw === 'EXAM' ? 'EXAM' : 'PERIOD';
   }
 
-  private findCountryIdByName(countryName: string): string | undefined {
-    const selected = this.countries.find(
-      (country) => this.normalize(country.name) === this.normalize(countryName)
-    );
-    return selected ? String(selected.id) : undefined;
+  private filterOptions(options: SelectOption[], term: string): SelectOption[] {
+    const normalized = this.normalize(term);
+    if (!normalized) {
+      return options;
+    }
+    return options.filter((option) => this.normalize(option.label).includes(normalized));
   }
 
-  private findCountryNameById(countryId: string | undefined | null): string {
-    const found = this.countries.find((country) => this.sameId(country.id, countryId));
-    return found?.name || '';
+  private findLabel(options: SelectOption[], id: string): string {
+    return options.find((item) => this.sameId(item.id, id))?.label || '—';
   }
 
-  private resolveCountryIso2(countryId?: string | null): string {
-    const country = this.countries.find((item) => this.sameId(item.id, countryId));
-    return country?.iso2?.toUpperCase() ?? 'INT';
+  private buildLookupLabel(code?: string | null, name?: string | null): string {
+    const safeCode = (code ?? '').trim();
+    const safeName = (name ?? '').trim();
+    if (safeCode && safeName) {
+      return `${safeCode} — ${safeName}`;
+    }
+    return safeName || safeCode || '—';
   }
 
-  private sameId(left: string | number | undefined | null, right: string | number | undefined | null): boolean {
+  private sameId(
+    left: string | number | undefined | null,
+    right: string | number | undefined | null
+  ): boolean {
     if (left === undefined || left === null || right === undefined || right === null) {
       return false;
     }
@@ -416,23 +506,20 @@ export class PeriodesScolairesComponent implements OnInit {
 
   private toPersistedId(value: string | number): string | null {
     const id = String(value).trim();
-    if (!id || id.startsWith('period-')) {
+    if (!id || id.startsWith('academic-period-')) {
       return null;
     }
     return id;
   }
 
-  private closeAllDropdowns(): void {
-    this.isCountryFilterDropdownOpen = false;
-    this.isCountryDropdownOpen = false;
-  }
-
   private createEmptyForm(): PeriodForm {
     return {
+      academicTermId: '',
+      academicTermLabel: '',
       code: '',
       name: '',
-      country: '',
-      orderNumber: '1',
+      periodType: 'PERIOD',
+      displayOrder: '1',
       status: 'Actif'
     };
   }

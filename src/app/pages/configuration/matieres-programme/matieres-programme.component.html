@@ -1,0 +1,438 @@
+<div class="page-container periodes-page">
+  <div class="periodes-header">
+    <div class="periodes-title-wrap">
+      <span class="periodes-icon"><i class="bi bi-journal-bookmark"></i></span>
+      <div>
+        <h1>Matières du programme</h1>
+        <p>Associez les branches (matières) aux programmes pédagogiques avec coefficient, maximum de points et ordre</p>
+      </div>
+    </div>
+    <button class="btn-new-row" type="button" (click)="openCreateModal()" [disabled]="isLoadingLookups">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Nouvelle matière
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher une matière ou un programme..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Programme pédagogique</label>
+          <div class="searchable-select">
+            <input
+              type="text"
+              [(ngModel)]="curriculumFilter"
+              [ngModelOptions]="{ standalone: true }"
+              autocomplete="off"
+              [placeholder]="isLoadingLookups ? 'Chargement...' : 'Tous les programmes'"
+              (focus)="openCurriculumFilterDropdown()"
+              (input)="onCurriculumFilterInput()"
+              (blur)="closeCurriculumFilterDropdown()"
+            />
+            <i class="bi bi-chevron-down select-chevron"></i>
+            <div class="select-dropdown" *ngIf="isCurriculumFilterOpen">
+              <button type="button" class="select-option" (mousedown)="selectCurriculumFilter(null)">
+                Tous les programmes
+              </button>
+              <button
+                type="button"
+                class="select-option"
+                *ngFor="let option of filteredCurriculumFilterOptions"
+                (mousedown)="selectCurriculumFilter(option)"
+              >
+                {{ option.label }}
+              </button>
+              <div class="select-empty" *ngIf="curriculumFilter && filteredCurriculumFilterOptions.length === 0">
+                Aucun programme trouvé.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>Matière</label>
+          <div class="searchable-select">
+            <input
+              type="text"
+              [(ngModel)]="subjectFilter"
+              [ngModelOptions]="{ standalone: true }"
+              autocomplete="off"
+              placeholder="Toutes les matières"
+              (focus)="openSubjectFilterDropdown()"
+              (input)="onSubjectFilterInput()"
+              (blur)="closeSubjectFilterDropdown()"
+            />
+            <i class="bi bi-chevron-down select-chevron"></i>
+            <div class="select-dropdown" *ngIf="isSubjectFilterOpen">
+              <button type="button" class="select-option" (mousedown)="selectSubjectFilter(null)">
+                Toutes les matières
+              </button>
+              <button
+                type="button"
+                class="select-option"
+                *ngFor="let option of filteredSubjectFilterOptions"
+                (mousedown)="selectSubjectFilter(option)"
+              >
+                {{ option.label }}
+              </button>
+              <div class="select-empty" *ngIf="subjectFilter && filteredSubjectFilterOptions.length === 0">
+                Aucune matière trouvée.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>Obligatoire</label>
+          <select [(ngModel)]="mandatoryFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of mandatoryOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="periodes-table-wrapper">
+      <table class="periodes-table">
+        <thead>
+          <tr>
+            <th>Programme pédagogique</th>
+            <th>Matière</th>
+            <th>Coefficient</th>
+            <th>Max. points</th>
+            <th>Ordre</th>
+            <th>Obligatoire</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingRows">
+            <td colspan="8" class="table-state">Chargement des matières du programme...</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && loadError">
+            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && !loadError && filteredRows.length === 0">
+            <td colspan="8" class="table-state">Aucune matière associée au programme.</td>
+          </tr>
+          <tr *ngFor="let row of filteredRows">
+            <td><span class="row-name">{{ row.academicCurriculumLabel }}</span></td>
+            <td>{{ row.subjectLabel }}</td>
+            <td class="code-col">{{ row.coefficient }}</td>
+            <td>{{ row.maximumPoints }}</td>
+            <td>{{ row.displayOrder }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="row.mandatory === 'Oui'"
+                [class.badge-muted]="row.mandatory === 'Non'"
+              >
+                {{ row.mandatory === 'Oui' ? 'Obligatoire' : 'Optionnel' }}
+              </span>
+            </td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="row.status === 'Actif'"
+                [class.badge-muted]="row.status === 'Inactif'"
+              >
+                {{ row.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" (click)="openEditModal(row)" title="Modifier">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" (click)="deleteRow(row)" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Affichage de {{ filteredRows.length }} sur {{ rows.length }} associations</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-row-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier la matière du programme' : 'Nouvelle matière du programme' }}</h3>
+        <p>Sélectionnez un programme, puis ajoutez ses matières une par une sans fermer la fenêtre.</p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #rowForm="ngForm" (ngSubmit)="saveRow(rowForm)" novalidate>
+      <div class="modal-body">
+        <section class="form-section">
+          <h4>Association</h4>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Programme pédagogique <span>*</span></label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  name="academicCurriculumLabel"
+                  [(ngModel)]="form.academicCurriculumLabel"
+                  #curriculumLabelCtrl="ngModel"
+                  required
+                  autocomplete="off"
+                  placeholder="Rechercher un programme..."
+                  [class.input-invalid]="
+                    (curriculumLabelCtrl.invalid && curriculumLabelCtrl.touched) ||
+                    (isSubmitted && (!form.academicCurriculumId || curriculumLabelCtrl.invalid))
+                  "
+                  (focus)="openFormCurriculumDropdown()"
+                  (input)="onFormCurriculumInput()"
+                  (blur)="closeFormCurriculumDropdown()"
+                />
+                <i class="bi bi-chevron-down select-chevron"></i>
+                <div class="select-dropdown" *ngIf="isFormCurriculumOpen">
+                  <button
+                    type="button"
+                    class="select-option"
+                    *ngFor="let option of filteredFormCurriculumOptions"
+                    (mousedown)="selectFormCurriculum(option)"
+                  >
+                    {{ option.label }}
+                  </button>
+                  <div class="select-empty" *ngIf="filteredFormCurriculumOptions.length === 0">
+                    Aucun programme trouvé.
+                  </div>
+                </div>
+              </div>
+              <input
+                type="hidden"
+                name="academicCurriculumId"
+                [(ngModel)]="form.academicCurriculumId"
+                #curriculumIdCtrl="ngModel"
+                required
+              />
+              <small
+                class="field-error"
+                *ngIf="(curriculumLabelCtrl.touched || isSubmitted) && !form.academicCurriculumId"
+              >
+                Sélectionnez un programme dans la liste.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Matière (branche) <span>*</span></label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  name="subjectLabel"
+                  [(ngModel)]="form.subjectLabel"
+                  #subjectLabelCtrl="ngModel"
+                  required
+                  autocomplete="off"
+                  placeholder="Rechercher une matière..."
+                  [class.input-invalid]="
+                    (subjectLabelCtrl.invalid && subjectLabelCtrl.touched) ||
+                    (isSubmitted && (!form.subjectId || subjectLabelCtrl.invalid))
+                  "
+                  (focus)="openFormSubjectDropdown()"
+                  (input)="onFormSubjectInput()"
+                  (blur)="closeFormSubjectDropdown()"
+                />
+                <i class="bi bi-chevron-down select-chevron"></i>
+                <div class="select-dropdown" *ngIf="isFormSubjectOpen">
+                  <button
+                    type="button"
+                    class="select-option"
+                    *ngFor="let option of filteredFormSubjectOptions"
+                    (mousedown)="selectFormSubject(option)"
+                  >
+                    {{ option.label }}
+                  </button>
+                  <div class="select-empty" *ngIf="filteredFormSubjectOptions.length === 0">
+                    Aucune matière trouvée.
+                  </div>
+                </div>
+              </div>
+              <input
+                type="hidden"
+                name="subjectId"
+                [(ngModel)]="form.subjectId"
+                required
+              />
+              <small
+                class="field-error"
+                *ngIf="(subjectLabelCtrl.touched || isSubmitted) && !form.subjectId"
+              >
+                Sélectionnez une matière dans la liste.
+              </small>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Paramètres pédagogiques</h4>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Coefficient <span>*</span></label>
+              <input
+                type="number"
+                name="coefficient"
+                [(ngModel)]="form.coefficient"
+                #coefficientCtrl="ngModel"
+                required
+                min="0.01"
+                step="0.01"
+                placeholder="Ex: 2"
+                [class.input-invalid]="
+                  (coefficientCtrl.invalid && coefficientCtrl.touched) ||
+                  (isSubmitted && coefficientCtrl.invalid)
+                "
+              />
+              <small
+                class="field-error"
+                *ngIf="(coefficientCtrl.touched || isSubmitted) && coefficientCtrl.invalid"
+              >
+                Le coefficient doit être supérieur à 0.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Maximum de points <span>*</span></label>
+              <input
+                type="number"
+                name="maximumPoints"
+                [(ngModel)]="form.maximumPoints"
+                #maxPointsCtrl="ngModel"
+                required
+                min="0.01"
+                step="0.01"
+                placeholder="Ex: 20"
+                [class.input-invalid]="
+                  (maxPointsCtrl.invalid && maxPointsCtrl.touched) ||
+                  (isSubmitted && maxPointsCtrl.invalid)
+                "
+              />
+              <small
+                class="field-error"
+                *ngIf="(maxPointsCtrl.touched || isSubmitted) && maxPointsCtrl.invalid"
+              >
+                Le maximum de points doit être supérieur à 0.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Ordre d'affichage <span>*</span></label>
+              <input
+                type="number"
+                name="displayOrder"
+                [(ngModel)]="form.displayOrder"
+                #orderCtrl="ngModel"
+                required
+                min="0"
+                step="1"
+                placeholder="Ex: 1"
+                [class.input-invalid]="
+                  (orderCtrl.invalid && orderCtrl.touched) || (isSubmitted && orderCtrl.invalid)
+                "
+              />
+              <small class="field-error" *ngIf="(orderCtrl.touched || isSubmitted) && orderCtrl.invalid">
+                L'ordre d'affichage est obligatoire.
+              </small>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Caractéristiques</h4>
+          <label class="section-label">Type <span>*</span></label>
+          <div class="status-cards">
+            <label class="status-card" [class.selected]="form.mandatory === 'Oui'">
+              <input type="radio" name="mandatory" [(ngModel)]="form.mandatory" value="Oui" required />
+              <span class="status-dot active"></span>
+              <div>
+                <strong>Obligatoire</strong>
+                <small>Matière requise dans le programme</small>
+              </div>
+            </label>
+            <label class="status-card" [class.selected]="form.mandatory === 'Non'">
+              <input type="radio" name="mandatory" [(ngModel)]="form.mandatory" value="Non" required />
+              <span class="status-dot inactive"></span>
+              <div>
+                <strong>Optionnel</strong>
+                <small>Matière au choix</small>
+              </div>
+            </label>
+          </div>
+
+          <label class="section-label" style="margin-top: 16px">Statut <span>*</span></label>
+          <div class="status-cards">
+            <label class="status-card" [class.selected]="form.status === 'Actif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Actif" required />
+              <span class="status-dot active"></span>
+              <div>
+                <strong>Actif</strong>
+                <small>Disponible pour la configuration pédagogique</small>
+              </div>
+            </label>
+            <label class="status-card" [class.selected]="form.status === 'Inactif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Inactif" required />
+              <span class="status-dot inactive"></span>
+              <div>
+                <strong>Inactif</strong>
+                <small>Association archivée</small>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <p class="save-success" *ngIf="saveSuccess">{{ saveSuccess }}</p>
+        <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()">Fermer</button>
+        <button class="btn-save" type="submit" [disabled]="isSaving">
+          <i class="bi bi-save"></i>
+          {{
+            isSaving
+              ? isEditMode
+                ? 'Mise à jour...'
+                : 'Enregistrement...'
+              : isEditMode
+                ? 'Mettre à jour'
+                : 'Enregistrer et continuer'
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

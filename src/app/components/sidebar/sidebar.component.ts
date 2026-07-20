@@ -44,14 +44,18 @@ export class SidebarComponent implements OnInit {
       url.startsWith('/configuration/sous-domaines') ||
       url.startsWith('/configuration/branches') ||
       url.startsWith('/configuration/periodes-scolaires') ||
-      url.startsWith('/configuration/programme-pedagogique');
+      url.startsWith('/configuration/trimestres-semestres') ||
+      url.startsWith('/configuration/programme-pedagogique') ||
+      url.startsWith('/configuration/matieres-programme');
     this.isConfigurationExpanded =
       url.startsWith('/configuration') &&
       !url.startsWith('/configuration/domaines') &&
       !url.startsWith('/configuration/sous-domaines') &&
       !url.startsWith('/configuration/branches') &&
       !url.startsWith('/configuration/periodes-scolaires') &&
-      !url.startsWith('/configuration/programme-pedagogique');
+      !url.startsWith('/configuration/trimestres-semestres') &&
+      !url.startsWith('/configuration/programme-pedagogique') &&
+      !url.startsWith('/configuration/matieres-programme');
     this.isAdminExpanded = url.startsWith('/admin');
     this.isStudentsExpanded = url.startsWith('/inscriptions');
     this.isFinancesExpanded = url.startsWith('/finances');

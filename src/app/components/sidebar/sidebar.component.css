@@ -173,7 +173,7 @@ body.dark-theme .sidebar {
 }
 
 .has-submenu.open .submenu {
-    max-height: 200px;
+    max-height: 400px;
     padding-bottom: 10px;
 }
 

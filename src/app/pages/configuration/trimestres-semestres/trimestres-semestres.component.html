@@ -1,15 +1,15 @@
 <div class="page-container periodes-page">
   <div class="periodes-header">
     <div class="periodes-title-wrap">
-      <span class="periodes-icon"><i class="bi bi-calendar3"></i></span>
+      <span class="periodes-icon"><i class="bi bi-calendar-range"></i></span>
       <div>
-        <h1>Périodes scolaires</h1>
-        <p>Définissez les périodes et examens rattachés à chaque trimestre / semestre</p>
+        <h1>Trimestres / Semestres</h1>
+        <p>Définissez les trimestres ou semestres rattachés à chaque année scolaire</p>
       </div>
     </div>
     <button class="btn-new-row" type="button" (click)="openCreateModal()" [disabled]="isLoadingLookups">
       <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
-      Nouvelle période
+      Nouveau trimestre / semestre
     </button>
   </div>
 
@@ -21,51 +21,42 @@
           type="text"
           [(ngModel)]="searchTerm"
           [ngModelOptions]="{ standalone: true }"
-          placeholder="Rechercher une période..."
+          placeholder="Rechercher un code ou un nom..."
         />
       </div>
 
       <div class="filters-row">
         <div class="filter-group">
-          <label>Trimestre / Semestre</label>
+          <label>Année scolaire</label>
           <div class="searchable-select">
             <input
               type="text"
-              [(ngModel)]="termFilter"
+              [(ngModel)]="yearFilter"
               [ngModelOptions]="{ standalone: true }"
               autocomplete="off"
-              [placeholder]="isLoadingLookups ? 'Chargement...' : 'Tous'"
-              (focus)="openTermFilterDropdown()"
-              (input)="onTermFilterInput()"
-              (blur)="closeTermFilterDropdown()"
+              [placeholder]="isLoadingLookups ? 'Chargement...' : 'Toutes les années'"
+              (focus)="openYearFilterDropdown()"
+              (input)="onYearFilterInput()"
+              (blur)="closeYearFilterDropdown()"
             />
             <i class="bi bi-chevron-down select-chevron"></i>
-            <div class="select-dropdown" *ngIf="isTermFilterOpen">
-              <button type="button" class="select-option" (mousedown)="selectTermFilter(null)">
-                Tous
+            <div class="select-dropdown" *ngIf="isYearFilterOpen">
+              <button type="button" class="select-option" (mousedown)="selectYearFilter(null)">
+                Toutes les années
               </button>
               <button
                 type="button"
                 class="select-option"
-                *ngFor="let option of filteredTermFilterOptions"
-                (mousedown)="selectTermFilter(option)"
+                *ngFor="let option of filteredYearFilterOptions"
+                (mousedown)="selectYearFilter(option)"
               >
                 {{ option.label }}
               </button>
-              <div class="select-empty" *ngIf="termFilter && filteredTermFilterOptions.length === 0">
-                Aucun trimestre / semestre trouvé.
+              <div class="select-empty" *ngIf="yearFilter && filteredYearFilterOptions.length === 0">
+                Aucune année trouvée.
               </div>
             </div>
           </div>
-        </div>
-
-        <div class="filter-group">
-          <label>Type</label>
-          <select [(ngModel)]="periodTypeFilter" [ngModelOptions]="{ standalone: true }">
-            <option *ngFor="let option of periodTypeFilterOptions" [value]="option.value">
-              {{ option.label }}
-            </option>
-          </select>
         </div>
 
         <div class="filter-group">
@@ -88,8 +79,7 @@
           <tr>
             <th>Code</th>
             <th>Nom</th>
-            <th>Trimestre / Semestre</th>
-            <th>Type</th>
+            <th>Année scolaire</th>
             <th>Ordre</th>
             <th>Statut</th>
             <th class="actions-col">Actions</th>
@@ -97,19 +87,18 @@
         </thead>
         <tbody>
           <tr *ngIf="isLoadingRows">
-            <td colspan="7" class="table-state">Chargement des périodes scolaires...</td>
+            <td colspan="6" class="table-state">Chargement des trimestres / semestres...</td>
           </tr>
           <tr *ngIf="!isLoadingRows && loadError">
-            <td colspan="7" class="table-state table-state-error">{{ loadError }}</td>
+            <td colspan="6" class="table-state table-state-error">{{ loadError }}</td>
           </tr>
           <tr *ngIf="!isLoadingRows && !loadError && filteredRows.length === 0">
-            <td colspan="7" class="table-state">Aucune période scolaire trouvée.</td>
+            <td colspan="6" class="table-state">Aucun trimestre / semestre trouvé.</td>
           </tr>
           <tr *ngFor="let row of filteredRows">
             <td class="code-col">{{ row.code }}</td>
             <td><span class="row-name">{{ row.name }}</span></td>
-            <td>{{ row.academicTermLabel }}</td>
-            <td>{{ row.periodTypeLabel }}</td>
+            <td>{{ row.academicYearLabel }}</td>
             <td>{{ row.displayOrder }}</td>
             <td>
               <span
@@ -121,10 +110,10 @@
               </span>
             </td>
             <td class="actions-col">
-              <button type="button" title="Modifier" (click)="openEditModal(row)">
+              <button type="button" (click)="openEditModal(row)" title="Modifier">
                 <i class="bi bi-pencil"></i>
               </button>
-              <button type="button" title="Supprimer" (click)="deleteRow(row)">
+              <button type="button" (click)="deleteRow(row)" title="Supprimer">
                 <i class="bi bi-trash"></i>
               </button>
             </td>
@@ -134,7 +123,7 @@
     </div>
 
     <div class="table-footer">
-      <p>Affichage de {{ filteredRows.length }} sur {{ rows.length }} périodes</p>
+      <p>Affichage de {{ filteredRows.length }} sur {{ rows.length }} éléments</p>
     </div>
   </div>
 </div>
@@ -143,8 +132,8 @@
   <div class="create-row-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div>
-        <h3>{{ isEditMode ? 'Modifier la période scolaire' : 'Nouvelle période scolaire' }}</h3>
-        <p>Sélectionnez un trimestre / semestre, puis ajoutez ses périodes sans fermer la fenêtre.</p>
+        <h3>{{ isEditMode ? 'Modifier le trimestre / semestre' : 'Nouveau trimestre / semestre' }}</h3>
+        <p>Sélectionnez une année scolaire, puis ajoutez ses trimestres ou semestres sans fermer la fenêtre.</p>
       </div>
       <button class="btn-close" type="button" (click)="closeModal()">
         <i class="bi bi-x-lg"></i>
@@ -157,111 +146,45 @@
           <h4>Contexte</h4>
           <div class="field-grid two">
             <div class="field-group">
-              <label>Trimestre / Semestre <span>*</span></label>
+              <label>Année scolaire <span>*</span></label>
               <div class="searchable-select">
                 <input
                   type="text"
-                  name="academicTermLabel"
-                  [(ngModel)]="form.academicTermLabel"
-                  #termLabelCtrl="ngModel"
+                  name="academicYearLabel"
+                  [(ngModel)]="form.academicYearLabel"
+                  #yearLabelCtrl="ngModel"
                   required
                   autocomplete="off"
-                  placeholder="Rechercher un trimestre / semestre..."
+                  placeholder="Rechercher une année scolaire..."
                   [class.input-invalid]="
-                    (termLabelCtrl.invalid && termLabelCtrl.touched) ||
-                    (isSubmitted && (!form.academicTermId || termLabelCtrl.invalid))
+                    (yearLabelCtrl.invalid && yearLabelCtrl.touched) ||
+                    (isSubmitted && (!form.academicYearId || yearLabelCtrl.invalid))
                   "
-                  (focus)="openFormTermDropdown()"
-                  (input)="onFormTermInput()"
-                  (blur)="closeFormTermDropdown()"
+                  (focus)="openFormYearDropdown()"
+                  (input)="onFormYearInput()"
+                  (blur)="closeFormYearDropdown()"
                 />
                 <i class="bi bi-chevron-down select-chevron"></i>
-                <div class="select-dropdown" *ngIf="isFormTermOpen">
+                <div class="select-dropdown" *ngIf="isFormYearOpen">
                   <button
                     type="button"
                     class="select-option"
-                    *ngFor="let option of filteredFormTermOptions"
-                    (mousedown)="selectFormTerm(option)"
+                    *ngFor="let option of filteredFormYearOptions"
+                    (mousedown)="selectFormYear(option)"
                   >
                     {{ option.label }}
                   </button>
-                  <div class="select-empty" *ngIf="filteredFormTermOptions.length === 0">
-                    Aucun trimestre / semestre trouvé.
+                  <div class="select-empty" *ngIf="filteredFormYearOptions.length === 0">
+                    Aucune année trouvée.
                   </div>
                 </div>
               </div>
-              <input type="hidden" name="academicTermId" [(ngModel)]="form.academicTermId" required />
+              <input type="hidden" name="academicYearId" [(ngModel)]="form.academicYearId" required />
               <small
                 class="field-error"
-                *ngIf="(termLabelCtrl.touched || isSubmitted) && !form.academicTermId"
+                *ngIf="(yearLabelCtrl.touched || isSubmitted) && !form.academicYearId"
               >
-                Sélectionnez un trimestre / semestre dans la liste.
-              </small>
-              <small class="field-hint" *ngIf="terms.length === 0">
-                Créez d'abord des trimestres / semestres.
-              </small>
-            </div>
-
-            <div class="field-group">
-              <label>Type de période <span>*</span></label>
-              <select
-                name="periodType"
-                [(ngModel)]="form.periodType"
-                #periodTypeCtrl="ngModel"
-                required
-                [class.input-invalid]="
-                  (periodTypeCtrl.invalid && periodTypeCtrl.touched) ||
-                  (isSubmitted && periodTypeCtrl.invalid)
-                "
-              >
-                <option *ngFor="let option of periodTypeOptions" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
-            </div>
-          </div>
-        </section>
-
-        <section class="form-section">
-          <h4>Informations</h4>
-          <div class="field-grid two">
-            <div class="field-group">
-              <label>Code <span>*</span></label>
-              <input
-                type="text"
-                name="code"
-                [(ngModel)]="form.code"
-                #codeCtrl="ngModel"
-                required
-                pattern=".*\S.*"
-                maxlength="20"
-                placeholder="Ex: P1, EXAM1"
-                [class.input-invalid]="
-                  (codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)
-                "
-              />
-              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">
-                Le code est obligatoire.
-              </small>
-            </div>
-
-            <div class="field-group">
-              <label>Nom <span>*</span></label>
-              <input
-                type="text"
-                name="name"
-                [(ngModel)]="form.name"
-                #nameCtrl="ngModel"
-                required
-                minlength="2"
-                maxlength="100"
-                placeholder="Ex: Première période"
-                [class.input-invalid]="
-                  (nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)
-                "
-              />
-              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">
-                Le nom est obligatoire.
+                Sélectionnez une année scolaire dans la liste.
               </small>
             </div>
 
@@ -288,6 +211,51 @@
         </section>
 
         <section class="form-section">
+          <h4>Informations</h4>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Code <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                pattern=".*\S.*"
+                maxlength="20"
+                placeholder="Ex: T1, S1"
+                [class.input-invalid]="
+                  (codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)
+                "
+              />
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">
+                Le code est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Nom <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                minlength="2"
+                maxlength="100"
+                placeholder="Ex: Premier trimestre"
+                [class.input-invalid]="
+                  (nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)
+                "
+              />
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">
+                Le nom est obligatoire.
+              </small>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
           <h4>Statut</h4>
           <label class="section-label">Statut <span>*</span></label>
           <div class="status-cards">
@@ -304,7 +272,7 @@
               <span class="status-dot inactive"></span>
               <div>
                 <strong>Inactif</strong>
-                <small>Période archivée</small>
+                <small>Élément archivé</small>
               </div>
             </label>
           </div>

@@ -1,0 +1,320 @@
+<div class="page-container bulletins-page">
+  <div class="bulletins-header">
+    <div class="title-wrap">
+      <span class="title-icon"><i class="bi bi-printer"></i></span>
+      <div>
+        <h1>Impression des bulletins</h1>
+        <p>Imprimez les bulletins scolaires selon le périmètre souhaité</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-error" *ngIf="loadError">{{ loadError }}</div>
+
+  <!-- Étape 1 -->
+  <section class="card-block">
+    <div class="step-title">
+      <span class="step-badge">1</span>
+      <h2>Choisir le périmètre d'impression</h2>
+    </div>
+
+    <div class="scope-grid">
+      <label class="scope-card" [class.selected]="scope === 'school'">
+        <input type="radio" name="scope" [(ngModel)]="scope" value="school" (ngModelChange)="onScopeChange()" />
+        <div class="scope-icon school"><i class="bi bi-building"></i></div>
+        <div>
+          <strong>Toute l'école</strong>
+          <p>Imprimer les bulletins de tous les élèves de l'école sélectionnée</p>
+        </div>
+      </label>
+
+      <label class="scope-card" [class.selected]="scope === 'classes'">
+        <input type="radio" name="scope" [(ngModel)]="scope" value="classes" (ngModelChange)="onScopeChange()" />
+        <div class="scope-icon classes"><i class="bi bi-people"></i></div>
+        <div>
+          <strong>Ensemble de classes</strong>
+          <p>Imprimer les bulletins des classes sélectionnées</p>
+        </div>
+      </label>
+
+      <label class="scope-card" [class.selected]="scope === 'cycle'">
+        <input type="radio" name="scope" [(ngModel)]="scope" value="cycle" (ngModelChange)="onScopeChange()" />
+        <div class="scope-icon cycle"><i class="bi bi-diagram-3"></i></div>
+        <div>
+          <strong>Par cycle</strong>
+          <p>Imprimer les bulletins d'un cycle entier</p>
+        </div>
+      </label>
+
+      <label class="scope-card" [class.selected]="scope === 'student'">
+        <input type="radio" name="scope" [(ngModel)]="scope" value="student" (ngModelChange)="onScopeChange()" />
+        <div class="scope-icon student"><i class="bi bi-person-badge"></i></div>
+        <div>
+          <strong>Élève spécifique</strong>
+          <p>Imprimer le bulletin d'un seul élève</p>
+        </div>
+      </label>
+    </div>
+
+    <div class="filters-grid filters-grid-3">
+      <div class="field-group">
+        <label>École</label>
+        <select [(ngModel)]="schoolId" (ngModelChange)="onSchoolChange()" [disabled]="isLoadingLookups">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let school of schools" [value]="school.id">{{ school.label }}</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label>Année scolaire</label>
+        <select
+          [(ngModel)]="academicYearId"
+          (ngModelChange)="onYearChange()"
+          [disabled]="!schoolId || isLoadingLookups"
+        >
+          <option value="">Sélectionner</option>
+          <option *ngFor="let year of years" [value]="year.id">{{ year.label }}</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label>Format du bulletin</label>
+        <select [(ngModel)]="bulletinFormat">
+          <option *ngFor="let format of formats" [value]="format.id">{{ format.label }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group chips-field" *ngIf="scope === 'classes'">
+      <label>Classes à inclure (si applicable)</label>
+      <div class="chips-box">
+        <span class="chip" *ngFor="let option of selectedClassroomOptions">
+          {{ option.label }}
+          <button type="button" (click)="removeClassroomChip(option.id)" aria-label="Retirer">
+            <i class="bi bi-x"></i>
+          </button>
+        </span>
+        <select
+          class="chip-select"
+          (change)="toggleClassroomChip(($any($event.target).value)); $any($event.target).value = ''"
+        >
+          <option value="">Ajouter une classe…</option>
+          <option
+            *ngFor="let option of classroomOptions"
+            [value]="option.id"
+            [disabled]="isClassroomSelected(option.id)"
+          >
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group" *ngIf="scope === 'cycle'">
+      <label>Cycle à inclure (si applicable)</label>
+      <select [(ngModel)]="cycleId" (ngModelChange)="onCycleChange()">
+        <option value="">Sélectionner un cycle</option>
+        <option *ngFor="let cycle of cycles" [value]="cycle.id">{{ cycle.label }}</option>
+      </select>
+    </div>
+
+    <div class="student-picker" *ngIf="scope === 'student'">
+      <div class="field-group">
+        <label>Rechercher un élève</label>
+        <input
+          type="text"
+          [(ngModel)]="studentSearch"
+          placeholder="Nom, matricule ou classe…"
+          [disabled]="!academicYearId || isLoadingPreview"
+        />
+      </div>
+      <div class="field-group">
+        <label>Élève à imprimer</label>
+        <select
+          [(ngModel)]="studentEnrollmentId"
+          (ngModelChange)="onStudentChange()"
+          [disabled]="!academicYearId || isLoadingPreview"
+        >
+          <option value="">Sélectionner un élève</option>
+          <option *ngFor="let student of filteredStudentOptions" [value]="student.id">
+            {{ student.label }}
+          </option>
+        </select>
+        <small class="field-hint" *ngIf="academicYearId && !isLoadingPreview && !studentOptions.length">
+          Aucun élève inscrit pour cette école et cette année.
+        </small>
+      </div>
+    </div>
+  </section>
+
+  <!-- Étape 2 -->
+  <section class="card-block" *ngIf="canShowPreview">
+    <div class="step-title">
+      <span class="step-badge">2</span>
+      <h2>Aperçu de l'impression</h2>
+    </div>
+
+    <div class="table-state" *ngIf="isLoadingPreview">Chargement des effectifs…</div>
+
+    <ng-container *ngIf="!isLoadingPreview">
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-icon"><i class="bi bi-people"></i></div>
+          <div>
+            <strong>{{ formatNumber(totalStudents) }}</strong>
+            <span>Élèves concernés</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-green">
+          <div class="kpi-icon"><i class="bi bi-door-open"></i></div>
+          <div>
+            <strong>{{ formatNumber(totalClasses) }}</strong>
+            <span>Classes sélectionnées</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-orange">
+          <div class="kpi-icon"><i class="bi bi-journal-bookmark"></i></div>
+          <div>
+            <strong>{{ formatNumber(subjectsEvaluated) }}</strong>
+            <span>Matières évaluées</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-purple">
+          <div class="kpi-icon"><i class="bi bi-file-earmark-text"></i></div>
+          <div>
+            <strong>{{ formatNumber(totalBulletins) }}</strong>
+            <span>Bulletins à imprimer</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-layout">
+        <div class="detail-panel">
+          <h3>{{ scope === 'student' ? 'Élève sélectionné' : 'Détail par classe' }}</h3>
+
+          <div class="student-summary" *ngIf="scope === 'student' && selectedStudent">
+            <div>
+              <span class="metric-label">Élève</span>
+              <strong>{{ selectedStudent.label }}</strong>
+            </div>
+            <div>
+              <span class="metric-label">Matricule</span>
+              <strong>{{ selectedStudent.matricule }}</strong>
+            </div>
+            <div>
+              <span class="metric-label">Classe</span>
+              <strong>{{ selectedStudent.classroomLabel }}</strong>
+            </div>
+            <div>
+              <span class="metric-label">Sexe</span>
+              <strong>{{ selectedStudent.gender }}</strong>
+            </div>
+          </div>
+
+          <div class="table-wrap" *ngIf="scope !== 'student'">
+            <table>
+              <thead>
+                <tr>
+                  <th>
+                    <input
+                      type="checkbox"
+                      [checked]="allSelected"
+                      (change)="toggleSelectAll($any($event.target).checked)"
+                    />
+                  </th>
+                  <th>Classe</th>
+                  <th>Cycle</th>
+                  <th>Effectif</th>
+                  <th>Garçons</th>
+                  <th>Filles</th>
+                  <th>Bulletins</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="classroomRows.length === 0">
+                  <td colspan="7" class="empty-row">Aucune classe pour ce périmètre.</td>
+                </tr>
+                <tr *ngFor="let row of classroomRows" [class.row-off]="!row.selected">
+                  <td>
+                    <input type="checkbox" [checked]="row.selected" (change)="toggleRow(row)" />
+                  </td>
+                  <td>{{ row.label }}</td>
+                  <td>{{ row.cycleLabel }}</td>
+                  <td>{{ row.effectif }}</td>
+                  <td>{{ row.boys }}</td>
+                  <td>{{ row.girls }}</td>
+                  <td>{{ row.selected ? row.effectif : 0 }}</td>
+                </tr>
+              </tbody>
+              <tfoot *ngIf="classroomRows.length">
+                <tr>
+                  <td></td>
+                  <td><strong>Total</strong></td>
+                  <td></td>
+                  <td><strong>{{ formatNumber(totalStudents) }}</strong></td>
+                  <td><strong>{{ formatNumber(totalBoys) }}</strong></td>
+                  <td><strong>{{ formatNumber(totalGirls) }}</strong></td>
+                  <td><strong>{{ formatNumber(totalBulletins) }}</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <aside class="options-panel">
+          <h3>Options d'impression</h3>
+          <label class="check-row">
+            <input type="checkbox" [(ngModel)]="options.coverPage" />
+            Inclure la page de garde
+          </label>
+          <label class="check-row">
+            <input type="checkbox" [(ngModel)]="options.signatures" />
+            Inclure les signatures
+          </label>
+          <label class="check-row">
+            <input type="checkbox" [(ngModel)]="options.studentRank" />
+            Inclure le rang de l'élève
+          </label>
+          <label class="check-row">
+            <input type="checkbox" [(ngModel)]="options.classAverages" />
+            Inclure les moyennes de classe
+          </label>
+
+          <div class="field-group sort-field">
+            <label>Trier par</label>
+            <select [(ngModel)]="sortBy">
+              <option *ngFor="let option of sortOptions" [value]="option.id">{{ option.label }}</option>
+            </select>
+          </div>
+        </aside>
+      </div>
+    </ng-container>
+  </section>
+
+  <!-- Étape 3 -->
+  <section class="card-block" *ngIf="canShowPreview">
+    <div class="step-title">
+      <span class="step-badge">3</span>
+      <h2>Lancer l'impression</h2>
+    </div>
+
+    <div class="info-banner">
+      <i class="bi bi-info-circle"></i>
+      Vérifiez les paramètres ci-dessus avant de lancer l'impression.
+    </div>
+
+    <div class="alert alert-error" *ngIf="actionError">{{ actionError }}</div>
+    <div class="alert alert-success" *ngIf="actionMessage">{{ actionMessage }}</div>
+
+    <div class="actions-bar">
+      <button type="button" class="btn-outline" (click)="previewPrint()" [disabled]="!totalBulletins || isGenerating">
+        <i class="bi bi-eye"></i>
+        Aperçu avant impression
+      </button>
+      <button type="button" class="btn-primary" (click)="launchPrint()" [disabled]="!totalBulletins || isGenerating">
+        <i class="bi bi-printer"></i>
+        {{ isGenerating ? 'Génération…' : ('Lancer l\'impression (' + formatNumber(totalBulletins) + ' bulletin' + (totalBulletins > 1 ? 's' : '') + ')') }}
+      </button>
+    </div>
+  </section>
+</div>

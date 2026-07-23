@@ -1,377 +1,101 @@
 <aside class="sidebar" [class.collapsed]="isCollapsed">
-    <div class="sidebar-header">
-        <div class="logo-container">
-            <img class="sidebar-logo-image" src="images/logo/eclosia-white.png" alt="Eclosia" />
-        </div>
+  <div class="sidebar-header">
+    <div class="logo-container">
+      <img class="sidebar-logo-image" src="images/logo/eclosia-white.png" alt="Eclosia" />
     </div>
-    <nav class="sidebar-nav">
-        <ul>
-            <!-- TABLEAU DE BORD -->
-            <li *ngIf="canSee('VIEW_DASHBOARD')">
-                <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="onLinkClick()">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>TABLEAU DE BORD</span>
-                </a>
-            </li>
+  </div>
 
-            <li class="has-submenu students-menu" [class.open]="isStudentsExpanded">
-                <a (click)="isStudentsExpanded = !isStudentsExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
-                    <i class="bi bi-people"></i>
-                    <span>ÉLÈVES</span>
-                    <span class="chevron-down"></span>
-                </a>
-                <ul class="submenu students-submenu">
-                    <li>
-                        <a
-                            routerLink="/inscriptions"
-                            [queryParams]="{ tab: 'inscriptions' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Inscriptions</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/inscriptions"
-                            [queryParams]="{ tab: 'tuteurs' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Tuteurs</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/inscriptions"
-                            [queryParams]="{ tab: 'categories-eleves' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Catégories d'élèves</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
+  <nav class="sidebar-nav">
+    <ul>
+      <ng-container *ngFor="let item of mainMenus">
+        <!-- Lien simple -->
+        <li *ngIf="!item.children?.length">
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            class="nav-link"
+            (click)="onLinkClick()"
+          >
+            <i class="bi" [ngClass]="item.icon"></i>
+            <span>{{ item.label }}</span>
+          </a>
+        </li>
 
-            <!-- FINANCES -->
-            <li class="has-submenu students-menu" [class.open]="isFinancesExpanded">
-                <a (click)="isFinancesExpanded = !isFinancesExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
-                    <i class="bi bi-wallet2"></i>
-                    <span>FINANCES</span>
-                    <span class="chevron-down"></span>
-                </a>
-                <ul class="submenu students-submenu finance-submenu">
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'tableau-de-bord-financier' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Tableau de bord financier</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'paiements' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Paiements</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'categories-frais' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Catégories de frais</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'tranches-paiement' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Tranches</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'frais-scolaires' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Frais</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'devises' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Devises</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'taux' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>Taux de change</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            routerLink="/finances"
-                            [queryParams]="{ tab: 'etats-financiers' }"
-                            routerLinkActive="active"
-                            [routerLinkActiveOptions]="{ exact: true }"
-                            class="submenu-link"
-                            (click)="onLinkClick()"
-                        >
-                            <span>États financiers</span>
-                        </a>
-                    </li>
-                </ul>
+        <!-- Sous-menu -->
+        <li
+          *ngIf="item.children?.length"
+          class="has-submenu students-menu"
+          [class.open]="isExpanded(item.id)"
+          [class.pedagogical-menu]="item.id === 'pedagogical-config'"
+        >
+          <a
+            class="nav-link dropdown-toggle"
+            style="cursor: pointer;"
+            (click)="toggleExpanded(item.id)"
+          >
+            <i class="bi" [ngClass]="item.icon"></i>
+            <span>{{ item.label }}</span>
+            <span class="chevron-down"></span>
+          </a>
+          <ul
+            class="submenu students-submenu"
+            [class.finance-submenu]="item.id === 'finances'"
+          >
+            <li *ngFor="let child of item.children">
+              <a
+                class="submenu-link"
+                [routerLink]="child.route"
+                [queryParams]="child.queryParams || null"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: true }"
+                (click)="onLinkClick()"
+              >
+                <i *ngIf="child.icon" class="bi" [ngClass]="child.icon"></i>
+                <span>{{ child.label }}</span>
+              </a>
             </li>
+          </ul>
+        </li>
+      </ng-container>
+    </ul>
+  </nav>
 
-            <!-- GESTION AGENTS -->
-            <li *ngIf="canSee('VIEW_AGENTS')" class="has-submenu" [class.open]="isAgentsExpanded">
-                <a (click)="isAgentsExpanded = !isAgentsExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
-                    <i class="bi bi-people"></i>
-                    <span>GESTION AGENTS</span>
-                    <span class="chevron-down"></span>
+  <div class="sidebar-footer">
+    <div class="sidebar-bottom-nav">
+      <ul class="footer-nav-list">
+        <ng-container *ngFor="let item of footerMenus">
+          <li class="has-submenu" [class.open]="isExpanded(item.id)">
+            <a
+              class="nav-link dropdown-toggle settings-link"
+              style="cursor: pointer;"
+              (click)="toggleExpanded(item.id)"
+            >
+              <i class="bi" [ngClass]="item.icon"></i>
+              <span>{{ item.label }}</span>
+              <span class="chevron-down"></span>
+            </a>
+            <ul class="submenu">
+              <li *ngFor="let child of item.children">
+                <a
+                  class="submenu-link"
+                  [routerLink]="child.route"
+                  routerLinkActive="active"
+                  (click)="onLinkClick()"
+                >
+                  <i *ngIf="child.icon" class="bi" [ngClass]="child.icon"></i>
+                  <span>{{ child.label }}</span>
                 </a>
-                <ul class="submenu">
-                    <li *ngIf="canSee('CREATE_AGENT')">
-                        <a routerLink="/agents/create" routerLinkActive="active" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-person-plus"></i>
-                            <span>Créer un agent</span>
-                        </a>
-                    </li>
-                    <li *ngIf="canSee('VIEW_AGENTS')">
-                        <a routerLink="/agents/list" routerLinkActive="active" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-person-lines-fill"></i>
-                            <span>Liste des agents</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <!-- STATISTIQUE DES AGENTS -->
-            <li *ngIf="canSee('VIEW_STATS')">
-                <a routerLink="/statistics" routerLinkActive="active" class="nav-link" (click)="onLinkClick()">
-                    <i class="bi bi-bar-chart-line"></i>
-                    <span>STATISTIQUE DES AGENTS</span>
-                </a>
-            </li>
-
-            <!-- CONFIGURATION PÉDAGOGIQUE -->
-            <li class="has-submenu pedagogical-menu" [class.open]="isPedagogicalConfigExpanded">
-                <a (click)="isPedagogicalConfigExpanded = !isPedagogicalConfigExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
-                    <i class="bi bi-mortarboard"></i>
-                    <span>CONFIGURATION PÉDAGOGIQUE</span>
-                    <span class="chevron-down"></span>
-                </a>
-                <ul class="submenu">
-                    <li>
-                        <a routerLink="/configuration/domaines" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-bookmarks"></i>
-                            <span>Domaines</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/configuration/sous-domaines" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-diagram-3"></i>
-                            <span>Sous-domaines</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/configuration/branches" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-diagram-2"></i>
-                            <span>Branches</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/configuration/periodes-scolaires" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-calendar3"></i>
-                            <span>Périodes scolaires</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/configuration/trimestres-semestres" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-calendar-range"></i>
-                            <span>Trimestres / Semestres</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/configuration/programme-pedagogique" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-journal-richtext"></i>
-                            <span>Programme pédagogique</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/configuration/matieres-programme" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-journal-bookmark"></i>
-                            <span>Matières du programme</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <!-- CONFIGURATION -->
-            <li class="has-submenu" [class.open]="isConfigurationExpanded">
-                <a (click)="isConfigurationExpanded = !isConfigurationExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
-                    <i class="bi bi-sliders2"></i>
-                    <span>CONFIGURATION</span>
-                    <span class="chevron-down"></span>
-                </a>
-                <ul class="submenu">
-                    <li>
-                        <a routerLink="/configuration/modele-academique" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-journal-bookmark"></i>
-                            <span>Modele academique</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/configuration/cycle" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-arrow-repeat"></i>
-                            <span>Cycle</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/configuration/section" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-columns-gap"></i>
-                            <span>Section</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/configuration/option" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-list-ul"></i>
-                            <span>Option</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/configuration/niveau-scolaire" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-bar-chart-steps"></i>
-                            <span>Niveau scolaire</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <!-- ADMIN -->
-            <li class="has-submenu" [class.open]="isAdminExpanded">
-                <a (click)="isAdminExpanded = !isAdminExpanded" class="nav-link dropdown-toggle" style="cursor: pointer;">
-                    <i class="bi bi-grid"></i>
-                    <span>ADMIN</span>
-                    <span class="chevron-down"></span>
-                </a>
-                <ul class="submenu">
-                    <li>
-                        <a routerLink="/admin/groupe" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-diagram-3"></i>
-                            <span>Groupe</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/admin/ecole" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-building"></i>
-                            <span>École</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/admin/details-ecole" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-building-gear"></i>
-                            <span>Details ecole</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a routerLink="/admin/annees-scolaires" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="submenu-link" (click)="onLinkClick()">
-                            <i class="bi bi-calendar-range"></i>
-                            <span>Années scolaires</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-        </ul>
-    </nav>
-    <div class="sidebar-footer">
-        <div class="sidebar-bottom-nav">
-            <ul class="footer-nav-list">
-                <!-- GESTION DES ACCES -->
-                <li *ngIf="canSee('MANAGE_SETTINGS') || canSee('MANAGE_USERS') || canSee('MANAGE_ROLES')" class="has-submenu" [class.open]="isSettingsExpanded">
-                    <a (click)="isSettingsExpanded = !isSettingsExpanded" class="nav-link dropdown-toggle settings-link" style="cursor: pointer;">
-                        <i class="bi bi-gear"></i>
-                        <span>GESTION DES ACCES</span>
-                        <span class="chevron-down"></span>
-                    </a>
-                    <ul class="submenu">
-                        <li *ngIf="canSee('MANAGE_SETTINGS')">
-                            <a routerLink="/settings/general" routerLinkActive="active" class="submenu-link" (click)="onLinkClick()">
-                                <i class="bi bi-sliders"></i>
-                                <span>Général</span>
-                            </a>
-                        </li>
-                        <li *ngIf="canSee('MANAGE_USERS')">
-                            <a routerLink="/settings/users" routerLinkActive="active" class="submenu-link" (click)="onLinkClick()">
-                                <i class="bi bi-person-badge"></i>
-                                <span>Utilisateurs</span>
-                            </a>
-                        </li>
-                        <li *ngIf="canSee('MANAGE_ROLES')">
-                            <a routerLink="/settings/security" routerLinkActive="active" class="submenu-link" (click)="onLinkClick()">
-                                <i class="bi bi-shield-lock"></i>
-                                <span>Sécurité</span>
-                            </a>
-                        </li>
-                        <li *ngIf="canSee('MANAGE_SETTINGS')">
-                            <a routerLink="/settings/audit" routerLinkActive="active" class="submenu-link" (click)="onLinkClick()">
-                                <i class="bi bi-journal-text"></i>
-                                <span>Audit logs</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+              </li>
             </ul>
-        </div>
-        <div class="version-label">v1.5-dev</div>
-        <div class="flag-bar">
-            <div class="blue"></div>
-            <div class="yellow"></div>
-            <div class="red"></div>
-        </div>
+          </li>
+        </ng-container>
+      </ul>
     </div>
+    <div class="version-label">v1.5-dev</div>
+    <div class="flag-bar">
+      <div class="blue"></div>
+      <div class="yellow"></div>
+      <div class="red"></div>
+    </div>
+  </div>
 </aside>

@@ -52,65 +52,174 @@
 
   <div class="login-right">
     <div class="login-card">
-      <div class="security-icon">
-        <i class="bi bi-shield-lock-fill"></i>
-      </div>
+      <!-- Connexion -->
+      <ng-container *ngIf="!passwordChangeRequired">
+        <div class="security-icon">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
 
-      <h2>Bienvenue !</h2>
-      <p class="login-subtitle">Connectez-vous à votre espace Éclosia</p>
+        <h2>Bienvenue !</h2>
+        <p class="login-subtitle">Connectez-vous à votre espace Éclosia</p>
 
-      <form (ngSubmit)="onLogin()" #loginForm="ngForm">
-        <div class="form-group">
-          <label for="email">Adresse Email</label>
-          <div class="input-wrapper">
-            <i class="bi bi-envelope"></i>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              [(ngModel)]="loginData.email"
-              required
-              autocomplete="off"
-              placeholder="exemple@ecole.cd"
-            />
+        <form (ngSubmit)="onLogin()" #loginForm="ngForm" autocomplete="off">
+          <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+          <div class="form-group">
+            <label for="username">Identifiant</label>
+            <div class="input-wrapper">
+              <i class="bi bi-person"></i>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                [(ngModel)]="loginData.username"
+                required
+                autocomplete="off"
+              />
+            </div>
           </div>
-        </div>
 
-        <div class="form-group">
-          <label for="password">Mot de passe</label>
-          <div class="input-wrapper">
-            <i class="bi bi-lock"></i>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              [(ngModel)]="loginData.password"
-              required
-              autocomplete="off"
-              placeholder="••••••••••••"
-            />
-            <i class="bi bi-eye"></i>
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <div class="input-wrapper">
+              <i class="bi bi-lock"></i>
+              <input
+                id="password"
+                name="password"
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="loginData.password"
+                required
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+                [attr.title]="showPassword ? 'Masquer' : 'Afficher'"
+              >
+                <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+              </button>
+            </div>
           </div>
+
+          <div class="form-options">
+            <label class="remember-me">
+              <input type="checkbox" />
+              <span>Se souvenir de moi</span>
+            </label>
+            <a routerLink="/forgot-password">Mot de passe oublié ?</a>
+          </div>
+
+          <button class="btn-login" type="submit" [disabled]="!loginForm.form.valid || isLoading">
+            <i class="bi bi-arrow-right" *ngIf="!isLoading"></i>
+            <span>{{ isLoading ? 'Connexion…' : 'Se connecter' }}</span>
+          </button>
+        </form>
+
+        <p class="contact-admin">
+          Besoin d'un accès ?
+          <span>Contactez l'administrateur</span>
+        </p>
+      </ng-container>
+
+      <!-- Changement de mot de passe (1ère connexion) -->
+      <ng-container *ngIf="passwordChangeRequired">
+        <div class="security-icon security-icon-warning">
+          <i class="bi bi-key-fill"></i>
         </div>
 
-        <div class="form-options">
-          <label class="remember-me">
-            <input type="checkbox" />
-            <span>Se souvenir de moi</span>
-          </label>
-          <a routerLink="/forgot-password">Mot de passe oublié ?</a>
-        </div>
+        <h2>Nouveau mot de passe</h2>
+        <p class="login-subtitle">Première connexion — définissez votre mot de passe définitif</p>
 
-        <button class="btn-login" type="submit" [disabled]="!loginForm.form.valid">
-          <i class="bi bi-arrow-right"></i>
-          <span>Se connecter</span>
-        </button>
-      </form>
+        <form
+          (ngSubmit)="onCompleteTemporaryPassword()"
+          #changePasswordForm="ngForm"
+          autocomplete="off"
+        >
+          <div class="alert alert-info" *ngIf="infoMessage">{{ infoMessage }}</div>
+          <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
-      <p class="contact-admin">
-        Besoin d'un accès ?
-        <a routerLink="/register">Contactez l'administrateur</a>
-      </p>
+          <div class="form-group">
+            <label>Identifiant</label>
+            <div class="input-wrapper input-readonly">
+              <i class="bi bi-person"></i>
+              <input type="text" [value]="pendingUsername" readonly tabindex="-1" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="newPassword">Nouveau mot de passe</label>
+            <div class="input-wrapper">
+              <i class="bi bi-lock"></i>
+              <input
+                id="newPassword"
+                name="newPassword"
+                [type]="showNewPassword ? 'text' : 'password'"
+                [(ngModel)]="changePasswordData.newPassword"
+                required
+                minlength="8"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="toggleNewPasswordVisibility()"
+                [attr.aria-label]="showNewPassword ? 'Masquer' : 'Afficher'"
+              >
+                <i
+                  class="bi"
+                  [class.bi-eye]="!showNewPassword"
+                  [class.bi-eye-slash]="showNewPassword"
+                ></i>
+              </button>
+            </div>
+            <small class="field-hint">Minimum 8 caractères</small>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirmer le mot de passe</label>
+            <div class="input-wrapper">
+              <i class="bi bi-lock-fill"></i>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                [(ngModel)]="changePasswordData.confirmPassword"
+                required
+                minlength="8"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="toggleConfirmPasswordVisibility()"
+                [attr.aria-label]="showConfirmPassword ? 'Masquer' : 'Afficher'"
+              >
+                <i
+                  class="bi"
+                  [class.bi-eye]="!showConfirmPassword"
+                  [class.bi-eye-slash]="showConfirmPassword"
+                ></i>
+              </button>
+            </div>
+          </div>
+
+          <button
+            class="btn-login"
+            type="submit"
+            [disabled]="!changePasswordForm.form.valid || isLoading"
+          >
+            <i class="bi bi-check-lg" *ngIf="!isLoading"></i>
+            <span>{{ isLoading ? 'Enregistrement…' : 'Enregistrer et se connecter' }}</span>
+          </button>
+
+          <button class="btn-back-login" type="button" (click)="backToLogin()" [disabled]="isLoading">
+            <i class="bi bi-arrow-left"></i>
+            Retour à la connexion
+          </button>
+        </form>
+      </ng-container>
     </div>
   </div>
 </div>

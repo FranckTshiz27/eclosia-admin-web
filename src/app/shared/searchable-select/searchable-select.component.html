@@ -1,0 +1,37 @@
+<div class="searchable-select" [class.is-disabled]="disabled" [class.is-open]="isOpen">
+  <input
+    type="text"
+    [(ngModel)]="query"
+    [ngModelOptions]="{ standalone: true }"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    autocomplete="off"
+    (focus)="open()"
+    (input)="onQueryInput()"
+    (blur)="onBlur()"
+  />
+  <button
+    *ngIf="clearable && hasValue && !disabled"
+    class="select-clear"
+    type="button"
+    (mousedown)="$event.preventDefault(); clear()"
+    aria-label="Effacer"
+  >
+    <i class="bi bi-x"></i>
+  </button>
+  <i class="bi bi-chevron-down select-chevron"></i>
+
+  <div class="select-dropdown" *ngIf="isOpen && !disabled">
+    <button
+      type="button"
+      class="select-option"
+      *ngFor="let option of filteredOptions"
+      [class.is-disabled]="option.disabled"
+      [disabled]="!!option.disabled"
+      (mousedown)="$event.preventDefault(); selectOption(option)"
+    >
+      {{ option.label }}
+    </button>
+    <div class="select-empty" *ngIf="filteredOptions.length === 0">{{ emptyText }}</div>
+  </div>
+</div>

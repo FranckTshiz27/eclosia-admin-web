@@ -11,6 +11,7 @@ export interface CreateAcademicPeriodDto {
   name: string;
   periodType: AcademicPeriodType;
   displayOrder: number;
+  maximumScoreRatio: number;
   active?: boolean;
 }
 
@@ -26,6 +27,8 @@ export interface AcademicPeriodApiResponse {
   period_type?: AcademicPeriodType | string;
   displayOrder?: number;
   display_order?: number;
+  maximumScoreRatio?: number | string;
+  maximum_score_ratio?: number | string;
   /** @deprecated ancien contrat */
   orderNumber?: number;
   order_number?: number;

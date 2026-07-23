@@ -1,6 +1,6 @@
 <div class="page-container dashboard-page">
     <div class="dashboard-grid">
-        <div class="stat-card">
+        <div class="stat-card" *appHasPermission="P.AGENT_VIEW">
             <div class="stat-icon blue-bg">
                 <i class="bi bi-people-fill"></i>
             </div>
@@ -9,7 +9,7 @@
                 <div class="stat-value">12,450</div>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" *appHasPermission="P.AGENT_VIEW">
             <div class="stat-icon green-bg">
                 <i class="bi bi-person-check-fill"></i>
             </div>
@@ -18,7 +18,7 @@
                 <div class="stat-value">11,200</div>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" *appHasPermission="P.STUDENT_VIEW">
             <div class="stat-icon orange-bg">
                 <i class="bi bi-mortarboard-fill"></i>
             </div>
@@ -27,7 +27,7 @@
                 <div class="stat-value">450</div>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" *appHasPermission="P.FINANCE_VIEW">
             <div class="stat-icon red-bg">
                 <i class="bi bi-award"></i>
             </div>
@@ -41,7 +41,7 @@
     <div class="dashboard-2-cols mt-20">
         <!-- Column 1: Effectifs & Activités (Left) -->
         <div class="dashboard-col-left">
-            <div class="dashboard-card main-chart-card">
+            <div class="dashboard-card main-chart-card" *appHasPermission="P.AGENT_STATS_VIEW">
                 <h2>
                     Évolution des Effectifs
                     <div class="card-header-actions">

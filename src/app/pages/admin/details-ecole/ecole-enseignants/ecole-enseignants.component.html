@@ -1,0 +1,756 @@
+<div class="enseignants-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Enseignants</h2>
+      <p>
+        Gérez les enseignants de
+        {{ schoolName || 'cette école' }}
+        (compte + fiche professionnelle).
+      </p>
+    </div>
+    <div class="panel-actions">
+      <button
+        class="btn-primary"
+        type="button"
+        (click)="openCreateModal()"
+        [disabled]="!schoolId || isLoadingRoles"
+      >
+        <i class="bi bi-plus-lg"></i>
+        Nouvel enseignant
+      </button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onFilterChange()"
+          placeholder="Rechercher un enseignant..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Statut</label>
+          <select
+            [(ngModel)]="statusFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onFilterChange()"
+          >
+            <option *ngFor="let option of statusOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="teachers-table-wrapper">
+      <table class="teachers-table">
+        <thead>
+          <tr>
+            <th>Nom complet</th>
+            <th>Matricule</th>
+            <th>Qualification</th>
+            <th>Spécialité</th>
+            <th>Signature</th>
+            <th>Téléphone</th>
+            <th>Rôles</th>
+            <th>Actif</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoading">
+            <td colspan="9" class="table-state">Chargement des enseignants...</td>
+          </tr>
+          <tr *ngIf="!isLoading && loadError">
+            <td colspan="9" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoading && !loadError && !schoolId">
+            <td colspan="9" class="table-state">Sélectionnez une école pour afficher ses enseignants.</td>
+          </tr>
+          <tr *ngIf="!isLoading && !loadError && schoolId && filteredTeachers.length === 0">
+            <td colspan="9" class="table-state">Aucun enseignant pour cette école.</td>
+          </tr>
+          <tr *ngFor="let teacher of paginatedTeachers">
+            <td>
+              <div class="teacher-cell">
+                <span class="teacher-avatar"><i class="bi bi-person-badge"></i></span>
+                <div>
+                  <strong>{{ teacher.fullName }}</strong>
+                  <p>{{ teacher.email || teacher.username || '—' }}</p>
+                </div>
+              </div>
+            </td>
+            <td>{{ teacher.registrationNumber || '—' }}</td>
+            <td>{{ teacher.qualification || '—' }}</td>
+            <td>{{ teacher.specialty || '—' }}</td>
+            <td>
+              <img
+                *ngIf="teacher.signature; else noSignature"
+                class="signature-thumb"
+                [src]="teacher.signature"
+                alt="Signature"
+              />
+              <ng-template #noSignature>
+                <span class="muted">—</span>
+              </ng-template>
+            </td>
+            <td>{{ teacher.phone || '—' }}</td>
+            <td>
+              <span class="roles-chip">{{ teacher.roleLabels }}</span>
+            </td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="teacher.active"
+                [class.badge-muted]="!teacher.active"
+              >
+                {{ teacher.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" (click)="openEditModal(teacher)" title="Modifier">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" (click)="openAssignmentsModal(teacher)" title="Affectations">
+                <i class="bi bi-journal-bookmark"></i>
+              </button>
+              <button type="button" (click)="deleteTeacher(teacher)" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <div class="page-size">
+        <label>Lignes</label>
+        <select
+          [(ngModel)]="pageSize"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onPageSizeChange()"
+        >
+          <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
+        </select>
+      </div>
+      <p>
+        Affichage de {{ rangeStart }} à {{ rangeEnd }} sur {{ filteredTeachers.length }} enseignants
+      </p>
+      <div class="pager">
+        <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage <= 1">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button
+          type="button"
+          *ngFor="let page of pageNumbers"
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)"
+        >
+          {{ page }}
+        </button>
+        <button type="button" (click)="goToNextPage()" [disabled]="currentPage >= totalPages">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Formulaire création / édition -->
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div
+    class="teacher-modal"
+    role="dialog"
+    aria-modal="true"
+    (click)="$event.stopPropagation()"
+  >
+  <div class="modal-header">
+    <div class="modal-title-wrap">
+      <span class="modal-icon"><i class="bi bi-person-plus"></i></span>
+      <div>
+        <h3>{{ isEditMode ? 'Modifier l’enseignant' : 'Nouvel enseignant' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez à jour l’identité, les rôles et la fiche professionnelle.'
+              : 'Un compte Keycloak + SecurityUser + Teacher sera créé en une seule opération.'
+          }}
+        </p>
+      </div>
+    </div>
+    <button class="modal-close" type="button" (click)="closeModal()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <form #teacherForm="ngForm" (ngSubmit)="saveTeacher(teacherForm)" novalidate>
+    <div class="modal-body">
+      <section class="form-section">
+        <h4>1. Identité</h4>
+        <div class="form-grid">
+          <div class="field-group">
+            <label>Prénom <span>*</span></label>
+            <input
+              type="text"
+              name="firstName"
+              [(ngModel)]="form.firstName"
+              #firstNameCtrl="ngModel"
+              required
+              maxlength="100"
+              [class.input-invalid]="
+                (firstNameCtrl.invalid && firstNameCtrl.touched) || (isSubmitted && firstNameCtrl.invalid)
+              "
+            />
+            <small class="field-error" *ngIf="(firstNameCtrl.touched || isSubmitted) && firstNameCtrl.invalid">
+              Le prénom est obligatoire.
+            </small>
+          </div>
+
+          <div class="field-group">
+            <label>Nom <span>*</span></label>
+            <input
+              type="text"
+              name="lastName"
+              [(ngModel)]="form.lastName"
+              #lastNameCtrl="ngModel"
+              required
+              maxlength="100"
+              [class.input-invalid]="
+                (lastNameCtrl.invalid && lastNameCtrl.touched) || (isSubmitted && lastNameCtrl.invalid)
+              "
+            />
+            <small class="field-error" *ngIf="(lastNameCtrl.touched || isSubmitted) && lastNameCtrl.invalid">
+              Le nom est obligatoire.
+            </small>
+          </div>
+
+          <div class="field-group">
+            <label>Postnom</label>
+            <input type="text" name="middleName" [(ngModel)]="form.middleName" maxlength="100" />
+          </div>
+
+          <div class="field-group">
+            <label>Sexe <span>*</span></label>
+            <select
+              name="gender"
+              [(ngModel)]="form.gender"
+              #genderCtrl="ngModel"
+              required
+              [class.input-invalid]="
+                (genderCtrl.invalid && genderCtrl.touched) || (isSubmitted && genderCtrl.invalid)
+              "
+            >
+              <option value="" disabled>Sélectionner</option>
+              <option *ngFor="let option of genderOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <small class="field-error" *ngIf="(genderCtrl.touched || isSubmitted) && genderCtrl.invalid">
+              Le sexe est obligatoire.
+            </small>
+          </div>
+
+          <div class="field-group">
+            <label>Date de naissance</label>
+            <input type="date" name="birthDate" [(ngModel)]="form.birthDate" />
+          </div>
+
+          <div class="field-group">
+            <label>E-mail <span>*</span></label>
+            <input
+              type="email"
+              name="email"
+              [(ngModel)]="form.email"
+              #emailCtrl="ngModel"
+              required
+              email
+              maxlength="255"
+              [class.input-invalid]="
+                (emailCtrl.invalid && emailCtrl.touched) || (isSubmitted && emailCtrl.invalid)
+              "
+            />
+            <small class="field-error" *ngIf="(emailCtrl.touched || isSubmitted) && emailCtrl.invalid">
+              E-mail valide obligatoire.
+            </small>
+          </div>
+
+          <div class="field-group">
+            <label>Téléphone <span>*</span></label>
+            <input
+              type="text"
+              name="phone"
+              [(ngModel)]="form.phone"
+              #phoneCtrl="ngModel"
+              required
+              maxlength="30"
+              [class.input-invalid]="
+                (phoneCtrl.invalid && phoneCtrl.touched) || (isSubmitted && phoneCtrl.invalid)
+              "
+            />
+            <small class="field-error" *ngIf="(phoneCtrl.touched || isSubmitted) && phoneCtrl.invalid">
+              Le téléphone est obligatoire.
+            </small>
+          </div>
+
+          <div class="field-group field-span-2">
+            <label>Adresse</label>
+            <input type="text" name="address" [(ngModel)]="form.address" maxlength="500" />
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h4>2. Compte</h4>
+        <div class="form-grid" *ngIf="!isEditMode">
+          <div class="field-group">
+            <label>Nom d’utilisateur</label>
+            <input
+              type="text"
+              name="username"
+              [(ngModel)]="form.username"
+              maxlength="100"
+              placeholder="Laisser vide pour générer prénom.nom"
+            />
+            <small class="field-hint">
+              Optionnel. Si vide, le backend génère <code>prenom.nom</code>.
+            </small>
+          </div>
+
+          <div class="field-group">
+            <label>Mot de passe</label>
+            <input
+              type="text"
+              name="password"
+              [(ngModel)]="form.password"
+              minlength="8"
+              maxlength="100"
+              placeholder="Laisser vide pour générer un MDP temporaire"
+            />
+            <small class="field-hint">
+              Optionnel (min. 8). Si vide, un mot de passe temporaire est généré et affiché une seule fois après création.
+            </small>
+          </div>
+        </div>
+        <p class="field-hint username-readonly" *ngIf="isEditMode && form.username">
+          Identifiant : <strong>{{ form.username }}</strong> (non modifiable ici)
+        </p>
+
+        <div class="field-group">
+          <label>Rôles <span>*</span></label>
+          <div class="selection-filter-panel">
+            <div class="search-box modal-search-box">
+              <i class="bi bi-search"></i>
+              <input
+                type="text"
+                [(ngModel)]="roleSearchTerm"
+                [ngModelOptions]="{ standalone: true }"
+                placeholder="Rechercher un rôle..."
+              />
+            </div>
+          </div>
+          <div class="multi-toolbar">
+            <button
+              type="button"
+              class="link-btn"
+              (click)="selectAllRoles()"
+              [disabled]="!filteredRoleOptions.length"
+            >
+              Tout sélectionner
+            </button>
+            <button type="button" class="link-btn" (click)="clearRoles()">Tout désélectionner</button>
+            <span class="multi-count">{{ form.roleIds.length }} sélectionné(s)</span>
+          </div>
+          <div class="check-grid" *ngIf="filteredRoleOptions.length">
+            <label
+              class="check-item"
+              *ngFor="let role of filteredRoleOptions"
+              [class.selected]="isRoleSelected(role.id)"
+            >
+              <input
+                type="checkbox"
+                [checked]="isRoleSelected(role.id)"
+                (change)="toggleRole(role.id)"
+              />
+              <span>{{ role.label }} <small *ngIf="role.code">({{ role.code }})</small></span>
+            </label>
+          </div>
+          <p class="empty-hint" *ngIf="isLoadingRoles">Chargement des rôles...</p>
+          <p class="empty-hint" *ngIf="!isLoadingRoles && !filteredRoleOptions.length">
+            {{ rolesError || 'Aucun rôle trouvé.' }}
+          </p>
+          <small class="field-error" *ngIf="isSubmitted && !form.roleIds.length">
+            Au moins un rôle est requis.
+          </small>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h4>3. Métier</h4>
+        <div class="form-grid">
+          <div class="field-group field-span-2">
+            <label>École</label>
+            <input type="text" [ngModel]="schoolName || 'École sélectionnée'" [ngModelOptions]="{ standalone: true }" disabled />
+            <small class="field-hint">L’enseignant est rattaché à l’école courante des détails.</small>
+          </div>
+
+          <div class="field-group">
+            <label>Matricule <span>*</span></label>
+            <input
+              type="text"
+              name="registrationNumber"
+              [(ngModel)]="form.registrationNumber"
+              #regCtrl="ngModel"
+              required
+              maxlength="100"
+              placeholder="ENS-2026-001"
+              [class.input-invalid]="
+                (regCtrl.invalid && regCtrl.touched) || (isSubmitted && regCtrl.invalid)
+              "
+            />
+            <small class="field-error" *ngIf="(regCtrl.touched || isSubmitted) && regCtrl.invalid">
+              Le matricule est obligatoire (unique).
+            </small>
+          </div>
+
+          <div class="field-group">
+            <label>Date d’embauche <span>*</span></label>
+            <input
+              type="date"
+              name="hiringDate"
+              [(ngModel)]="form.hiringDate"
+              #hiringCtrl="ngModel"
+              required
+              [class.input-invalid]="
+                (hiringCtrl.invalid && hiringCtrl.touched) || (isSubmitted && hiringCtrl.invalid)
+              "
+            />
+            <small class="field-error" *ngIf="(hiringCtrl.touched || isSubmitted) && hiringCtrl.invalid">
+              La date d’embauche est obligatoire.
+            </small>
+          </div>
+
+          <div class="field-group">
+            <label>Date de départ</label>
+            <input type="date" name="leavingDate" [(ngModel)]="form.leavingDate" />
+          </div>
+
+          <div class="field-group">
+            <label>Qualification</label>
+            <input
+              type="text"
+              name="qualification"
+              [(ngModel)]="form.qualification"
+              maxlength="255"
+              placeholder="Ex. Licence en Mathématiques"
+            />
+          </div>
+
+          <div class="field-group">
+            <label>Spécialité</label>
+            <input
+              type="text"
+              name="specialty"
+              [(ngModel)]="form.specialty"
+              maxlength="255"
+              placeholder="Ex. Mathématiques"
+            />
+          </div>
+
+          <div class="field-group">
+            <label>Grade</label>
+            <input type="text" name="grade" [(ngModel)]="form.grade" maxlength="100" />
+          </div>
+
+          <div class="field-group field-span-2">
+            <label>Signature</label>
+            <div class="signature-upload">
+              <div class="signature-preview" *ngIf="form.signature; else signatureEmpty">
+                <img [src]="form.signature" alt="Aperçu signature" />
+              </div>
+              <ng-template #signatureEmpty>
+                <div class="signature-empty">
+                  <i class="bi bi-pen"></i>
+                  <span>Aucune signature</span>
+                </div>
+              </ng-template>
+              <div class="signature-actions">
+                <label class="btn-upload">
+                  <i class="bi bi-upload"></i>
+                  {{ isCompressingSignature ? 'Traitement...' : 'Importer une image' }}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    (change)="onSignatureSelected($event)"
+                    [disabled]="isCompressingSignature"
+                  />
+                </label>
+                <button
+                  type="button"
+                  class="link-btn"
+                  *ngIf="form.signature"
+                  (click)="clearSignature()"
+                >
+                  Retirer
+                </button>
+              </div>
+              <small class="field-hint">Image de la signature manuscrite (utilisée sur les bulletins).</small>
+              <small class="field-error" *ngIf="signatureError">{{ signatureError }}</small>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Titulaire</label>
+            <div class="toggle-row">
+              <div>
+                <strong>{{ form.titular ? 'Oui' : 'Non' }}</strong>
+                <p>Indique si l’enseignant est titulaire.</p>
+              </div>
+              <button type="button" class="toggle-btn" [class.active]="form.titular" (click)="toggleTitular()">
+                <span></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group" *ngIf="isEditMode">
+            <label>Statut</label>
+            <div class="toggle-row">
+              <div>
+                <strong>{{ form.active ? 'Actif' : 'Inactif' }}</strong>
+                <p>Un enseignant inactif n’est plus opérationnel.</p>
+              </div>
+              <button type="button" class="toggle-btn" [class.active]="form.active" (click)="toggleActive()">
+                <span></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group field-span-2">
+            <label>Remarques</label>
+            <textarea
+              name="remarks"
+              [(ngModel)]="form.remarks"
+              maxlength="1000"
+              rows="3"
+              placeholder="Notes optionnelles..."
+            ></textarea>
+            <small class="field-hint">{{ remarksLength }} / 1000 caractères</small>
+          </div>
+        </div>
+      </section>
+
+      <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" type="button" (click)="closeModal()">Annuler</button>
+      <button class="btn-save" type="submit" [disabled]="isSaving">
+        <i class="bi bi-save"></i>
+        {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+      </button>
+    </div>
+  </form>
+  </div>
+</div>
+
+<!-- Modal credentials (create uniquement) -->
+<div
+  class="modal-backdrop credentials-backdrop"
+  *ngIf="isCredentialsModalOpen && credentials"
+  (click)="closeCredentialsModal()"
+>
+  <div
+    class="teacher-modal credentials-modal"
+    role="dialog"
+    aria-modal="true"
+    (click)="$event.stopPropagation()"
+  >
+  <div class="modal-header">
+    <div class="modal-title-wrap">
+      <span class="modal-icon success"><i class="bi bi-key"></i></span>
+      <div>
+        <h3>Compte créé</h3>
+        <p>
+          Identifiants temporaires à transmettre à l’enseignant.
+          <strong>Le mot de passe ne sera plus affiché ensuite.</strong>
+        </p>
+      </div>
+    </div>
+    <button class="modal-close" type="button" (click)="closeCredentialsModal()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="modal-body credentials-body">
+    <div class="credential-row">
+      <span>Identifiant</span>
+      <code>{{ credentials.username }}</code>
+    </div>
+    <div class="credential-row credential-row--password">
+      <span>Mot de passe temporaire</span>
+      <code class="password-value">{{ credentials.temporaryPassword }}</code>
+    </div>
+    <p class="credentials-warning">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Notez ou copiez ce mot de passe maintenant — il ne sera plus jamais renvoyé par l’API.
+      Un changement sera exigé à la première connexion (PASSWORD_CHANGE_REQUIRED).
+    </p>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn-cancel" type="button" (click)="closeCredentialsModal()">Fermer</button>
+    <button class="btn-save" type="button" (click)="copyCredentials()">
+      <i class="bi bi-clipboard"></i>
+      {{ credentialsCopied ? 'Copié !' : 'Copier' }}
+    </button>
+  </div>
+  </div>
+</div>
+<!-- Affectations enseignant (classes titulaire + cours) -->
+<div class="modal-backdrop" *ngIf="isAssignmentsModalOpen" (click)="closeAssignmentsModal()">
+  <div
+    class="teacher-modal teacher-assignments-modal"
+    role="dialog"
+    aria-modal="true"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <span class="modal-icon"><i class="bi bi-journal-bookmark"></i></span>
+        <div>
+          <h3>Affectations</h3>
+          <p>{{ assignmentsTeacherName }}</p>
+        </div>
+      </div>
+      <button class="modal-close" type="button" (click)="closeAssignmentsModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="assignments-toolbar">
+        <div class="filter-group">
+          <label>Annee scolaire</label>
+          <select
+            [(ngModel)]="assignmentsYearId"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onAssignmentsYearChange()"
+            [disabled]="isLoadingAssignmentYears || assignmentYearOptions.length === 0"
+          >
+            <option value="">Toutes les annees</option>
+            <option *ngFor="let year of assignmentYearOptions" [value]="year.id">
+              {{ year.label }}
+            </option>
+          </select>
+        </div>
+        <div class="assignments-tabs">
+          <button
+            type="button"
+            [class.active]="assignmentsTab === 'classes'"
+            (click)="assignmentsTab = 'classes'"
+          >
+            Classes titulaire
+          </button>
+          <button
+            type="button"
+            [class.active]="assignmentsTab === 'cours'"
+            (click)="assignmentsTab = 'cours'"
+          >
+            Cours affectes
+          </button>
+        </div>
+      </div>
+
+      <p class="field-error" *ngIf="assignmentsError">{{ assignmentsError }}</p>
+      <p class="table-state" *ngIf="isLoadingAssignments">Chargement des affectations...</p>
+
+      <div *ngIf="!isLoadingAssignments && assignmentsTab === 'classes'">
+        <p class="table-state" *ngIf="teacherClassAssignments.length === 0">
+          Aucune classe titulaire pour cet enseignant.
+        </p>
+        <table class="mini-assignments-table" *ngIf="teacherClassAssignments.length > 0">
+          <thead>
+            <tr>
+              <th>Classe</th>
+              <th>Annee</th>
+              <th>Statut</th>
+              <th>Remarques</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of teacherClassAssignments">
+              <td>{{ item.classroomDisplayName }}</td>
+              <td>{{ item.academicYearLabel }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [class.badge-success]="item.active"
+                  [class.badge-muted]="!item.active"
+                >
+                  {{ item.active ? 'Actif' : 'Inactif' }}
+                </span>
+              </td>
+              <td>{{ item.remarks || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!isLoadingAssignments && assignmentsTab === 'cours'">
+        <p class="assignments-summary" *ngIf="teacherCourseAssignments.length > 0">
+          Charge horaire active :
+          <strong>{{ activeWeeklyHoursTotal }} h / semaine</strong>
+        </p>
+        <p class="table-state" *ngIf="teacherCourseAssignments.length === 0">
+          Aucun cours affecte pour cet enseignant.
+        </p>
+        <table class="mini-assignments-table" *ngIf="teacherCourseAssignments.length > 0">
+          <thead>
+            <tr>
+              <th>Classe</th>
+              <th>Matiere</th>
+              <th>H/sem.</th>
+              <th>Coef.</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of teacherCourseAssignments">
+              <td>{{ item.classroomDisplayName }}</td>
+              <td>{{ item.subjectLabel }}</td>
+              <td>{{ item.weeklyHours == null ? '—' : item.weeklyHours }}</td>
+              <td>{{ item.coefficient == null ? '—' : item.coefficient }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [class.badge-success]="item.active"
+                  [class.badge-muted]="!item.active"
+                >
+                  {{ item.active ? 'Actif' : 'Inactif' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" type="button" (click)="closeAssignmentsModal()">Fermer</button>
+    </div>
+  </div>
+</div>

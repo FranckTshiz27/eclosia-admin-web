@@ -128,6 +128,9 @@
               <button type="button" (click)="openEditModal(item)" title="Modifier">
                 <i class="bi bi-pencil"></i>
               </button>
+              <button type="button" (click)="openAssignmentsModal(item)" title="Affectations">
+                <i class="bi bi-people"></i>
+              </button>
               <button type="button" (click)="deleteClassroom(item)" title="Supprimer">
                 <i class="bi bi-trash"></i>
               </button>
@@ -358,5 +361,65 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isAssignmentsModalOpen" (click)="closeAssignmentsModal()">
+  <div class="class-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>Affectations de la classe</h3>
+        <p>{{ assignmentsClassroomName }}</p>
+      </div>
+      <button class="modal-close" type="button" (click)="closeAssignmentsModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label>Annee scolaire</label>
+        <select
+          [(ngModel)]="assignmentsYearId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onClassroomAssignmentsYearChange()"
+        >
+          <option *ngFor="let year of assignmentYearOptions" [value]="year.id">
+            {{ year.label }}{{ year.active ? '' : ' (cloturee)' }}
+          </option>
+        </select>
+      </div>
+
+      <p class="save-error" *ngIf="assignmentsError">{{ assignmentsError }}</p>
+      <p *ngIf="isLoadingAssignments">Chargement...</p>
+
+      <div *ngIf="!isLoadingAssignments">
+        <h4>Titulaire actif</h4>
+        <p>{{ activeTitularName || 'Aucun titulaire actif pour cette annee.' }}</p>
+
+        <h4>Matieres et professeurs</h4>
+        <p *ngIf="classroomCourseAssignments.length === 0">Aucune affectation de cours.</p>
+        <table *ngIf="classroomCourseAssignments.length > 0" class="classes-table">
+          <thead>
+            <tr>
+              <th>Matiere</th>
+              <th>Enseignant</th>
+              <th>H/sem.</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of classroomCourseAssignments">
+              <td>{{ row.subjectLabel }}</td>
+              <td>{{ row.teacherFullName }}</td>
+              <td>{{ row.weeklyHours == null ? '—' : row.weeklyHours }}</td>
+              <td>{{ row.active ? 'Actif' : 'Inactif' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" type="button" (click)="closeAssignmentsModal()">Fermer</button>
+    </div>
   </div>
 </div>

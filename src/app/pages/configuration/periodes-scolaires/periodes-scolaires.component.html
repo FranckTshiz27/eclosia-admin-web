@@ -90,6 +90,7 @@
             <th>Nom</th>
             <th>Trimestre / Semestre</th>
             <th>Type</th>
+            <th>Ratio max.</th>
             <th>Ordre</th>
             <th>Statut</th>
             <th class="actions-col">Actions</th>
@@ -97,19 +98,20 @@
         </thead>
         <tbody>
           <tr *ngIf="isLoadingRows">
-            <td colspan="7" class="table-state">Chargement des périodes scolaires...</td>
+            <td colspan="8" class="table-state">Chargement des périodes scolaires...</td>
           </tr>
           <tr *ngIf="!isLoadingRows && loadError">
-            <td colspan="7" class="table-state table-state-error">{{ loadError }}</td>
+            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
           </tr>
           <tr *ngIf="!isLoadingRows && !loadError && filteredRows.length === 0">
-            <td colspan="7" class="table-state">Aucune période scolaire trouvée.</td>
+            <td colspan="8" class="table-state">Aucune période scolaire trouvée.</td>
           </tr>
           <tr *ngFor="let row of filteredRows">
             <td class="code-col">{{ row.code }}</td>
             <td><span class="row-name">{{ row.name }}</span></td>
             <td>{{ row.academicTermLabel }}</td>
             <td>{{ row.periodTypeLabel }}</td>
+            <td>{{ row.maximumScoreRatio }}</td>
             <td>{{ row.displayOrder }}</td>
             <td>
               <span
@@ -282,6 +284,28 @@
               />
               <small class="field-error" *ngIf="(orderCtrl.touched || isSubmitted) && orderCtrl.invalid">
                 L'ordre d'affichage est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Ratio de score maximum <span>*</span></label>
+              <input
+                type="number"
+                name="maximumScoreRatio"
+                [(ngModel)]="form.maximumScoreRatio"
+                #ratioCtrl="ngModel"
+                required
+                min="0.0001"
+                max="9.9999"
+                step="0.0001"
+                placeholder="Ex: 0.25 ou 1"
+                [class.input-invalid]="
+                  (ratioCtrl.invalid && ratioCtrl.touched) || (isSubmitted && ratioCtrl.invalid)
+                "
+              />
+              <small class="field-hint">Poids de la période dans le calcul (ex: 0.25 = 25%)</small>
+              <small class="field-error" *ngIf="(ratioCtrl.touched || isSubmitted) && ratioCtrl.invalid">
+                Le ratio doit être supérieur à 0.
               </small>
             </div>
           </div>

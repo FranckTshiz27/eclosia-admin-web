@@ -36,6 +36,7 @@ interface PeriodItem {
   periodType: AcademicPeriodType;
   periodTypeLabel: string;
   displayOrder: number;
+  maximumScoreRatio: number;
   status: StatusLabel;
 }
 
@@ -46,6 +47,7 @@ interface PeriodForm {
   name: string;
   periodType: AcademicPeriodType;
   displayOrder: string;
+  maximumScoreRatio: string;
   status: StatusLabel;
 }
 
@@ -125,7 +127,8 @@ export class PeriodesScolairesComponent implements OnInit {
         this.normalize(row.code).includes(term) ||
         this.normalize(row.name).includes(term) ||
         this.normalize(row.academicTermLabel).includes(term) ||
-        this.normalize(row.periodTypeLabel).includes(term);
+        this.normalize(row.periodTypeLabel).includes(term) ||
+        String(row.maximumScoreRatio).includes(term);
 
       const matchesTerm =
         !this.termFilterId || this.sameId(row.academicTermId, this.termFilterId);
@@ -166,6 +169,7 @@ export class PeriodesScolairesComponent implements OnInit {
       name: item.name,
       periodType: item.periodType,
       displayOrder: String(item.displayOrder),
+      maximumScoreRatio: String(item.maximumScoreRatio),
       status: item.status
     };
   }
@@ -241,6 +245,7 @@ export class PeriodesScolairesComponent implements OnInit {
     }
 
     const displayOrder = Number(this.form.displayOrder);
+    const maximumScoreRatio = Number(String(this.form.maximumScoreRatio).replace(',', '.'));
     const code = this.form.code.trim();
     const name = this.form.name.trim();
 
@@ -260,6 +265,10 @@ export class PeriodesScolairesComponent implements OnInit {
       this.saveError = "L'ordre d'affichage doit être un entier positif ou nul.";
       return;
     }
+    if (!Number.isFinite(maximumScoreRatio) || maximumScoreRatio <= 0) {
+      this.saveError = 'Le ratio de score maximum doit être supérieur à 0.';
+      return;
+    }
 
     this.isSaving = true;
     this.saveError = '';
@@ -270,6 +279,7 @@ export class PeriodesScolairesComponent implements OnInit {
       name,
       periodType: this.form.periodType,
       displayOrder,
+      maximumScoreRatio,
       active: this.form.status === 'Actif'
     };
 
@@ -351,12 +361,14 @@ export class PeriodesScolairesComponent implements OnInit {
     const termLabel = this.form.academicTermLabel;
     const periodType = this.form.periodType;
     const nextOrder = Number(this.form.displayOrder) + 1;
+    const maximumScoreRatio = this.form.maximumScoreRatio;
     const status = this.form.status;
     this.isSubmitted = false;
     this.form = this.createEmptyForm();
     this.form.academicTermId = termId;
     this.form.academicTermLabel = termLabel;
     this.form.periodType = periodType;
+    this.form.maximumScoreRatio = maximumScoreRatio;
     this.form.status = status;
     this.form.displayOrder = String(Number.isFinite(nextOrder) ? nextOrder : 1);
   }
@@ -454,6 +466,9 @@ export class PeriodesScolairesComponent implements OnInit {
         response.order_number ??
         0
     );
+    const maximumScoreRatio = Number(
+      response.maximumScoreRatio ?? response.maximum_score_ratio ?? 0
+    );
 
     return {
       id: String(response.id ?? `academic-period-${index}`),
@@ -464,6 +479,7 @@ export class PeriodesScolairesComponent implements OnInit {
       periodType,
       periodTypeLabel: this.periodTypeLabel(periodType),
       displayOrder: Number.isFinite(displayOrder) ? displayOrder : 0,
+      maximumScoreRatio: Number.isFinite(maximumScoreRatio) ? maximumScoreRatio : 0,
       status: response.active === false ? 'Inactif' : 'Actif'
     };
   }
@@ -520,6 +536,7 @@ export class PeriodesScolairesComponent implements OnInit {
       name: '',
       periodType: 'PERIOD',
       displayOrder: '1',
+      maximumScoreRatio: '1',
       status: 'Actif'
     };
   }

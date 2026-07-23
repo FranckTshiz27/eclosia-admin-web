@@ -1,0 +1,287 @@
+<div class="assignments-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Titulaires de classes</h2>
+      <p>
+        Affectez un titulaire par classe pour
+        {{ schoolName || 'cette école' }}
+        et une année scolaire.
+      </p>
+    </div>
+    <div class="panel-actions">
+      <button
+        class="btn-primary"
+        type="button"
+        (click)="openCreateModal()"
+        [disabled]="!schoolId || !selectedYearId || isYearClosed || isLoadingLookups"
+      >
+        <i class="bi bi-plus-lg"></i>
+        Affecter un titulaire
+      </button>
+    </div>
+  </div>
+
+  <div class="closed-year-banner" *ngIf="isYearClosed">
+    <i class="bi bi-lock"></i>
+    Année scolaire clôturée — consultation seule (pas de création, modification ni désactivation).
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onFilterChange()"
+          placeholder="Rechercher classe ou enseignant..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group year-filter">
+          <label>Année scolaire</label>
+          <app-searchable-select
+            [(ngModel)]="selectedYearId"
+            [ngModelOptions]="{ standalone: true }"
+            [options]="yearSelectOptions"
+            [disabled]="!schoolId || isLoadingLookups || yearOptions.length === 0"
+            [placeholder]="isLoadingLookups ? 'Chargement...' : 'Sélectionner une année'"
+            (selectionChange)="onYearChange()"
+          ></app-searchable-select>
+        </div>
+
+        <div class="filter-group status-filter">
+          <label>Statut</label>
+          <app-searchable-select
+            [(ngModel)]="statusFilter"
+            [ngModelOptions]="{ standalone: true }"
+            [options]="statusSelectOptions"
+            placeholder="Statut"
+            (selectionChange)="onFilterChange()"
+          ></app-searchable-select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Classe</th>
+            <th>Enseignant</th>
+            <th>Statut</th>
+            <th>Remarques</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoading || isLoadingLookups">
+            <td colspan="5" class="table-state">Chargement des titulaires...</td>
+          </tr>
+          <tr *ngIf="!isLoading && !isLoadingLookups && loadError">
+            <td colspan="5" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoading && !isLoadingLookups && !loadError && !schoolId">
+            <td colspan="5" class="table-state">Sélectionnez une école pour afficher les titulaires.</td>
+          </tr>
+          <tr
+            *ngIf="
+              !isLoading &&
+              !isLoadingLookups &&
+              !loadError &&
+              schoolId &&
+              !selectedYearId
+            "
+          >
+            <td colspan="5" class="table-state">Sélectionnez une année scolaire.</td>
+          </tr>
+          <tr
+            *ngIf="
+              !isLoading &&
+              !isLoadingLookups &&
+              !loadError &&
+              schoolId &&
+              selectedYearId &&
+              filteredAssignments.length === 0
+            "
+          >
+            <td colspan="5" class="table-state">Aucun titulaire pour cette école et année.</td>
+          </tr>
+          <tr *ngFor="let item of paginatedAssignments">
+            <td>
+              <strong>{{ item.classroomDisplayName }}</strong>
+            </td>
+            <td>{{ item.teacherFullName }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="item.active"
+                [class.badge-muted]="!item.active"
+              >
+                {{ item.active ? 'Actif' : 'Inactif' }}
+              </span>
+            </td>
+            <td>{{ item.remarks || '—' }}</td>
+            <td class="actions-col">
+              <button
+                type="button"
+                (click)="openEditModal(item)"
+                title="Modifier"
+                [disabled]="isYearClosed"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button
+                type="button"
+                (click)="deactivate(item)"
+                title="Désactiver"
+                [disabled]="isYearClosed || !item.active"
+              >
+                <i class="bi bi-slash-circle"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <div class="page-size">
+        <label>Lignes</label>
+        <app-searchable-select
+          [(ngModel)]="pageSizeValue"
+          [ngModelOptions]="{ standalone: true }"
+          [options]="pageSizeSelectOptions"
+          placeholder="Lignes"
+        ></app-searchable-select>
+      </div>
+      <p>
+        Affichage de {{ rangeStart }} à {{ rangeEnd }} sur {{ filteredAssignments.length }}
+        affectations
+      </p>
+      <div class="pager">
+        <button type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage <= 1">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button
+          type="button"
+          class="active"
+          disabled
+        >
+          {{ currentPage }} / {{ totalPages }}
+        </button>
+        <button
+          type="button"
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage >= totalPages"
+        >
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="assignment-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+    <form #formRef="ngForm" (ngSubmit)="save(formRef)">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon"><i class="bi bi-person-badge"></i></span>
+          <div>
+            <h3>{{ isEditMode ? 'Modifier le titulaire' : 'Affecter un titulaire' }}</h3>
+            <p>{{ selectedYear?.label || 'Année scolaire' }}</p>
+          </div>
+        </div>
+        <button class="modal-close" type="button" (click)="closeModal()" aria-label="Fermer">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="field-error" *ngIf="saveError">{{ saveError }}</p>
+        <div class="replace-box" *ngIf="replaceHint">
+          <p>{{ replaceHint }}</p>
+          <button class="btn-warning" type="button" (click)="replaceAndCreate()" [disabled]="isSaving">
+            Remplacer le titulaire
+          </button>
+        </div>
+
+        <div class="form-grid" *ngIf="!isEditMode">
+          <div class="form-field">
+            <label>Classe *</label>
+            <app-searchable-select
+              name="classroomId"
+              [(ngModel)]="form.classroomId"
+              [options]="classroomSelectOptions"
+              [disabled]="isSaving"
+              placeholder="Rechercher une classe..."
+            ></app-searchable-select>
+            <small class="field-error" *ngIf="isSubmitted && !form.classroomId">
+              La classe est obligatoire.
+            </small>
+          </div>
+
+          <div class="form-field">
+            <label>Enseignant *</label>
+            <app-searchable-select
+              name="teacherId"
+              [(ngModel)]="form.teacherId"
+              [options]="teacherSelectOptions"
+              [disabled]="isSaving"
+              placeholder="Rechercher un enseignant..."
+            ></app-searchable-select>
+            <small class="field-error" *ngIf="isSubmitted && !form.teacherId">
+              L’enseignant est obligatoire.
+            </small>
+          </div>
+        </div>
+
+        <div class="form-grid" *ngIf="isEditMode">
+          <div class="form-field">
+            <label>Classe</label>
+            <input type="text" [value]="labelOf(form.classroomId, classroomOptions)" disabled />
+          </div>
+          <div class="form-field">
+            <label>Enseignant</label>
+            <input type="text" [value]="labelOf(form.teacherId, teacherOptions)" disabled />
+          </div>
+          <div class="form-field">
+            <label class="checkbox-label">
+              <input type="checkbox" name="active" [(ngModel)]="form.active" [disabled]="isSaving" />
+              Actif
+            </label>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Remarques</label>
+          <textarea
+            name="remarks"
+            rows="3"
+            maxlength="1000"
+            [(ngModel)]="form.remarks"
+            [disabled]="isSaving"
+            placeholder="Optionnel (max 1000)"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()" [disabled]="isSaving">
+          Annuler
+        </button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || isYearClosed">
+          {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

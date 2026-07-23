@@ -102,10 +102,8 @@ export class InactivityService implements OnDestroy {
    */
   public logout(message: string = 'Vous avez été déconnecté.') {
     this.stopTimers();
-    this.securityService.logout();
-    
-    // Alerte utilisateur et redirection
-    alert(message); 
+    this.securityService.logout(true);
+    alert(message);
     this.router.navigate(['/login']);
   }
 

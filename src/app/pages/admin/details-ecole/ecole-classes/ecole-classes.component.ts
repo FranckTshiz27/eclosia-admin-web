@@ -13,6 +13,10 @@ import {
   AcademicSectionApiResponse
 } from '../../../../services/academic-section.service';
 import {
+  AcademicYearApiResponse,
+  AcademicYearService
+} from '../../../../services/academic-year.service';
+import {
   ClassroomApiResponse,
   ClassroomService,
   CreateClassroomDto
@@ -21,6 +25,9 @@ import {
   ClassroomDesignationApiResponse,
   ClassroomDesignationService
 } from '../../../../services/classroom-designation.service';
+import { TeacherClassAssignmentService } from '../../../../services/teacher-class-assignment.service';
+import { TeacherCourseAssignmentService } from '../../../../services/teacher-course-assignment.service';
+import { extractApiErrorMessage } from '../../../../core/utils/api-error';
 
 type ClassStatus = 'Active' | 'Inactive';
 
@@ -90,6 +97,21 @@ export class EcoleClassesComponent implements OnInit, OnChanges {
   isSaving = false;
   saveError = '';
 
+  isAssignmentsModalOpen = false;
+  assignmentsClassroomId = '';
+  assignmentsClassroomName = '';
+  assignmentsYearId = '';
+  assignmentYearOptions: { id: string; label: string; active: boolean }[] = [];
+  isLoadingAssignments = false;
+  assignmentsError = '';
+  activeTitularName = '';
+  classroomCourseAssignments: {
+    subjectLabel: string;
+    teacherFullName: string;
+    weeklyHours: number | null;
+    active: boolean;
+  }[] = [];
+
   levelFilterOptions: FilterOption[] = [{ value: 'all', label: 'Tous les niveaux' }];
   sectionFilterOptions: FilterOption[] = [{ value: 'all', label: 'Toutes les sections' }];
   designationFormOptions: FilterOption[] = [];
@@ -128,7 +150,10 @@ export class EcoleClassesComponent implements OnInit, OnChanges {
     private readonly classroomDesignationService: ClassroomDesignationService,
     private readonly academicLevelService: AcademicLevelService,
     private readonly academicSectionService: AcademicSectionService,
-    private readonly academicOptionService: AcademicOptionService
+    private readonly academicOptionService: AcademicOptionService,
+    private readonly academicYearService: AcademicYearService,
+    private readonly teacherClassAssignmentService: TeacherClassAssignmentService,
+    private readonly teacherCourseAssignmentService: TeacherCourseAssignmentService
   ) {}
 
   ngOnInit(): void {
@@ -141,6 +166,7 @@ export class EcoleClassesComponent implements OnInit, OnChanges {
     if (changes['schoolId'] && !changes['schoolId'].firstChange) {
       this.currentPage = 1;
       this.closeModal();
+      this.closeAssignmentsModal();
       this.bootstrap();
     }
   }
@@ -317,6 +343,105 @@ export class EcoleClassesComponent implements OnInit, OnChanges {
     this.saveError = '';
     this.form = this.buildEmptyForm();
     this.applyLevelFieldConstraints();
+  }
+
+  openAssignmentsModal(item: ClassroomItem): void {
+    this.assignmentsClassroomId = item.id;
+    this.assignmentsClassroomName = item.displayName;
+    this.assignmentsError = '';
+    this.activeTitularName = '';
+    this.classroomCourseAssignments = [];
+    this.isAssignmentsModalOpen = true;
+    this.loadClassroomAssignmentYears();
+  }
+
+  closeAssignmentsModal(): void {
+    this.isAssignmentsModalOpen = false;
+    this.assignmentsClassroomId = '';
+    this.assignmentsClassroomName = '';
+    this.assignmentsYearId = '';
+    this.assignmentsError = '';
+    this.activeTitularName = '';
+    this.classroomCourseAssignments = [];
+  }
+
+  onClassroomAssignmentsYearChange(): void {
+    this.loadClassroomAssignments();
+  }
+
+  private loadClassroomAssignmentYears(): void {
+    if (!this.schoolId) {
+      return;
+    }
+    this.academicYearService
+      .getAll({ schoolId: this.schoolId })
+      .pipe(catchError(() => of([])))
+      .subscribe({
+        next: (years) => {
+          this.assignmentYearOptions = (years as AcademicYearApiResponse[])
+            .map((year) => ({
+              id: String(year.id ?? ''),
+              label: AcademicYearService.buildLabel(year),
+              active: year.active !== false
+            }))
+            .filter((year) => year.id);
+          this.assignmentsYearId =
+            this.assignmentYearOptions.find((year) => year.active)?.id ??
+            this.assignmentYearOptions[0]?.id ??
+            '';
+          this.loadClassroomAssignments();
+        },
+        error: (error) => {
+          this.assignmentsError = extractApiErrorMessage(
+            error,
+            'Impossible de charger les années scolaires.'
+          );
+        }
+      });
+  }
+
+  private loadClassroomAssignments(): void {
+    if (!this.assignmentsClassroomId || !this.assignmentsYearId) {
+      return;
+    }
+    this.isLoadingAssignments = true;
+    this.assignmentsError = '';
+    this.activeTitularName = '';
+
+    forkJoin({
+      titular: this.teacherClassAssignmentService
+        .getActiveByClassroom(this.assignmentsClassroomId, this.assignmentsYearId)
+        .pipe(catchError(() => of(null))),
+      courses: this.teacherCourseAssignmentService
+        .listByClassroom(this.assignmentsClassroomId, this.assignmentsYearId)
+        .pipe(catchError(() => of([])))
+    }).subscribe({
+      next: ({ titular, courses }) => {
+        this.isLoadingAssignments = false;
+        if (titular) {
+          this.activeTitularName = String(
+            titular.teacherFullName ?? titular.teacher_full_name ?? ''
+          ).trim();
+        }
+        this.classroomCourseAssignments = courses.map((row) => {
+          const code = String(row.subjectCode ?? row.subject_code ?? '').trim();
+          const name = String(row.subjectName ?? row.subject_name ?? '').trim();
+          return {
+            subjectLabel: code && name ? `${code} — ${name}` : code || name || '—',
+            teacherFullName: String(row.teacherFullName ?? row.teacher_full_name ?? '—'),
+            weeklyHours: row.weeklyHours ?? row.weekly_hours ?? null,
+            active: row.active !== false
+          };
+        });
+      },
+      error: (error) => {
+        this.isLoadingAssignments = false;
+        this.assignmentsError = extractApiErrorMessage(
+          error,
+          'Impossible de charger les affectations de la classe.'
+        );
+      }
+    });
   }
 
   onFormLevelChange(): void {

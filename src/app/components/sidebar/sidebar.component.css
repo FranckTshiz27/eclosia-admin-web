@@ -79,6 +79,14 @@ body.dark-theme .sidebar {
     display: none;
 }
 
+.sidebar-nav {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 2px;
+}
+
 .sidebar-nav ul {
     list-style: none;
     padding: 0;
@@ -178,11 +186,11 @@ body.dark-theme .sidebar {
 }
 
 .students-menu.has-submenu.open .submenu {
-    max-height: 260px;
+    max-height: 480px;
 }
 
 .students-menu.has-submenu.open .finance-submenu {
-    max-height: 360px;
+    max-height: 480px;
 }
 
 .students-submenu {

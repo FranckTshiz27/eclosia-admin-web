@@ -1,0 +1,352 @@
+<div class="page-container cycles-page modules-page">
+  <div class="cycles-header">
+    <div class="cycles-title-wrap">
+      <span class="cycles-icon"><i class="bi bi-key"></i></span>
+      <div>
+        <h1>Fonctionnalités</h1>
+        <p>Gérez les fonctionnalités (actions) rattachées aux modules de sécurité</p>
+      </div>
+    </div>
+    <button class="btn-new-cycle" type="button" (click)="openCreateModal()" [disabled]="isLoadingLookups">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Nouvelle fonctionnalité
+    </button>
+  </div>
+
+  <div class="alert alert-success" *ngIf="saveSuccess">{{ saveSuccess }}</div>
+  <div class="alert alert-error" *ngIf="modulesLoadError && !isModalOpen">{{ modulesLoadError }}</div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher une fonctionnalité..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Module</label>
+          <select
+            [(ngModel)]="moduleFilter"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onModuleFilterChange()"
+          >
+            <option value="all">Tous les modules</option>
+            <option *ngFor="let module of modules" [value]="module.id">{{ module.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Action</label>
+          <select [(ngModel)]="actionFilter" [ngModelOptions]="{ standalone: true }">
+            <option value="all">Toutes les actions</option>
+            <option *ngFor="let action of actionOptions" [value]="action.value">
+              {{ action.value }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Type</label>
+          <select [(ngModel)]="systemFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of systemOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="cycles-table-wrapper">
+      <table class="cycles-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Module</th>
+            <th>Action</th>
+            <th>Ordre</th>
+            <th>Type</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingRows || isLoadingLookups">
+            <td colspan="8" class="table-state">Chargement des fonctionnalités...</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && !isLoadingLookups && loadError">
+            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && !isLoadingLookups && !loadError && filteredRows.length === 0">
+            <td colspan="8" class="table-state">Aucune fonctionnalité trouvée.</td>
+          </tr>
+          <tr *ngFor="let row of filteredRows">
+            <td class="code-col">{{ row.code }}</td>
+            <td class="cycle-name">
+              <div>{{ row.name }}</div>
+              <small *ngIf="row.description" class="row-desc">{{ row.description }}</small>
+            </td>
+            <td>{{ row.moduleLabel }}</td>
+            <td>
+              <span class="badge badge-muted">{{ row.action }}</span>
+            </td>
+            <td>{{ row.displayOrder }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="row.systemFeature"
+                [class.badge-muted]="!row.systemFeature"
+              >
+                {{ row.systemLabel }}
+              </span>
+            </td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="row.status === 'Actif'"
+                [class.badge-muted]="row.status === 'Inactif'"
+              >
+                {{ row.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" title="Modifier" (click)="openEditModal(row)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" title="Supprimer" (click)="deleteRow(row)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>
+        Affichage de {{ filteredRows.length }} fonctionnalité{{ filteredRows.length > 1 ? 's' : '' }}
+        sur {{ rows.length }}
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-cycle-modal create-feature-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier la fonctionnalité' : 'Nouvelles fonctionnalités' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez à jour les informations de cette fonctionnalité'
+              : 'Sélectionnez un ou plusieurs modules et actions. Les couples déjà existants seront ignorés.'
+          }}
+        </p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #featureForm="ngForm" (ngSubmit)="saveFeature(featureForm)" novalidate>
+      <div class="modal-body">
+        <div class="alert alert-error" *ngIf="saveError">{{ saveError }}</div>
+        <div class="alert alert-error" *ngIf="modulesLoadError">{{ modulesLoadError }}</div>
+
+        <section class="form-section" *ngIf="!isEditMode">
+          <h4>Modules <span>*</span></h4>
+          <div class="multi-toolbar">
+            <button type="button" class="link-btn" (click)="selectAllModules()" [disabled]="!modules.length">
+              Tout sélectionner
+            </button>
+            <button type="button" class="link-btn" (click)="clearModules()">Tout désélectionner</button>
+            <span class="multi-count">{{ form.moduleIds.length }} sélectionné(s)</span>
+          </div>
+          <div class="check-grid" *ngIf="modules.length">
+            <label class="check-item" *ngFor="let module of modules" [class.selected]="isModuleSelected(module.id)">
+              <input
+                type="checkbox"
+                [checked]="isModuleSelected(module.id)"
+                (change)="toggleModule(module.id)"
+              />
+              <span>{{ module.label }}</span>
+            </label>
+          </div>
+          <p class="empty-hint" *ngIf="!isLoadingLookups && !modules.length">
+            Aucun module chargé. Créez d’abord des modules dans ACCÈS → Module.
+          </p>
+        </section>
+
+        <section class="form-section" *ngIf="!isEditMode">
+          <h4>Actions <span>*</span></h4>
+          <div class="multi-toolbar">
+            <button type="button" class="link-btn" (click)="selectAllActions()">Tout sélectionner</button>
+            <button type="button" class="link-btn" (click)="clearActions()">Tout désélectionner</button>
+            <span class="multi-count">{{ form.actions.length }} sélectionnée(s)</span>
+          </div>
+          <div class="check-grid actions-grid">
+            <label
+              class="check-item"
+              *ngFor="let action of actionOptions"
+              [class.selected]="isActionSelected(action.value)"
+            >
+              <input
+                type="checkbox"
+                [checked]="isActionSelected(action.value)"
+                (change)="toggleAction(action.value)"
+              />
+              <span>{{ action.label }}</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section" *ngIf="isEditMode">
+          <h4>Informations générales</h4>
+
+          <div class="field-group">
+            <label>Module <span>*</span></label>
+            <select name="moduleId" [(ngModel)]="form.moduleId" required>
+              <option value="" disabled>Sélectionner un module</option>
+              <option *ngFor="let module of modules" [value]="module.id">{{ module.label }}</option>
+            </select>
+          </div>
+
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Action <span>*</span></label>
+              <select name="action" [(ngModel)]="form.action" required>
+                <option value="" disabled>Sélectionner une action</option>
+                <option *ngFor="let action of actionOptions" [value]="action.value">
+                  {{ action.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Ordre d'affichage <span>*</span></label>
+              <input
+                type="number"
+                name="displayOrder"
+                [(ngModel)]="form.displayOrder"
+                required
+                min="0"
+                step="1"
+              />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Nom <span>*</span></label>
+            <input type="text" name="name" [(ngModel)]="form.name" required maxlength="150" />
+          </div>
+        </section>
+
+        <section class="form-section" *ngIf="!isEditMode">
+          <h4>Options communes</h4>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Préfixe de nom (optionnel)</label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                maxlength="100"
+                placeholder="Laissé vide = Module — Action"
+              />
+              <small class="field-hint">Sinon le nom sera généré automatiquement pour chaque couple.</small>
+            </div>
+            <div class="field-group">
+              <label>Ordre d'affichage <span>*</span></label>
+              <input
+                type="number"
+                name="displayOrder"
+                [(ngModel)]="form.displayOrder"
+                required
+                min="0"
+                step="1"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="field-group">
+            <label>Description</label>
+            <textarea
+              name="description"
+              [(ngModel)]="form.description"
+              maxlength="500"
+              rows="3"
+              placeholder="Description (appliquée à toutes les fonctionnalités créées)"
+            ></textarea>
+          </div>
+
+          <label class="section-label">Statut <span>*</span></label>
+          <div class="status-cards">
+            <label class="status-card" [class.selected]="form.status === 'Actif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Actif" required />
+              <span>Actif</span>
+            </label>
+            <label class="status-card" [class.selected]="form.status === 'Inactif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Inactif" required />
+              <span>Inactif</span>
+            </label>
+          </div>
+
+          <label class="check-row">
+            <input type="checkbox" name="systemFeature" [(ngModel)]="form.systemFeature" />
+            Fonctionnalité système
+          </label>
+        </section>
+
+        <section class="form-section" *ngIf="!isEditMode && (form.moduleIds.length || form.actions.length)">
+          <h4>Aperçu des couples à créer</h4>
+          <p class="preview-meta">
+            {{ plannedCouples.length }} nouveau(x) couple(s)
+            <span *ngIf="skippedExistingCount"> — {{ skippedExistingCount }} déjà existant(s) ignoré(s)</span>
+          </p>
+          <div class="preview-list" *ngIf="plannedCouples.length">
+            <div class="preview-chip" *ngFor="let couple of plannedCouples">
+              {{ couple.moduleLabel }} · {{ couple.action }}
+            </div>
+          </div>
+          <p class="empty-hint" *ngIf="!plannedCouples.length && skippedExistingCount">
+            Aucun nouveau couple : toutes les combinaisons existent déjà.
+          </p>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()" [disabled]="isSaving">
+          Annuler
+        </button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || isLoadingLookups">
+          {{
+            isSaving
+              ? 'Enregistrement…'
+              : isEditMode
+                ? 'Mettre à jour'
+                : 'Créer (' + plannedCouples.length + ')'
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

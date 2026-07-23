@@ -107,6 +107,10 @@ export class SchoolService {
     return this.http.put<SchoolApiResponse>(`${this.endpoint}/${id}`, dto);
   }
 
+  getById(id: string): Observable<SchoolApiResponse> {
+    return this.http.get<SchoolApiResponse>(`${this.endpoint}/${id}`);
+  }
+
   getAll(): Observable<SchoolApiResponse[]> {
     return this.http.get<SchoolListPayload>(this.endpoint).pipe(
       map((response) => {

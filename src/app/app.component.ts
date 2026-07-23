@@ -6,8 +6,8 @@ import { ToastContainerComponent } from './components/toast-container/toast-cont
 import { SidebarService } from './services/sidebar.service';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
-
 import { InactivityService } from './services/inactivity.service';
+import { SecurityService } from './services/security.service';
 
 @Component({
   selector: 'app-root',
@@ -22,25 +22,33 @@ export class AppComponent implements OnInit {
   showLayout = true;
 
   constructor(
-    private sidebarService: SidebarService,
-    private router: Router,
-    private inactivityService: InactivityService // On injecte le service ici pour l'activer
+    private readonly sidebarService: SidebarService,
+    private readonly router: Router,
+    private readonly inactivityService: InactivityService,
+    private readonly securityService: SecurityService
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.sidebarService.isCollapsed$.subscribe(
-      collapsed => this.isSidebarCollapsed = collapsed
+      (collapsed) => (this.isSidebarCollapsed = collapsed)
     );
 
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe((event: any) => {
-      const url = event.urlAfterRedirects;
-      this.showLayout = !url.includes('/login') && !url.includes('/mfa') && !url.includes('/forgot-password') && !url.includes('fipix-docs');
-    });
+    if (this.securityService.getAccessToken()) {
+      this.securityService.loadCurrentUser().subscribe();
+    }
+
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        const url = event.urlAfterRedirects;
+        this.showLayout =
+          !url.includes('/login') &&
+          !url.includes('/forgot-password') &&
+          !url.includes('fipix-docs');
+      });
   }
 
-  closeSidebar() {
+  closeSidebar(): void {
     this.sidebarService.setCollapsed(true);
   }
 }

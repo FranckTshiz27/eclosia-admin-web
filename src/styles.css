@@ -369,6 +369,40 @@ body.dark-theme textarea {
     border-color: var(--border-color) !important;
 }
 
+/* Auth pages — champs toujours clairs */
+body.dark-theme .login-container,
+body.dark-theme .login-right,
+body.dark-theme .auth-container {
+    color-scheme: light;
+}
+
+body.dark-theme .login-container .input-wrapper,
+body.dark-theme .login-container .input-wrapper input,
+body.dark-theme .auth-container .input-icon-wrapper input {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #17244c !important;
+    border-color: #e3e8f1 !important;
+    -webkit-text-fill-color: #17244c !important;
+}
+
+body.dark-theme .login-container .input-wrapper input::placeholder,
+body.dark-theme .auth-container .input-icon-wrapper input::placeholder {
+    color: #9ba8bf !important;
+    -webkit-text-fill-color: #9ba8bf !important;
+}
+
+body.dark-theme .login-container .input-wrapper input:-webkit-autofill,
+body.dark-theme .login-container .input-wrapper input:-webkit-autofill:hover,
+body.dark-theme .login-container .input-wrapper input:-webkit-autofill:focus,
+body.dark-theme .auth-container .input-icon-wrapper input:-webkit-autofill,
+body.dark-theme .auth-container .input-icon-wrapper input:-webkit-autofill:hover,
+body.dark-theme .auth-container .input-icon-wrapper input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+    -webkit-text-fill-color: #17244c !important;
+    caret-color: #17244c;
+}
+
 /* Page Paiements — champs toujours clairs (maquette) */
 body.dark-theme .payments-page {
     color-scheme: light;
@@ -467,6 +501,129 @@ body.dark-theme .main-header .search-box input:focus {
     background: #ffffff !important;
     border-color: #86b7fe !important;
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15) !important;
+}
+
+/* Section Enseignants — toujours claire */
+body.dark-theme .enseignants-panel,
+body.dark-theme .enseignants-panel .table-card,
+body.dark-theme .enseignants-panel .table-toolbar,
+body.dark-theme .enseignants-panel .table-footer,
+body.dark-theme .enseignants-panel .teachers-table th,
+body.dark-theme .enseignants-panel .teachers-table td,
+body.dark-theme .enseignants-panel input,
+body.dark-theme .enseignants-panel textarea,
+body.dark-theme .enseignants-panel select,
+body.dark-theme .enseignants-panel .search-box input,
+body.dark-theme .enseignants-panel .filter-group select,
+body.dark-theme .enseignants-panel .page-size select,
+body.dark-theme .enseignants-panel .pager button:not(.active),
+body.dark-theme .enseignants-panel .btn-reset,
+body.dark-theme app-ecole-enseignants .modal-card,
+body.dark-theme app-ecole-enseignants .modal-header,
+body.dark-theme app-ecole-enseignants .modal-body,
+body.dark-theme app-ecole-enseignants .modal-footer,
+body.dark-theme app-ecole-enseignants .teacher-modal,
+body.dark-theme app-ecole-enseignants .field-group input,
+body.dark-theme app-ecole-enseignants .field-group textarea,
+body.dark-theme app-ecole-enseignants .field-group select,
+body.dark-theme app-ecole-enseignants .check-item,
+body.dark-theme app-ecole-enseignants .toggle-row,
+body.dark-theme app-ecole-enseignants .btn-cancel,
+body.dark-theme app-ecole-enseignants .btn-upload,
+body.dark-theme app-ecole-enseignants .credential-row {
+    background: #ffffff !important;
+    color: #18213a !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.dark-theme .enseignants-panel .panel-header h2,
+body.dark-theme .enseignants-panel .teacher-cell strong,
+body.dark-theme app-ecole-enseignants .modal-header h3,
+body.dark-theme app-ecole-enseignants .form-section h4,
+body.dark-theme app-ecole-enseignants .field-group label {
+    color: #18213a !important;
+}
+
+body.dark-theme .enseignants-panel .panel-header p,
+body.dark-theme .enseignants-panel .teacher-cell p,
+body.dark-theme .enseignants-panel .table-footer p,
+body.dark-theme .enseignants-panel .filter-group label {
+    color: #5f6c82 !important;
+}
+
+body.dark-theme app-ecole-enseignants .modal-backdrop,
+body.dark-theme app-ecole-enseignants .credentials-backdrop {
+    background: rgba(15, 23, 42, 0.45) !important;
+}
+
+body.dark-theme .enseignants-panel .pager button.active {
+    background: #0a53de !important;
+    border-color: #0a53de !important;
+    color: #ffffff !important;
+}
+
+/* Titulaires / Affectations de cours — champs toujours clairs */
+body.dark-theme .assignments-panel,
+body.dark-theme .assignments-panel .table-card,
+body.dark-theme .assignments-panel .table-toolbar,
+body.dark-theme .assignments-panel .table-footer,
+body.dark-theme .assignments-panel .data-table th,
+body.dark-theme .assignments-panel .data-table td,
+body.dark-theme .assignments-panel input,
+body.dark-theme .assignments-panel textarea,
+body.dark-theme .assignments-panel select,
+body.dark-theme .assignments-panel .search-box input,
+body.dark-theme .assignments-panel .filter-group select,
+body.dark-theme .assignments-panel .page-size select,
+body.dark-theme .assignments-panel .pager button:not(.active),
+body.dark-theme .assignments-panel .btn-reset,
+body.dark-theme app-ecole-titulaires .assignment-modal,
+body.dark-theme app-ecole-titulaires .assignment-modal .modal-header,
+body.dark-theme app-ecole-titulaires .assignment-modal .modal-body,
+body.dark-theme app-ecole-titulaires .assignment-modal .modal-footer,
+body.dark-theme app-ecole-titulaires .form-field input,
+body.dark-theme app-ecole-titulaires .form-field select,
+body.dark-theme app-ecole-titulaires .form-field textarea,
+body.dark-theme app-ecole-titulaires .btn-cancel,
+body.dark-theme app-ecole-affectations-cours .assignment-modal,
+body.dark-theme app-ecole-affectations-cours .assignment-modal .modal-header,
+body.dark-theme app-ecole-affectations-cours .assignment-modal .modal-body,
+body.dark-theme app-ecole-affectations-cours .assignment-modal .modal-footer,
+body.dark-theme app-ecole-affectations-cours .form-field input,
+body.dark-theme app-ecole-affectations-cours .form-field select,
+body.dark-theme app-ecole-affectations-cours .form-field textarea,
+body.dark-theme app-ecole-affectations-cours .btn-cancel {
+    background: #ffffff !important;
+    color: #18213a !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.dark-theme .assignments-panel .panel-header h2,
+body.dark-theme app-ecole-titulaires .modal-header h3,
+body.dark-theme app-ecole-titulaires .form-field label,
+body.dark-theme app-ecole-affectations-cours .modal-header h3,
+body.dark-theme app-ecole-affectations-cours .form-field label {
+    color: #18213a !important;
+}
+
+body.dark-theme .assignments-panel .panel-header p,
+body.dark-theme .assignments-panel .filter-group label,
+body.dark-theme .assignments-panel .table-footer p {
+    color: #5f6c82 !important;
+}
+
+body.dark-theme app-ecole-titulaires .modal-backdrop,
+body.dark-theme app-ecole-affectations-cours .modal-backdrop {
+    background: rgba(15, 23, 42, 0.45) !important;
+}
+
+body.dark-theme app-searchable-select input,
+body.dark-theme app-searchable-select .select-dropdown,
+body.dark-theme app-searchable-select .select-option {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #1f293f !important;
+    border-color: #e2e8f0 !important;
 }
 
 body.dark-theme .cursus-form-section, 

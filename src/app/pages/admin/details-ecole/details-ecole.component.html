@@ -150,7 +150,39 @@
     <app-ecole-classroom-designations [schoolId]="selectedSchoolId"></app-ecole-classroom-designations>
   </section>
 
-  <section *ngIf="activeTab !== 'modeles-academiques' && activeTab !== 'devises-annee-scolaire' && activeTab !== 'classes' && activeTab !== 'designations-salles'" class="tab-panel tab-placeholder">
+  <section *ngIf="activeTab === 'enseignants'" class="tab-panel">
+    <app-ecole-enseignants
+      [schoolId]="selectedSchoolId"
+      [schoolName]="selectedSchool?.name ?? ''"
+    ></app-ecole-enseignants>
+  </section>
+
+  <section *ngIf="activeTab === 'titulaires'" class="tab-panel">
+    <app-ecole-titulaires
+      [schoolId]="selectedSchoolId"
+      [schoolName]="selectedSchool?.name ?? ''"
+    ></app-ecole-titulaires>
+  </section>
+
+  <section *ngIf="activeTab === 'affectations-cours'" class="tab-panel">
+    <app-ecole-affectations-cours
+      [schoolId]="selectedSchoolId"
+      [schoolName]="selectedSchool?.name ?? ''"
+    ></app-ecole-affectations-cours>
+  </section>
+
+  <section
+    *ngIf="
+      activeTab !== 'modeles-academiques' &&
+      activeTab !== 'devises-annee-scolaire' &&
+      activeTab !== 'classes' &&
+      activeTab !== 'designations-salles' &&
+      activeTab !== 'enseignants' &&
+      activeTab !== 'titulaires' &&
+      activeTab !== 'affectations-cours'
+    "
+    class="tab-panel tab-placeholder"
+  >
     <div class="placeholder-card">
       <i class="bi bi-tools"></i>
       <h2>{{ activeTabLabel }}</h2>

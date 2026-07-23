@@ -1,0 +1,386 @@
+<div class="page-container cycles-page modules-page">
+  <div class="cycles-header">
+    <div class="cycles-title-wrap">
+      <span class="cycles-icon"><i class="bi bi-people"></i></span>
+      <div>
+        <h1>Utilisateurs</h1>
+        <p>Gérez les comptes utilisateurs, leurs rôles, groupes et écoles</p>
+      </div>
+    </div>
+    <button class="btn-new-cycle" type="button" (click)="openCreateModal()" [disabled]="isLoadingLookups">
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Nouvel utilisateur
+    </button>
+  </div>
+
+  <div class="alert alert-success" *ngIf="saveSuccess">{{ saveSuccess }}</div>
+  <div class="alert alert-error" *ngIf="lookupsError && !isModalOpen">{{ lookupsError }}</div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher un utilisateur..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Groupe</label>
+          <select [(ngModel)]="groupFilter" [ngModelOptions]="{ standalone: true }">
+            <option value="all">Tous les groupes</option>
+            <option *ngFor="let group of groups" [value]="group.id">{{ group.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Rôle</label>
+          <select [(ngModel)]="roleFilter" [ngModelOptions]="{ standalone: true }">
+            <option value="all">Tous les rôles</option>
+            <option *ngFor="let role of roles" [value]="role.id">{{ role.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>École</label>
+          <select [(ngModel)]="schoolFilter" [ngModelOptions]="{ standalone: true }">
+            <option value="all">Toutes les écoles</option>
+            <option *ngFor="let school of schools" [value]="school.id">{{ school.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="cycles-table-wrapper">
+      <table class="cycles-table">
+        <thead>
+          <tr>
+            <th>Identifiant</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Groupe</th>
+            <th>Rôles</th>
+            <th>Écoles</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingRows || isLoadingLookups">
+            <td colspan="8" class="table-state">Chargement des utilisateurs...</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && !isLoadingLookups && loadError">
+            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && !isLoadingLookups && !loadError && filteredRows.length === 0">
+            <td colspan="8" class="table-state">Aucun utilisateur trouvé.</td>
+          </tr>
+          <tr *ngFor="let row of filteredRows">
+            <td class="code-col">{{ row.username }}</td>
+            <td class="cycle-name">{{ row.fullName || '—' }}</td>
+            <td>{{ row.email || '—' }}</td>
+            <td>{{ row.groupLabel }}</td>
+            <td>{{ row.roleLabels }}</td>
+            <td>{{ row.schoolLabels }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="row.status === 'Actif'"
+                [class.badge-muted]="row.status === 'Inactif'"
+              >
+                {{ row.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" title="Modifier" (click)="openEditModal(row)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" title="Supprimer" (click)="deleteRow(row)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>
+        Affichage de {{ filteredRows.length }} utilisateur{{ filteredRows.length > 1 ? 's' : '' }}
+        sur {{ rows.length }}
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-cycle-modal create-user-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier l’utilisateur' : 'Nouvel utilisateur' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez à jour le profil, les rôles et les écoles de cet utilisateur'
+              : 'Créez un compte utilisateur avec ses rôles et son périmètre (groupe / écoles)'
+          }}
+        </p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #userForm="ngForm" (ngSubmit)="saveUser(userForm)" novalidate>
+      <div class="modal-body">
+        <div class="alert alert-error" *ngIf="saveError">{{ saveError }}</div>
+        <div class="alert alert-error" *ngIf="lookupsError">{{ lookupsError }}</div>
+
+        <section class="form-section">
+          <h4>Informations générales</h4>
+
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Identifiant <span>*</span></label>
+              <input
+                type="text"
+                name="username"
+                [(ngModel)]="form.username"
+                #usernameCtrl="ngModel"
+                [required]="!isEditMode"
+                maxlength="100"
+                pattern=".*\S.*"
+                [disabled]="isEditMode"
+                placeholder="Ex: jdupont"
+                [class.input-invalid]="!isEditMode && ((usernameCtrl.invalid && usernameCtrl.touched) || (isSubmitted && usernameCtrl.invalid))"
+              />
+              <small class="field-error" *ngIf="!isEditMode && (usernameCtrl.touched || isSubmitted) && usernameCtrl.invalid">
+                L’identifiant est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Email</label>
+              <input
+                type="email"
+                name="email"
+                [(ngModel)]="form.email"
+                #emailCtrl="ngModel"
+                maxlength="255"
+                email
+                placeholder="Ex: jean.dupont@ecole.cd"
+                [class.input-invalid]="emailCtrl.invalid && (emailCtrl.touched || isSubmitted)"
+              />
+              <small class="field-error" *ngIf="emailCtrl.invalid && (emailCtrl.touched || isSubmitted)">
+                L’email n’est pas valide.
+              </small>
+            </div>
+          </div>
+
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Prénom</label>
+              <input
+                type="text"
+                name="firstName"
+                [(ngModel)]="form.firstName"
+                maxlength="100"
+                placeholder="Prénom"
+              />
+            </div>
+            <div class="field-group">
+              <label>Nom</label>
+              <input
+                type="text"
+                name="lastName"
+                [(ngModel)]="form.lastName"
+                maxlength="100"
+                placeholder="Nom"
+              />
+            </div>
+          </div>
+
+          <ng-container *ngIf="!isEditMode">
+            <div class="field-group">
+              <label>Mot de passe <span>*</span></label>
+              <input
+                type="password"
+                name="password"
+                [(ngModel)]="form.password"
+                #passwordCtrl="ngModel"
+                required
+                minlength="8"
+                placeholder="Minimum 8 caractères"
+                [class.input-invalid]="(passwordCtrl.invalid && passwordCtrl.touched) || (isSubmitted && passwordCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(passwordCtrl.touched || isSubmitted) && passwordCtrl.invalid">
+                Mot de passe obligatoire (min. 8 caractères).
+              </small>
+            </div>
+
+            <label class="check-row">
+              <input type="checkbox" name="temporaryPassword" [(ngModel)]="form.temporaryPassword" />
+              Mot de passe temporaire (changement obligatoire à la première connexion)
+            </label>
+          </ng-container>
+        </section>
+
+        <section class="form-section">
+          <h4>Périmètre</h4>
+
+          <div class="field-group">
+            <label>Groupe <span>*</span></label>
+            <select
+              name="groupId"
+              [(ngModel)]="form.groupId"
+              #groupCtrl="ngModel"
+              required
+              (ngModelChange)="onGroupChange()"
+              [class.input-invalid]="(groupCtrl.invalid && groupCtrl.touched) || (isSubmitted && groupCtrl.invalid)"
+            >
+              <option value="" disabled>Sélectionner un groupe</option>
+              <option *ngFor="let group of groups" [value]="group.id">{{ group.label }}</option>
+            </select>
+            <small class="field-error" *ngIf="(groupCtrl.touched || isSubmitted) && groupCtrl.invalid">
+              Le groupe est obligatoire.
+            </small>
+          </div>
+
+          <div class="field-group">
+            <label>Écoles</label>
+            <small class="field-hint">Optionnel. Si vide, l’utilisateur est rattaché au groupe uniquement.</small>
+            <div class="selection-filter-panel" *ngIf="form.groupId">
+              <div class="filter-group">
+                <label>Filtrer les écoles</label>
+                <div class="search-box modal-search-box">
+                  <i class="bi bi-search"></i>
+                  <input
+                    type="text"
+                    [(ngModel)]="schoolSearchTerm"
+                    [ngModelOptions]="{ standalone: true }"
+                    placeholder="Rechercher une école..."
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="multi-toolbar" *ngIf="form.groupId">
+              <button
+                type="button"
+                class="link-btn"
+                (click)="selectAllSchools()"
+                [disabled]="!filteredSchoolOptions.length"
+              >
+                Tout sélectionner
+              </button>
+              <button type="button" class="link-btn" (click)="clearSchools()">Tout désélectionner</button>
+              <span class="multi-count">{{ form.schoolIds.length }} sélectionnée(s)</span>
+            </div>
+            <div class="check-grid" *ngIf="form.groupId && filteredSchoolOptions.length">
+              <label
+                class="check-item"
+                *ngFor="let school of filteredSchoolOptions"
+                [class.selected]="isSchoolSelected(school.id)"
+              >
+                <input
+                  type="checkbox"
+                  [checked]="isSchoolSelected(school.id)"
+                  (change)="toggleSchool(school.id)"
+                />
+                <span>{{ school.label }}</span>
+              </label>
+            </div>
+            <p class="empty-hint" *ngIf="!form.groupId">
+              Sélectionnez d’abord un groupe pour afficher ses écoles.
+            </p>
+            <p class="empty-hint" *ngIf="form.groupId && !filteredSchoolOptions.length">
+              Aucune école pour ce groupe.
+            </p>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Rôles <span>*</span></h4>
+          <div class="selection-filter-panel">
+            <div class="filter-group">
+              <label>Filtrer les rôles</label>
+              <div class="search-box modal-search-box">
+                <i class="bi bi-search"></i>
+                <input
+                  type="text"
+                  [(ngModel)]="roleSearchTerm"
+                  [ngModelOptions]="{ standalone: true }"
+                  placeholder="Rechercher un rôle..."
+                />
+              </div>
+            </div>
+          </div>
+          <div class="multi-toolbar">
+            <button type="button" class="link-btn" (click)="selectAllRoles()" [disabled]="!filteredRoleOptions.length">
+              Tout sélectionner
+            </button>
+            <button type="button" class="link-btn" (click)="clearRoles()">Tout désélectionner</button>
+            <span class="multi-count">{{ form.roleIds.length }} sélectionné(s)</span>
+          </div>
+          <div class="check-grid" *ngIf="filteredRoleOptions.length">
+            <label class="check-item" *ngFor="let role of filteredRoleOptions" [class.selected]="isRoleSelected(role.id)">
+              <input
+                type="checkbox"
+                [checked]="isRoleSelected(role.id)"
+                (change)="toggleRole(role.id)"
+              />
+              <span>{{ role.label }}</span>
+            </label>
+          </div>
+          <p class="empty-hint" *ngIf="roles.length && !filteredRoleOptions.length">
+            Aucun rôle ne correspond au filtre.
+          </p>
+          <p class="empty-hint" *ngIf="!isLoadingLookups && !roles.length">
+            Aucun rôle chargé. Créez d’abord des rôles dans ACCÈS → Rôle.
+          </p>
+          <small class="field-error" *ngIf="isSubmitted && !form.roleIds.length">
+            Au moins un rôle est obligatoire.
+          </small>
+        </section>
+
+        <section class="form-section">
+          <h4>Statut</h4>
+          <div class="status-cards">
+            <label class="status-card" [class.selected]="form.status === 'Actif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Actif" required />
+              <span>Actif</span>
+            </label>
+            <label class="status-card" [class.selected]="form.status === 'Inactif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Inactif" required />
+              <span>Inactif</span>
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()" [disabled]="isSaving">
+          Annuler
+        </button>
+        <button class="btn-save" type="submit" [disabled]="isSaving || isLoadingLookups">
+          {{ isSaving ? 'Enregistrement…' : isEditMode ? 'Mettre à jour' : 'Créer l’utilisateur' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -5,6 +5,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EcoleClassesComponent } from './ecole-classes/ecole-classes.component';
 import { EcoleClassroomDesignationsComponent } from './ecole-classroom-designations/ecole-classroom-designations.component';
 import { EcoleAcademicYearCurrenciesComponent } from './ecole-academic-year-currencies/ecole-academic-year-currencies.component';
+import { EcoleEnseignantsComponent } from './ecole-enseignants/ecole-enseignants.component';
+import { EcoleTitulairesComponent } from './ecole-titulaires/ecole-titulaires.component';
+import { EcoleAffectationsCoursComponent } from './ecole-affectations-cours/ecole-affectations-cours.component';
 import {
   AcademicModelApiResponse,
   AcademicModelService
@@ -21,7 +24,9 @@ type DetailsTab =
   | 'modeles-academiques'
   | 'designations-salles'
   | 'classes'
-  | 'enseignants';
+  | 'enseignants'
+  | 'titulaires'
+  | 'affectations-cours';
 type AssociationStatus = 'Actif' | 'Archive';
 
 interface SchoolOption {
@@ -69,7 +74,10 @@ interface AssociationForm {
     FormsModule,
     EcoleClassesComponent,
     EcoleClassroomDesignationsComponent,
-    EcoleAcademicYearCurrenciesComponent
+    EcoleAcademicYearCurrenciesComponent,
+    EcoleEnseignantsComponent,
+    EcoleTitulairesComponent,
+    EcoleAffectationsCoursComponent
   ],
   templateUrl: './details-ecole.component.html',
   styleUrl: './details-ecole.component.css'
@@ -106,7 +114,9 @@ export class DetailsEcoleComponent implements OnInit {
     { id: 'modeles-academiques', label: 'Modeles academiques', icon: 'bi-journal-bookmark' },
     { id: 'designations-salles', label: 'Designations salles', icon: 'bi-door-open' },
     { id: 'classes', label: 'Classes', icon: 'bi-easel' },
-    { id: 'enseignants', label: 'Enseignants', icon: 'bi-people' }
+    { id: 'enseignants', label: 'Enseignants', icon: 'bi-people' },
+    { id: 'titulaires', label: 'Titulaires', icon: 'bi-person-badge' },
+    { id: 'affectations-cours', label: 'Affectations de cours', icon: 'bi-journal-text' }
   ];
 
   readonly statusFormOptions: AssociationStatus[] = ['Actif', 'Archive'];

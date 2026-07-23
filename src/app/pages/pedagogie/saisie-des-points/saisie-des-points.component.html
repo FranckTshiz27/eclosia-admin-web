@@ -1,0 +1,229 @@
+<div class="page-container saisie-page">
+  <div class="saisie-header">
+    <div>
+      <h1>Saisie des points</h1>
+      <p>Enregistrez les notes des élèves par classe, période et matière</p>
+    </div>
+  </div>
+
+  <div class="filters-card">
+    <div class="filters-grid">
+      <div class="field-group">
+        <label>École</label>
+        <app-searchable-select
+          [(ngModel)]="schoolId"
+          [options]="schoolSelectOptions"
+          [disabled]="isLoadingLookups"
+          [clearable]="true"
+          placeholder="Rechercher une école..."
+          emptyText="Aucune école trouvée."
+          (selectionChange)="onSchoolChange()"
+        ></app-searchable-select>
+      </div>
+
+      <div class="field-group">
+        <label>Année scolaire</label>
+        <app-searchable-select
+          [(ngModel)]="academicYearId"
+          [options]="yearSelectOptions"
+          [disabled]="!schoolId"
+          [clearable]="true"
+          placeholder="Rechercher une année..."
+          emptyText="Aucune année trouvée."
+          (selectionChange)="onYearChange()"
+        ></app-searchable-select>
+      </div>
+
+      <div class="field-group">
+        <label>Classe</label>
+        <app-searchable-select
+          [(ngModel)]="classroomId"
+          [options]="classroomSelectOptions"
+          [disabled]="!schoolId"
+          [clearable]="true"
+          placeholder="Rechercher une classe..."
+          emptyText="Aucune classe trouvée."
+          (selectionChange)="onClassroomChange()"
+        ></app-searchable-select>
+      </div>
+
+      <div class="field-group">
+        <label>Trimestre</label>
+        <app-searchable-select
+          [(ngModel)]="academicTermId"
+          [options]="termSelectOptions"
+          [disabled]="!academicYearId"
+          [clearable]="true"
+          placeholder="Rechercher un trimestre..."
+          emptyText="Aucun trimestre trouvé."
+          (selectionChange)="onTermChange()"
+        ></app-searchable-select>
+      </div>
+
+      <div class="field-group">
+        <label>Période</label>
+        <app-searchable-select
+          [(ngModel)]="academicPeriodId"
+          [options]="periodSelectOptions"
+          [disabled]="!academicTermId"
+          [clearable]="true"
+          placeholder="Rechercher une période..."
+          emptyText="Aucune période trouvée."
+          (selectionChange)="onPeriodChange()"
+        ></app-searchable-select>
+      </div>
+    </div>
+  </div>
+
+  <div class="subject-card" *ngIf="schoolId && academicYearId && classroomId">
+    <div class="subject-grid">
+      <div class="field-group">
+        <label>Matière (branche)</label>
+        <app-searchable-select
+          [(ngModel)]="curriculumSubjectId"
+          [options]="subjectSelectOptions"
+          [disabled]="!subjects.length"
+          [clearable]="true"
+          placeholder="Rechercher une matière..."
+          emptyText="Aucune matière trouvée."
+          (selectionChange)="onSubjectChange()"
+        ></app-searchable-select>
+      </div>
+
+      <div class="metric">
+        <span class="metric-label">Coefficient</span>
+        <strong>{{ coefficient || '—' }}</strong>
+      </div>
+
+      <div class="metric">
+        <span class="metric-label">Maximum du cours</span>
+        <strong>{{ maximumPoints || '—' }}</strong>
+      </div>
+
+      <div class="metric">
+        <span class="metric-label">Ratio de la période</span>
+        <strong *ngIf="periodRatioFactor">{{ periodRatioFactor }} ({{ periodRatioPercent }}%)</strong>
+        <strong *ngIf="!periodRatioFactor">—</strong>
+      </div>
+
+      <div class="metric metric-highlight">
+        <span class="metric-label">Maximum autorisé</span>
+        <strong>{{ allowedMaximum || '—' }}</strong>
+      </div>
+    </div>
+
+    <div class="info-banner" *ngIf="contextReady">
+      Le maximum autorisé pour cette période est calculé automatiquement :
+      Maximum du cours ({{ maximumPoints }}) × Ratio de la période ({{ periodRatioFactor }}) =
+      <strong>{{ allowedMaximum }}</strong>
+    </div>
+  </div>
+
+  <div class="table-card" *ngIf="canShowStudents">
+    <div class="table-state" *ngIf="isLoadingRows">Chargement des élèves...</div>
+    <div class="table-state table-state-error" *ngIf="!isLoadingRows && loadError">{{ loadError }}</div>
+
+    <ng-container *ngIf="!isLoadingRows && !loadError">
+      <div class="info-banner" *ngIf="!contextReady" style="margin-bottom: 12px">
+        Sélectionnez aussi le trimestre, la période et la matière pour activer la saisie des notes.
+      </div>
+      <table class="scores-table">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Matricule</th>
+            <th>Nom et prénom de l'élève</th>
+            <th>Sexe</th>
+            <th>Points obtenus (sur {{ allowedMaximum || '—' }})</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="rows.length === 0">
+            <td colspan="5" class="table-state">Aucun élève à afficher.</td>
+          </tr>
+          <tr *ngFor="let row of rows; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td class="matricule">{{ row.matricule }}</td>
+            <td class="student-name">{{ row.fullName }}</td>
+            <td>{{ row.gender }}</td>
+            <td>
+              <input
+                type="number"
+                class="score-input"
+                [value]="row.score"
+                (input)="onScoreInput(row, $event)"
+                (blur)="onScoreBlur(row, $event)"
+                [min]="0"
+                [attr.max]="allowedMaximum > 0 ? allowedMaximum : null"
+                step="any"
+                [disabled]="!contextReady"
+                [class.input-invalid]="row.invalid"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="table-footer-bar">
+        <span>{{ rows.length }} élève{{ rows.length > 1 ? 's' : '' }}</span>
+        <div class="bulk-actions">
+          <input
+            type="number"
+            class="bulk-input"
+            [value]="bulkScore"
+            (input)="onBulkScoreInput($event)"
+            (blur)="onBulkScoreBlur($event)"
+            [min]="0"
+            [attr.max]="allowedMaximum > 0 ? allowedMaximum : null"
+            step="any"
+            placeholder="Note"
+            [disabled]="!contextReady"
+          />
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="applyBulkScore()"
+            [disabled]="!rows.length || !contextReady"
+          >
+            Appliquer la même note à tous
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="empty-hint" *ngIf="!canShowStudents">
+    Sélectionnez l’école, l’année scolaire et la classe pour afficher les élèves.
+  </div>
+
+  <div class="actions-bar" *ngIf="canShowStudents">
+    <div class="context-pill" *ngIf="contextReady">
+      Les points seront enregistrés pour :
+      <strong>{{ selectedPeriodLabel }}</strong> —
+      <strong>{{ selectedSubjectLabel }}</strong> —
+      <strong>{{ selectedClassroomLabel }}</strong>
+    </div>
+    <div class="actions-right">
+      <button type="button" class="btn-ghost" (click)="cancelEdits()" [disabled]="isSaving">Annuler</button>
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="save(true)"
+        [disabled]="isSaving || !contextReady"
+      >
+        Enregistrer et continuer
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="save(false)"
+        [disabled]="isSaving || !contextReady"
+      >
+        {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+      </button>
+    </div>
+  </div>
+
+  <p class="save-success" *ngIf="saveSuccess">{{ saveSuccess }}</p>
+  <p class="save-error" *ngIf="saveError">{{ saveError }}</p>
+</div>

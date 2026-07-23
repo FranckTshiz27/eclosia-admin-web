@@ -1,0 +1,281 @@
+<div class="page-container cycles-page modules-page">
+  <div class="cycles-header">
+    <div class="cycles-title-wrap">
+      <span class="cycles-icon"><i class="bi bi-shield-lock"></i></span>
+      <div>
+        <h1>Modules</h1>
+        <p>Gérez les modules de sécurité accessibles dans l’application</p>
+      </div>
+    </div>
+    <button
+      class="btn-new-cycle"
+      type="button"
+      (click)="openCreateModal()"
+      *appHasPermission="P.MODULE_CREATE"
+    >
+      <span class="btn-plus"><i class="bi bi-plus-lg"></i></span>
+      Nouveau module
+    </button>
+  </div>
+
+  <div class="alert alert-success" *ngIf="saveSuccess">{{ saveSuccess }}</div>
+
+  <div class="table-card">
+    <div class="table-toolbar filters-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Rechercher un module..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Statut</label>
+          <select [(ngModel)]="statusFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Type</label>
+          <select [(ngModel)]="systemFilter" [ngModelOptions]="{ standalone: true }">
+            <option *ngFor="let option of systemOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="cycles-table-wrapper">
+      <table class="cycles-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Icône</th>
+            <th>Description</th>
+            <th>Ordre</th>
+            <th>Type</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingRows">
+            <td colspan="8" class="table-state">Chargement des modules...</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && loadError">
+            <td colspan="8" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingRows && !loadError && filteredRows.length === 0">
+            <td colspan="8" class="table-state">Aucun module trouvé.</td>
+          </tr>
+          <tr *ngFor="let row of filteredRows">
+            <td class="code-col">{{ row.code }}</td>
+            <td class="cycle-name">{{ row.name }}</td>
+            <td>
+              <span class="icon-cell" *ngIf="row.icon">
+                <i [class]="row.icon"></i>
+                <span>{{ row.icon }}</span>
+              </span>
+              <span *ngIf="!row.icon">—</span>
+            </td>
+            <td>{{ row.description || '—' }}</td>
+            <td>{{ row.displayOrder }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="row.systemModule"
+                [class.badge-muted]="!row.systemModule"
+              >
+                {{ row.systemLabel }}
+              </span>
+            </td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="row.status === 'Actif'"
+                [class.badge-muted]="row.status === 'Inactif'"
+              >
+                {{ row.status }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button
+                type="button"
+                title="Modifier"
+                (click)="openEditModal(row)"
+                *appHasPermission="P.MODULE_UPDATE"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button
+                type="button"
+                title="Supprimer"
+                (click)="deleteRow(row)"
+                *appHasPermission="P.MODULE_DELETE"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>
+        Affichage de {{ filteredRows.length }} module{{ filteredRows.length > 1 ? 's' : '' }}
+        sur {{ rows.length }}
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="create-cycle-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditMode ? 'Modifier le module' : 'Nouveau module' }}</h3>
+        <p>
+          {{
+            isEditMode
+              ? 'Mettez à jour les informations de ce module de sécurité'
+              : 'Remplissez les informations pour créer un module de sécurité'
+          }}
+        </p>
+      </div>
+      <button class="btn-close" type="button" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form #moduleForm="ngForm" (ngSubmit)="saveModule(moduleForm)" novalidate>
+      <div class="modal-body">
+        <div class="alert alert-error" *ngIf="saveError">{{ saveError }}</div>
+
+        <section class="form-section">
+          <h4>Informations générales</h4>
+
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Code <span>*</span></label>
+              <input
+                type="text"
+                name="code"
+                [(ngModel)]="form.code"
+                #codeCtrl="ngModel"
+                required
+                maxlength="50"
+                pattern=".*\S.*"
+                placeholder="Ex: FINANCES"
+                [class.input-invalid]="(codeCtrl.invalid && codeCtrl.touched) || (isSubmitted && codeCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(codeCtrl.touched || isSubmitted) && codeCtrl.invalid">
+                Le code est obligatoire.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Nom <span>*</span></label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="form.name"
+                #nameCtrl="ngModel"
+                required
+                maxlength="100"
+                minlength="2"
+                placeholder="Ex: Finances"
+                [class.input-invalid]="(nameCtrl.invalid && nameCtrl.touched) || (isSubmitted && nameCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(nameCtrl.touched || isSubmitted) && nameCtrl.invalid">
+                Le nom est obligatoire.
+              </small>
+            </div>
+          </div>
+
+          <div class="field-grid two">
+            <div class="field-group">
+              <label>Icône</label>
+              <input
+                type="text"
+                name="icon"
+                [(ngModel)]="form.icon"
+                maxlength="100"
+                placeholder="Ex: bi bi-wallet2"
+              />
+              <small class="field-hint">Classe Bootstrap Icons (optionnel)</small>
+            </div>
+
+            <div class="field-group">
+              <label>Ordre d'affichage <span>*</span></label>
+              <input
+                type="number"
+                name="displayOrder"
+                [(ngModel)]="form.displayOrder"
+                #orderCtrl="ngModel"
+                required
+                min="0"
+                step="1"
+                placeholder="Ex: 1"
+                [class.input-invalid]="(orderCtrl.invalid && orderCtrl.touched) || (isSubmitted && orderCtrl.invalid)"
+              />
+              <small class="field-error" *ngIf="(orderCtrl.touched || isSubmitted) && orderCtrl.invalid">
+                L'ordre d'affichage est obligatoire.
+              </small>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Description</label>
+            <textarea
+              name="description"
+              [(ngModel)]="form.description"
+              maxlength="255"
+              rows="3"
+              placeholder="Description du module"
+            ></textarea>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h4>Statut</h4>
+          <label class="section-label">Statut <span>*</span></label>
+          <div class="status-cards">
+            <label class="status-card" [class.selected]="form.status === 'Actif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Actif" required />
+              <span>Actif</span>
+            </label>
+            <label class="status-card" [class.selected]="form.status === 'Inactif'">
+              <input type="radio" name="status" [(ngModel)]="form.status" value="Inactif" required />
+              <span>Inactif</span>
+            </label>
+          </div>
+
+          <label class="check-row">
+            <input type="checkbox" name="systemModule" [(ngModel)]="form.systemModule" />
+            Module système
+          </label>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()" [disabled]="isSaving">
+          Annuler
+        </button>
+        <button class="btn-save" type="submit" [disabled]="isSaving">
+          {{ isSaving ? 'Enregistrement…' : isEditMode ? 'Mettre à jour' : 'Créer le module' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

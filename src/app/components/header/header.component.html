@@ -29,7 +29,7 @@
             <div class="user-avatar">
                 <img [src]="userAvatar" alt="User">
             </div>
-            <span class="user-name">Ronnie Woodkin</span>
+            <span class="user-name">{{ userName }}</span>
             <span class="chevron-down-small"></span>
             <div class="profile-dropdown" id="profile-menu" (click)="$event.stopPropagation()">
                 <div class="profile-dropdown-header">
@@ -41,20 +41,16 @@
                 </div>
                 <div class="profile-dropdown-body">
                     <div class="profile-info-item">
-                        <span class="profile-info-label">Fonction</span>
-                        <span class="profile-info-value">Administrateur Système</span>
+                        <span class="profile-info-label">Nom</span>
+                        <span class="profile-info-value">{{ userName }}</span>
                     </div>
                     <div class="profile-info-item">
-                        <span class="profile-info-label">Grade</span>
-                        <span class="profile-info-value">Directeur</span>
-                    </div>
-                    <div class="profile-info-item">
-                        <span class="profile-info-label">Direction</span>
-                        <span class="profile-info-value">DRH / Kinshasa</span>
+                        <span class="profile-info-label">Rôle</span>
+                        <span class="profile-info-value">{{ userRoleLabel }}</span>
                     </div>
                 </div>
                 <div class="profile-dropdown-footer">
-                    <button class="btn-logout" routerLink="/login">
+                    <button class="btn-logout" type="button" (click)="logout()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16 17 21 12 16 7"></polyline>

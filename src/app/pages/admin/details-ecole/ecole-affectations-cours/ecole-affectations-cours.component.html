@@ -1,0 +1,428 @@
+<div class="assignments-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Affectations de cours</h2>
+      <p>
+        Associez enseignants, classes et matières pour
+        {{ schoolName || 'cette école' }}.
+      </p>
+    </div>
+    <div class="panel-actions">
+      <button
+        class="btn-primary"
+        type="button"
+        (click)="openCreateModal()"
+        [disabled]="!schoolId || !selectedYearId || isYearClosed || isLoadingLookups"
+      >
+        <i class="bi bi-plus-lg"></i>
+        Affecter un cours
+      </button>
+    </div>
+  </div>
+
+  <div class="closed-year-banner" *ngIf="isYearClosed">
+    <i class="bi bi-lock"></i>
+    Année scolaire clôturée — consultation seule (pas de création, modification ni désactivation).
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onFilterChange()"
+          placeholder="Rechercher classe, matière ou enseignant..."
+        />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-group year-filter">
+          <label>Année scolaire</label>
+          <app-searchable-select
+            [(ngModel)]="selectedYearId"
+            [ngModelOptions]="{ standalone: true }"
+            [options]="yearSelectOptions"
+            [disabled]="!schoolId || isLoadingLookups || yearOptions.length === 0"
+            [placeholder]="isLoadingLookups ? 'Chargement...' : 'Sélectionner une année'"
+            (selectionChange)="onYearChange()"
+          ></app-searchable-select>
+        </div>
+
+        <div class="filter-group status-filter">
+          <label>Statut</label>
+          <app-searchable-select
+            [(ngModel)]="statusFilter"
+            [ngModelOptions]="{ standalone: true }"
+            [options]="statusSelectOptions"
+            placeholder="Statut"
+            (selectionChange)="onFilterChange()"
+          ></app-searchable-select>
+        </div>
+
+        <button class="btn-reset" type="button" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Classe</th>
+            <th>Matière</th>
+            <th>Enseignant</th>
+            <th>H/sem.</th>
+            <th>Coef.</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoading || isLoadingLookups">
+            <td colspan="7" class="table-state">Chargement des affectations...</td>
+          </tr>
+          <tr *ngIf="!isLoading && !isLoadingLookups && loadError">
+            <td colspan="7" class="table-state table-state-error">{{ loadError }}</td>
+          </tr>
+          <tr *ngIf="!isLoading && !isLoadingLookups && !loadError && !schoolId">
+            <td colspan="7" class="table-state">Sélectionnez une école pour afficher les cours.</td>
+          </tr>
+          <tr
+            *ngIf="
+              !isLoading &&
+              !isLoadingLookups &&
+              !loadError &&
+              schoolId &&
+              !selectedYearId
+            "
+          >
+            <td colspan="7" class="table-state">Sélectionnez une année scolaire.</td>
+          </tr>
+          <tr
+            *ngIf="
+              !isLoading &&
+              !isLoadingLookups &&
+              !loadError &&
+              schoolId &&
+              selectedYearId &&
+              filteredAssignments.length === 0
+            "
+          >
+            <td colspan="7" class="table-state">Aucune affectation de cours pour cette école et année.</td>
+          </tr>
+          <tr *ngFor="let item of paginatedAssignments">
+            <td><strong>{{ item.classroomDisplayName }}</strong></td>
+            <td>{{ subjectLabel(item) }}</td>
+            <td>{{ item.teacherFullName }}</td>
+            <td>{{ item.weeklyHours == null ? '—' : item.weeklyHours }}</td>
+            <td>{{ item.coefficient == null ? '—' : item.coefficient }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.badge-success]="item.active"
+                [class.badge-muted]="!item.active"
+              >
+                {{ item.active ? 'Actif' : 'Inactif' }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button
+                type="button"
+                (click)="openEditModal(item)"
+                title="Modifier"
+                [disabled]="isYearClosed"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button
+                type="button"
+                (click)="deactivate(item)"
+                title="Désactiver"
+                [disabled]="isYearClosed || !item.active"
+              >
+                <i class="bi bi-slash-circle"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <div class="page-size">
+        <label>Lignes</label>
+        <app-searchable-select
+          [(ngModel)]="pageSizeValue"
+          [ngModelOptions]="{ standalone: true }"
+          [options]="pageSizeSelectOptions"
+          placeholder="Lignes"
+        ></app-searchable-select>
+      </div>
+      <p>
+        Affichage de {{ rangeStart }} à {{ rangeEnd }} sur {{ filteredAssignments.length }}
+        affectations
+      </p>
+      <div class="pager">
+        <button type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage <= 1">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button type="button" class="active" disabled>
+          {{ currentPage }} / {{ totalPages }}
+        </button>
+        <button
+          type="button"
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage >= totalPages"
+        >
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="assignment-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+    <form (ngSubmit)="save()" novalidate>
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon"><i class="bi bi-journal-text"></i></span>
+          <div>
+            <h3>{{ isEditMode ? 'Modifier l’affectation' : 'Affecter un cours' }}</h3>
+            <p>{{ selectedYear?.label || 'Année scolaire' }}</p>
+          </div>
+        </div>
+        <button class="modal-close" type="button" (click)="closeModal()" aria-label="Fermer">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="field-error" *ngIf="saveError">{{ saveError }}</p>
+        <div class="replace-box" *ngIf="replaceHint">
+          <p>{{ replaceHint }}</p>
+          <button
+            class="btn-warning"
+            type="button"
+            (click)="replaceAndCreate()"
+            [disabled]="isSaving || selectedSubjectsCount > 1"
+            *ngIf="selectedSubjectsCount <= 1"
+          >
+            Remplacer l’affectation
+          </button>
+        </div>
+
+        <div class="form-grid" *ngIf="!isEditMode">
+          <div class="form-field">
+            <label>Classe *</label>
+            <app-searchable-select
+              name="classroomId"
+              [(ngModel)]="form.classroomId"
+              [options]="classroomSelectOptions"
+              [disabled]="isSaving"
+              placeholder="Rechercher une classe..."
+              (selectionChange)="onClassroomChange($event)"
+            ></app-searchable-select>
+            <small class="field-error" *ngIf="isSubmitted && !form.classroomId">
+              La classe est obligatoire.
+            </small>
+          </div>
+
+          <div class="form-field">
+            <label>Enseignant *</label>
+            <app-searchable-select
+              name="teacherId"
+              [(ngModel)]="form.teacherId"
+              [options]="teacherSelectOptions"
+              [disabled]="isSaving"
+              placeholder="Rechercher un enseignant..."
+            ></app-searchable-select>
+            <small class="field-error" *ngIf="isSubmitted && !form.teacherId">
+              L’enseignant est obligatoire.
+            </small>
+          </div>
+
+          <div class="form-field" style="grid-column: 1 / -1">
+            <div class="subjects-header">
+              <label>Branches / matières *</label>
+              <span class="multi-count">{{ selectedSubjectsCount }} sélectionnée(s)</span>
+            </div>
+
+            <div class="subjects-toolbar" *ngIf="form.classroomId && !isLoadingSubjects">
+              <div class="subject-search">
+                <i class="bi bi-search"></i>
+                <input
+                  type="text"
+                  [(ngModel)]="subjectSearchTerm"
+                  [ngModelOptions]="{ standalone: true }"
+                  name="subjectSearch"
+                  placeholder="Filtrer les branches..."
+                  [disabled]="isSaving || !subjectOptions.length"
+                />
+              </div>
+              <div class="subjects-actions">
+                <button
+                  type="button"
+                  class="btn-link"
+                  (click)="selectAllSubjects()"
+                  [disabled]="isSaving || !filteredSubjectOptions.length"
+                >
+                  Tout sélectionner
+                </button>
+                <button
+                  type="button"
+                  class="btn-link"
+                  (click)="clearSelectedSubjects()"
+                  [disabled]="isSaving || selectedSubjectsCount === 0"
+                >
+                  Tout désélectionner
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="subjects-list"
+              *ngIf="form.classroomId && !isLoadingSubjects && filteredSubjectOptions.length"
+            >
+              <label
+                class="check-item"
+                *ngFor="let subject of filteredSubjectOptions"
+                [class.selected]="isSubjectSelected(subject.id)"
+              >
+                <input
+                  type="checkbox"
+                  [checked]="isSubjectSelected(subject.id)"
+                  (change)="toggleSubject(subject.id)"
+                  [disabled]="isSaving || !subject.active"
+                />
+                <span>
+                  <strong>{{ subject.label }}</strong>
+                  <small *ngIf="subject.coefficient != null">Coef. {{ subject.coefficient }}</small>
+                </span>
+              </label>
+            </div>
+
+            <small class="field-hint" *ngIf="!form.classroomId">
+              Sélectionnez d’abord une classe pour charger ses branches.
+            </small>
+            <small class="field-hint" *ngIf="isLoadingSubjects">
+              Chargement des branches du programme de la classe...
+            </small>
+            <small
+              class="field-hint"
+              *ngIf="
+                form.classroomId &&
+                !isLoadingSubjects &&
+                !subjectsError &&
+                subjectOptions.length > 0 &&
+                availableSubjectOptions.length === 0
+              "
+            >
+              Toutes les branches de cette classe sont déjà affectées pour cette année.
+            </small>
+            <small class="field-error" *ngIf="subjectsError">{{ subjectsError }}</small>
+            <small
+              class="field-error"
+              *ngIf="isSubmitted && selectedSubjectsCount === 0 && !subjectsError && form.classroomId"
+            >
+              Sélectionnez au moins une branche.
+            </small>
+            <small class="field-hint" *ngIf="selectedSubjectsCount > 0">
+              Une affectation sera créée pour chaque branche sélectionnée (même enseignant / classe /
+              année). Le coefficient du programme est utilisé si le champ coefficient est vide.
+            </small>
+          </div>
+        </div>
+
+        <div class="form-grid" *ngIf="isEditMode">
+          <div class="form-field">
+            <label>Classe</label>
+            <input type="text" [value]="labelOf(form.classroomId, classroomOptions)" disabled />
+          </div>
+          <div class="form-field">
+            <label>Enseignant</label>
+            <input type="text" [value]="labelOf(form.teacherId, teacherOptions)" disabled />
+          </div>
+          <div class="form-field" style="grid-column: 1 / -1">
+            <label>Matière</label>
+            <input type="text" [value]="labelOf(form.subjectId, subjectOptions)" disabled />
+          </div>
+          <div class="form-field">
+            <label class="checkbox-label">
+              <input type="checkbox" name="active" [(ngModel)]="form.active" [disabled]="isSaving" />
+              Actif
+            </label>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Heures / semaine</label>
+            <input
+              type="number"
+              name="weeklyHours"
+              min="0"
+              step="0.5"
+              [(ngModel)]="form.weeklyHours"
+              [disabled]="isSaving"
+              placeholder="Ex. 6"
+            />
+          </div>
+          <div class="form-field">
+            <label>Coefficient</label>
+            <input
+              type="number"
+              name="coefficient"
+              min="0"
+              step="0.5"
+              [(ngModel)]="form.coefficient"
+              [disabled]="isSaving"
+              placeholder="Ex. 2"
+            />
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Remarques</label>
+          <textarea
+            name="remarks"
+            rows="3"
+            maxlength="1000"
+            [(ngModel)]="form.remarks"
+            [disabled]="isSaving"
+            placeholder="Optionnel (max 1000)"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" (click)="closeModal()" [disabled]="isSaving">
+          Annuler
+        </button>
+        <button
+          class="btn-save"
+          type="button"
+          (click)="save()"
+          [disabled]="isSaving || isYearClosed"
+        >
+          {{
+            isSaving
+              ? 'Enregistrement...'
+              : isEditMode
+                ? 'Enregistrer'
+                : selectedSubjectsCount > 0
+                  ? selectedSubjectsCount > 1
+                    ? 'Affecter ' + selectedSubjectsCount + ' branches'
+                    : 'Affecter'
+                  : 'Affecter'
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

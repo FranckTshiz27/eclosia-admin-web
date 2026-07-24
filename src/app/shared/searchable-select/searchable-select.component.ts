@@ -1,13 +1,16 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  ElementRef,
   EventEmitter,
   forwardRef,
   HostListener,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
-  SimpleChanges
+  SimpleChanges,
+  ViewChild
 } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 
@@ -31,7 +34,9 @@ export interface SearchableSelectOption {
     }
   ]
 })
-export class SearchableSelectComponent implements ControlValueAccessor, OnChanges {
+export class SearchableSelectComponent
+  implements ControlValueAccessor, OnChanges, OnDestroy
+{
   @Input() options: SearchableSelectOption[] = [];
   @Input() placeholder = 'Rechercher...';
   @Input() disabled = false;
@@ -39,9 +44,12 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnChange
   @Input() emptyText = 'Aucun résultat.';
   @Output() selectionChange = new EventEmitter<string>();
 
+  @ViewChild('queryInput') private queryInput?: ElementRef<HTMLInputElement>;
+
   query = '';
   isOpen = false;
   private value = '';
+  private blurTimer: ReturnType<typeof setTimeout> | null = null;
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
@@ -49,6 +57,10 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnChange
     if (changes['options'] || changes['disabled']) {
       this.syncQueryFromValue();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.clearBlurTimer();
   }
 
   get hasValue(): boolean {
@@ -89,20 +101,47 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnChange
     if (this.disabled) {
       return;
     }
+    this.clearBlurTimer();
     this.isOpen = true;
+  }
+
+  /** Clic sur le champ : rouvre même si l'input a déjà le focus. */
+  onInputClick(): void {
+    if (this.disabled) {
+      return;
+    }
+    this.open();
   }
 
   onQueryInput(): void {
     if (this.disabled) {
       return;
     }
+    this.open();
+  }
+
+  /** Flèche : bascule ouverture / fermeture sans perdre le focus. */
+  toggleFromChevron(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.disabled) {
+      return;
+    }
+    this.clearBlurTimer();
+    if (this.isOpen) {
+      this.isOpen = false;
+      this.syncQueryFromValue();
+      return;
+    }
     this.isOpen = true;
+    this.queryInput?.nativeElement.focus();
   }
 
   selectOption(option: SearchableSelectOption): void {
     if (option.disabled) {
       return;
     }
+    this.clearBlurTimer();
     this.query = option.label;
     this.setValue(option.id);
     this.isOpen = false;
@@ -113,6 +152,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnChange
     if (this.disabled) {
       return;
     }
+    this.clearBlurTimer();
     this.query = '';
     this.setValue('');
     this.isOpen = false;
@@ -120,11 +160,13 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnChange
   }
 
   onBlur(): void {
-    window.setTimeout(() => {
+    this.clearBlurTimer();
+    this.blurTimer = setTimeout(() => {
       this.isOpen = false;
       this.syncQueryFromValue();
       this.onTouched();
-    }, 120);
+      this.blurTimer = null;
+    }, 150);
   }
 
   @HostListener('document:keydown.escape')
@@ -151,6 +193,13 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnChange
     }
     const selected = this.options.find((option) => option.id === this.value);
     this.query = selected?.label ?? '';
+  }
+
+  private clearBlurTimer(): void {
+    if (this.blurTimer != null) {
+      clearTimeout(this.blurTimer);
+      this.blurTimer = null;
+    }
   }
 
   private normalize(value: string): string {

@@ -32,12 +32,36 @@
 
 .select-chevron {
   position: absolute;
-  right: 10px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
   color: #98a2b3;
   font-size: 12px;
-  pointer-events: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 1;
+}
+
+.select-chevron:hover:not(:disabled) {
+  background: #f2f4f7;
+  color: #475467;
+}
+
+.select-chevron:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.searchable-select.is-open .select-chevron i {
+  transform: rotate(180deg);
 }
 
 .select-clear {
